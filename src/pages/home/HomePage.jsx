@@ -528,7 +528,15 @@ const STYLE_BOOKS = [
 
 function HorizontalScroll({ children }) {
   return (
-    <div className="flex overflow-x-auto pl-6 pr-4" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+    <div
+      className="flex overflow-x-auto pl-6 pr-4"
+      style={{
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+        scrollSnapType: "x mandatory",
+        WebkitOverflowScrolling: "touch",
+      }}
+    >
       {children}
       <div className="shrink-0 w-2" />
     </div>
@@ -542,7 +550,7 @@ function ProductCard({ item, wide = false }) {
   const h = wide ? 210 : 190;
 
   return (
-    <div className="relative shrink-0 rounded-sm overflow-hidden bg-white" style={{ width: w, marginRight: 10 }}>
+    <div className="relative shrink-0 rounded-sm overflow-hidden bg-white" style={{ width: w, marginRight: 10, scrollSnapAlign: "start" }}>
       {/* Image area */}
       <div className="relative overflow-hidden" style={{ height: h, backgroundColor: item.fallback }}>
         {!imgError ? (
@@ -629,7 +637,7 @@ function StyleBook() {
       <SectionHeader en="STYLE BOOK" ko="인기 스타일 속 아이템" onMore={() => {}} />
       <HorizontalScroll>
         {STYLE_BOOKS.map((book) => (
-          <div key={book.id} className="shrink-0 rounded-xl overflow-hidden mr-3 relative" style={{ width: 140, height: 190, backgroundColor: book.color }}>
+          <div key={book.id} className="shrink-0 rounded-xl overflow-hidden mr-3 relative" style={{ width: 140, height: 190, backgroundColor: book.color, scrollSnapAlign: "start" }}>
             <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 30% 30%, white 0%, transparent 60%)" }} />
             <div className="absolute inset-0 flex flex-col justify-end p-3">
               <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.5)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>STYLE</p>

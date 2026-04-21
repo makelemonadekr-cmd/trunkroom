@@ -87,7 +87,7 @@ export default function BottomNav({ active, onTabChange }) {
   return (
     <div
       className="flex items-center justify-around bg-white border-t border-[#EEEEEE] shrink-0"
-      style={{ height: 62, paddingBottom: 6 }}
+      style={{ height: 56, paddingBottom: 4 }}
     >
       {TABS.map(({ id, label, Icon }) => {
         const isActive = active === id;

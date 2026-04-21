@@ -7,33 +7,6 @@ import BottomNav from "./components/BottomNav";
 
 const ONBOARDING_KEY = "trunkroom_onboarded";
 
-function MainApp() {
-  const [activeTab, setActiveTab] = useState("home");
-  const [currentProduct, setCurrentProduct] = useState(null);
-
-  return (
-    <div className="relative flex-1 min-h-0 flex flex-col bg-white">
-      {/* Page area */}
-      <div className="flex-1 overflow-hidden">
-        {activeTab === "home" && <HomePage onProductSelect={setCurrentProduct} />}
-        {activeTab === "search" && <PlaceholderPage title="검색" />}
-        {activeTab === "sell" && <PlaceholderPage title="판매" />}
-        {activeTab === "closet" && <ClosetPage />}
-        {activeTab === "menu" && <PlaceholderPage title="메뉴" />}
-      </div>
-      <BottomNav active={activeTab} onTabChange={setActiveTab} />
-
-      {/* Product detail overlay — covers full MainApp area (above BottomNav too) */}
-      {currentProduct && (
-        <ProductDetailPage
-          product={currentProduct}
-          onBack={() => setCurrentProduct(null)}
-        />
-      )}
-    </div>
-  );
-}
-
 function PlaceholderPage({ title }) {
   return (
     <div className="flex items-center justify-center h-full bg-white">
@@ -49,8 +22,10 @@ function PlaceholderPage({ title }) {
 
 export default function App() {
   const [phase, setPhase] = useState(
-    () => localStorage.getItem(ONBOARDING_KEY) ? "app" : "onboarding"
+    () => (localStorage.getItem(ONBOARDING_KEY) ? "app" : "onboarding")
   );
+  const [activeTab,      setActiveTab]      = useState("home");
+  const [currentProduct, setCurrentProduct] = useState(null);
 
   const handleOnboardingComplete = () => {
     localStorage.setItem(ONBOARDING_KEY, "1");
@@ -58,33 +33,47 @@ export default function App() {
   };
 
   if (phase === "onboarding") {
-    return (
-      <TrunkRoomOnboarding onComplete={handleOnboardingComplete} />
-    );
+    return <TrunkRoomOnboarding onComplete={handleOnboardingComplete} />;
   }
 
-  // Main app – full-screen mobile layout wrapper
   return (
     <div className="flex items-center justify-center min-h-screen bg-neutral-300">
+      {/*
+        Phone shell — fixed 375 × 812 px, rounded corners 44 px.
+
+        Flex column layout (top → bottom):
+          [1] Status bar   — shrink-0, 44 px
+          [2] Page area    — flex-1, min-h-0  (fills everything between #1 and #3+#4)
+          [3] Bottom nav   — shrink-0, 56 px  ← ALWAYS visible, never clipped
+          [4] Home pill    — shrink-0, 22 px  (iPhone home indicator)
+
+        Heights: 44 + flex-1 + 56 + 22 = 812  →  flex-1 = 690 px
+        BottomNav top  = 44 + 690 = 734 px from top  (78 px from bottom)
+        BottomNav bottom = 734 + 56 = 790 px from top (22 px from bottom)
+        Corner-radius 44 clips at x ≈ 0 px at y = 790 → zero clip on tab content ✓
+      */}
       <div
         className="relative overflow-hidden shadow-2xl flex flex-col"
         style={{ width: 375, height: 812, borderRadius: 44 }}
       >
-        {/* Status bar — white with dark text/icons to match main app */}
+        {/* ── [1] Status bar ──────────────────────────────────────── */}
         <div
           className="flex items-center justify-between bg-white shrink-0"
           style={{ height: 44, paddingLeft: 24, paddingRight: 20 }}
         >
-          <span className="text-[15px] font-semibold tracking-tight" style={{ color: "#1a1a1a" }}>
+          <span
+            className="text-[15px] font-semibold tracking-tight"
+            style={{ color: "#1a1a1a" }}
+          >
             9:41
           </span>
           <div className="flex items-center gap-[7px]">
             {/* Signal bars */}
             <svg width="17" height="11" viewBox="0 0 17 11" fill="none">
-              <rect x="0" y="7" width="3" height="4" rx="0.5" fill="#1a1a1a" />
-              <rect x="4.5" y="4.5" width="3" height="6.5" rx="0.5" fill="#1a1a1a" />
-              <rect x="9" y="2" width="3" height="9" rx="0.5" fill="#1a1a1a" />
-              <rect x="13.5" y="0" width="3" height="11" rx="0.5" fill="#1a1a1a" opacity="0.3" />
+              <rect x="0"    y="7"   width="3" height="4"    rx="0.5" fill="#1a1a1a" />
+              <rect x="4.5"  y="4.5" width="3" height="6.5"  rx="0.5" fill="#1a1a1a" />
+              <rect x="9"    y="2"   width="3" height="9"    rx="0.5" fill="#1a1a1a" />
+              <rect x="13.5" y="0"   width="3" height="11"   rx="0.5" fill="#1a1a1a" opacity="0.3" />
             </svg>
             {/* Wi-Fi */}
             <svg width="15" height="11" viewBox="0 0 15 11" fill="none">
@@ -95,12 +84,42 @@ export default function App() {
             {/* Battery */}
             <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
               <rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="#1a1a1a" strokeOpacity="0.35" />
-              <rect x="2" y="2" width="16" height="8" rx="2" fill="#1a1a1a" />
+              <rect x="2"   y="2"   width="16" height="8"  rx="2"   fill="#1a1a1a" />
               <path d="M23 4v4a2 2 0 000-4z" fill="#1a1a1a" fillOpacity="0.4" />
             </svg>
           </div>
         </div>
-        <MainApp />
+
+        {/* ── [2] Page area ────────────────────────────────────────── */}
+        <div className="relative flex-1 min-h-0 overflow-hidden bg-white">
+          {activeTab === "home"   && <HomePage onProductSelect={setCurrentProduct} />}
+          {activeTab === "search" && <PlaceholderPage title="검색" />}
+          {activeTab === "sell"   && <PlaceholderPage title="판매" />}
+          {activeTab === "closet" && <ClosetPage />}
+          {activeTab === "menu"   && <PlaceholderPage title="메뉴" />}
+
+          {/* Product detail overlay — absolute, covers full page area */}
+          {currentProduct && (
+            <ProductDetailPage
+              product={currentProduct}
+              onBack={() => setCurrentProduct(null)}
+            />
+          )}
+        </div>
+
+        {/* ── [3] Bottom navigation — ALWAYS inside the phone ─────── */}
+        <BottomNav active={activeTab} onTabChange={setActiveTab} />
+
+        {/* ── [4] iPhone home indicator ───────────────────────────── */}
+        <div
+          className="shrink-0 flex items-center justify-center bg-white"
+          style={{ height: 22 }}
+        >
+          <div
+            className="rounded-full"
+            style={{ width: 134, height: 5, backgroundColor: "rgba(0,0,0,0.18)" }}
+          />
+        </div>
       </div>
     </div>
   );

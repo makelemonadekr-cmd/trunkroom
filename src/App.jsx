@@ -2,24 +2,34 @@ import { useState } from "react";
 import TrunkRoomOnboarding from "./pages/onboarding/TrunkRoomOnboarding";
 import HomePage from "./pages/home/HomePage";
 import ClosetPage from "./pages/closet/ClosetPage";
+import ProductDetailPage from "./pages/product/ProductDetailPage";
 import BottomNav from "./components/BottomNav";
 
 const ONBOARDING_KEY = "trunkroom_onboarded";
 
 function MainApp() {
   const [activeTab, setActiveTab] = useState("home");
+  const [currentProduct, setCurrentProduct] = useState(null);
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="relative flex-1 min-h-0 flex flex-col bg-white">
       {/* Page area */}
       <div className="flex-1 overflow-hidden">
-        {activeTab === "home" && <HomePage />}
+        {activeTab === "home" && <HomePage onProductSelect={setCurrentProduct} />}
         {activeTab === "search" && <PlaceholderPage title="검색" />}
         {activeTab === "sell" && <PlaceholderPage title="판매" />}
         {activeTab === "closet" && <ClosetPage />}
         {activeTab === "menu" && <PlaceholderPage title="메뉴" />}
       </div>
       <BottomNav active={activeTab} onTabChange={setActiveTab} />
+
+      {/* Product detail overlay — covers full MainApp area (above BottomNav too) */}
+      {currentProduct && (
+        <ProductDetailPage
+          product={currentProduct}
+          onBack={() => setCurrentProduct(null)}
+        />
+      )}
     </div>
   );
 }

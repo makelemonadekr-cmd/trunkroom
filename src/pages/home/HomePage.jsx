@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import TopBar from "../../components/TopBar";
+import ProductFilterSheet from "../../components/ProductFilterSheet";
+import StyleBookFilterSheet from "../../components/StyleBookFilterSheet";
 
 // ─── Mock weather data ────────────────────────────────────────────────────────
 // Replace MOCK_WEATHER with a real API call later.
@@ -451,57 +453,57 @@ const NEW_LISTINGS = [
 const HOT_LISTINGS = [
   {
     id: 7,
-    brand: "POLO RALPH LAUREN",
-    name: "클래식 핏 옥스포드",
+    brand: "MAJE",
+    name: "플로럴 미디 드레스",
     price: "89,000",
-    condition: "A급",
-    image: "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=300&q=75&fit=crop",
-    fallback: "#BCD8E8",
+    condition: "S급",
+    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300&q=75&fit=crop",
+    fallback: "#F2E0D0",
   },
   {
     id: 8,
-    brand: "TOMMY HILFIGER",
-    name: "네이비 블레이저",
+    brand: "SANDRO",
+    name: "실크 브이넥 블라우스",
     price: "115,000",
     condition: "S급",
-    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=300&q=75&fit=crop",
-    fallback: "#E8DCBC",
+    image: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=300&q=75&fit=crop",
+    fallback: "#E8DCF0",
   },
   {
     id: 9,
-    brand: "STUSSY",
-    name: "그래픽 후디",
-    price: "72,000",
+    brand: "COS",
+    name: "와이드 리넨 팬츠",
+    price: "62,000",
     condition: "A급",
-    image: "https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=300&q=75&fit=crop",
-    fallback: "#BCE8D4",
+    image: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=300&q=75&fit=crop",
+    fallback: "#D4E0EC",
   },
   {
     id: 10,
-    brand: "CARHARTT WIP",
-    name: "더블니 팬츠",
-    price: "93,000",
-    condition: "B급",
-    image: "https://images.unsplash.com/photo-1542272604-787c3835535d?w=300&q=75&fit=crop",
-    fallback: "#E8BCE8",
+    brand: "& OTHER STORIES",
+    name: "리브드 니트 카디건",
+    price: "74,000",
+    condition: "A급",
+    image: "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=300&q=75&fit=crop",
+    fallback: "#F0E8D4",
   },
   {
     id: 11,
-    brand: "KITH",
-    name: "로고 크루넥",
-    price: "135,000",
+    brand: "ARKET",
+    name: "플리츠 미니스커트",
+    price: "48,000",
     condition: "S급",
-    image: "https://images.unsplash.com/photo-1562157873-818bc0726f68?w=300&q=75&fit=crop",
-    fallback: "#E8D4BC",
+    image: "https://images.unsplash.com/photo-1548549557-dbe9946621da?w=300&q=75&fit=crop",
+    fallback: "#E8F0D4",
   },
   {
     id: 12,
-    brand: "NIKE",
-    name: "테크 플리스 조거",
-    price: "58,000",
-    condition: "A급",
-    image: "https://images.unsplash.com/photo-1552902865-b72c031ac5ea?w=300&q=75&fit=crop",
-    fallback: "#D4BCE8",
+    brand: "TOTEME",
+    name: "오버핏 트렌치코트",
+    price: "198,000",
+    condition: "S급",
+    image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=300&q=75&fit=crop",
+    fallback: "#E0D8D0",
   },
 ];
 
@@ -516,12 +518,43 @@ const CATEGORIES = [
   { id: 8, label: "스포츠",   emoji: "🎽" },
 ];
 
+const CAT_SUBS = {
+  상의:     ["반팔 티셔츠", "긴팔 티셔츠", "셔츠/블라우스", "니트/스웨터", "후드티"],
+  하의:     ["데님 팬츠", "슬랙스", "미니스커트", "미디스커트", "조거팬츠"],
+  아우터:   ["트렌치코트", "패딩", "블레이저", "코트", "가디건"],
+  원피스:   ["미니 원피스", "미디 원피스", "맥시 원피스", "점프수트", "니트 원피스"],
+  신발:     ["스니커즈", "로퍼", "힐/펌프스", "부츠", "샌들"],
+  가방:     ["숄더백", "크로스백", "토트백", "클러치", "백팩"],
+  액세서리: ["목걸이", "귀걸이", "반지", "선글라스", "벨트"],
+  스포츠:   ["레깅스", "스포츠 브라", "트레이닝 팬츠", "윈드브레이커", "운동화"],
+};
+
 const STYLE_BOOKS = [
-  { id: 1, title: "City Minimal",  count: 24, color: "#313439" },
-  { id: 2, title: "Vintage Vibes", count: 18, color: "#8B7355" },
-  { id: 3, title: "Street Core",   count: 31, color: "#2C4A6E" },
-  { id: 4, title: "Clean Fit",     count: 15, color: "#5A5A5A" },
-  { id: 5, title: "Feminine",      count: 22, color: "#C4606B" },
+  {
+    id: 1, title: "City Minimal",  count: 24, color: "#1C1C1E",
+    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=300&q=80&fit=crop",
+    tags: ["미니멀", "모노톤", "데일리"],
+  },
+  {
+    id: 2, title: "Vintage Vibes", count: 18, color: "#6B5040",
+    image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=300&q=80&fit=crop",
+    tags: ["빈티지", "레트로", "웜톤"],
+  },
+  {
+    id: 3, title: "Street Core",   count: 31, color: "#1A2A3A",
+    image: "https://images.unsplash.com/photo-1554412933-514a83d2f3c8?w=300&q=80&fit=crop",
+    tags: ["스트릿", "오버핏", "캐주얼"],
+  },
+  {
+    id: 4, title: "Clean Fit",     count: 15, color: "#3A3A3A",
+    image: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=300&q=80&fit=crop",
+    tags: ["클린", "베이직", "오피스"],
+  },
+  {
+    id: 5, title: "Feminine",      count: 22, color: "#7A3040",
+    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300&q=80&fit=crop",
+    tags: ["페미닌", "플로럴", "데이트"],
+  },
 ];
 
 // ─── Reusable components ──────────────────────────────────────────────────────
@@ -543,14 +576,18 @@ function HorizontalScroll({ children }) {
   );
 }
 
-function ProductCard({ item, wide = false }) {
+function ProductCard({ item, wide = false, onSelect }) {
   const [liked,    setLiked]    = useState(false);
   const [imgError, setImgError] = useState(false);
   const w = wide ? 163 : 148;
   const h = wide ? 210 : 190;
 
   return (
-    <div className="relative shrink-0 rounded-sm overflow-hidden bg-white" style={{ width: w, marginRight: 10, scrollSnapAlign: "start" }}>
+    <div
+      className="relative shrink-0 rounded-sm overflow-hidden bg-white"
+      style={{ width: w, marginRight: 10, scrollSnapAlign: "start", cursor: "pointer" }}
+      onClick={() => onSelect && onSelect(item)}
+    >
       {/* Image area */}
       <div className="relative overflow-hidden" style={{ height: h, backgroundColor: item.fallback }}>
         {!imgError ? (
@@ -587,7 +624,7 @@ function ProductCard({ item, wide = false }) {
         </div>
 
         {/* Like */}
-        <button className="absolute bottom-2 right-2" onClick={() => setLiked(!liked)}>
+        <button className="absolute bottom-2 right-2" onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}>
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path
               d="M10 17L3 10C2.17 9.17 2 8.04 2 7C2 4.79 3.79 3 6 3C7.32 3 8.52 3.65 9.38 4.62L10 5.3L10.62 4.62C11.48 3.65 12.68 3 14 3C16.21 3 18 4.79 18 7C18 8.04 17.83 9.17 17 10L10 17Z"
@@ -611,38 +648,140 @@ function ProductCard({ item, wide = false }) {
 
 function Categories() {
   const [selected, setSelected] = useState(null);
+  const [activeSub, setActiveSub] = useState(null);
+
+  function handleCatClick(cat) {
+    if (selected === cat.label) {
+      setSelected(null);
+      setActiveSub(null);
+    } else {
+      setSelected(cat.label);
+      setActiveSub(CAT_SUBS[cat.label]?.[0] ?? null);
+    }
+  }
+
+  const subs = selected ? CAT_SUBS[selected] : null;
+
   return (
     <div className="py-6 bg-white">
-      <SectionHeader en="CATEGORIES" ko="카테고리" />
+      <SectionHeader en="CATEGORIES" ko="내 옷장 속 카테고리" />
       <div className="grid grid-cols-4 gap-3 px-6">
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setSelected(cat.id)}
-            className="flex flex-col items-center gap-2 py-3 rounded-lg transition-colors"
-            style={{ backgroundColor: selected === cat.id ? "#333" : "#F5F5F5" }}
-          >
-            <span className="text-2xl">{cat.emoji}</span>
-            <span className="text-[11px] font-medium" style={{ color: selected === cat.id ? "white" : "#444", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{cat.label}</span>
-          </button>
-        ))}
+        {CATEGORIES.map((cat) => {
+          const isActive = selected === cat.label;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => handleCatClick(cat)}
+              className="flex flex-col items-center gap-2 py-3 rounded-xl transition-all"
+              style={{
+                backgroundColor: isActive ? "#1a1a1a" : "#F5F5F5",
+                transform: isActive ? "scale(0.97)" : "scale(1)",
+              }}
+            >
+              <span className="text-2xl">{cat.emoji}</span>
+              <span
+                className="text-[11px] font-medium"
+                style={{ color: isActive ? "white" : "#444", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+              >
+                {cat.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
+
+      {/* Sub-category tags */}
+      {subs && (
+        <div className="mt-4 px-5">
+          <div
+            className="p-3 rounded-2xl"
+            style={{ backgroundColor: "#F8F8F8" }}
+          >
+            <p className="text-[10px] font-bold tracking-widest uppercase mb-2.5 px-1" style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+              {selected} 세부 카테고리
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {subs.map((sub) => {
+                const isSubActive = activeSub === sub;
+                return (
+                  <button
+                    key={sub}
+                    onClick={() => setActiveSub(sub)}
+                    className="px-3 py-1.5 rounded-full text-[12px] font-medium transition-all"
+                    style={{
+                      backgroundColor: isSubActive ? "#1a1a1a" : "white",
+                      color: isSubActive ? "white" : "#555",
+                      fontFamily: "'Spoqa Han Sans Neo', sans-serif",
+                      border: isSubActive ? "1.5px solid #1a1a1a" : "1.5px solid #E8E8E8",
+                    }}
+                  >
+                    {sub}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function StyleBook() {
+function StyleBook({ onFilterOpen }) {
   return (
     <div className="py-6" style={{ backgroundColor: "#F5F5F5" }}>
-      <SectionHeader en="STYLE BOOK" ko="인기 스타일 속 아이템" onMore={() => {}} />
+      <SectionHeader en="STYLE BOOK" ko="인기 스타일 속 아이템" onMore={onFilterOpen} />
       <HorizontalScroll>
         {STYLE_BOOKS.map((book) => (
-          <div key={book.id} className="shrink-0 rounded-xl overflow-hidden mr-3 relative" style={{ width: 140, height: 190, backgroundColor: book.color, scrollSnapAlign: "start" }}>
-            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 30% 30%, white 0%, transparent 60%)" }} />
-            <div className="absolute inset-0 flex flex-col justify-end p-3">
-              <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.5)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>STYLE</p>
-              <p className="text-[14px] font-bold text-white leading-tight" style={{ fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{book.title}</p>
-              <p className="text-[11px] mt-1" style={{ color: "rgba(255,255,255,0.5)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{book.count}개 아이템</p>
+          <div
+            key={book.id}
+            className="shrink-0 rounded-2xl overflow-hidden mr-3 relative"
+            style={{ width: 150, height: 210, backgroundColor: book.color, scrollSnapAlign: "start" }}
+          >
+            {/* Outfit photo */}
+            <img
+              src={book.image}
+              alt={book.title}
+              className="absolute inset-0 w-full h-full"
+              style={{ objectFit: "cover", objectPosition: "center top" }}
+            />
+            {/* Gradient overlay */}
+            <div
+              className="absolute inset-0"
+              style={{ background: "linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.18) 55%, transparent 100%)" }}
+            />
+            {/* Content */}
+            <div className="absolute inset-0 flex flex-col justify-between p-3.5">
+              {/* Top badge */}
+              <div
+                className="self-start px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: "rgba(255,255,255,0.18)", backdropFilter: "blur(6px)" }}
+              >
+                <span className="text-[9px] font-bold tracking-widest uppercase text-white" style={{ fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+                  STYLE
+                </span>
+              </div>
+              {/* Bottom info */}
+              <div>
+                <p className="text-[15px] font-bold text-white leading-tight" style={{ fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+                  {book.title}
+                </p>
+                {/* Style tags */}
+                <div className="flex flex-wrap gap-1 mt-1.5">
+                  {book.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-[9px] px-1.5 py-0.5 rounded-full"
+                      style={{ backgroundColor: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.85)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-[11px] mt-1.5" style={{ color: "rgba(255,255,255,0.55)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+                  {book.count}개 아이템
+                </p>
+              </div>
             </div>
           </div>
         ))}
@@ -684,8 +823,9 @@ function Footer() {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
-export default function HomePage() {
-  const [activeDetail, setActiveDetail] = useState(null); // null | "introducing" | "guide"
+export default function HomePage({ onProductSelect }) {
+  const [activeDetail,    setActiveDetail]    = useState(null);
+  const [filterSheet,     setFilterSheet]     = useState(null); // null | "product" | "stylebook"
 
   return (
     <div className="relative flex flex-col h-full bg-white overflow-hidden">
@@ -694,7 +834,15 @@ export default function HomePage() {
         <DetailScreen detailKey={activeDetail} onBack={() => setActiveDetail(null)} />
       )}
 
-      <TopBar notificationCount={4} />
+      {/* Filter overlays */}
+      {filterSheet === "product" && (
+        <ProductFilterSheet onClose={() => setFilterSheet(null)} onApply={() => {}} />
+      )}
+      {filterSheet === "stylebook" && (
+        <StyleBookFilterSheet onClose={() => setFilterSheet(null)} onApply={() => {}} />
+      )}
+
+      <TopBar notificationCount={4} onFilter={() => setFilterSheet("product")} />
 
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
 
@@ -705,7 +853,7 @@ export default function HomePage() {
         <div className="py-6 bg-white">
           <SectionHeader en="NEW LISTINGS" ko="새로 등록된 아이템" onMore={() => {}} />
           <HorizontalScroll>
-            {NEW_LISTINGS.map((item) => <ProductCard key={item.id} item={item} />)}
+            {NEW_LISTINGS.map((item) => <ProductCard key={item.id} item={item} onSelect={onProductSelect} />)}
           </HorizontalScroll>
         </div>
 
@@ -716,13 +864,13 @@ export default function HomePage() {
         <Categories />
 
         {/* Style Book */}
-        <StyleBook />
+        <StyleBook onFilterOpen={() => setFilterSheet("stylebook")} />
 
         {/* HOT LISTINGS */}
         <div className="py-6 bg-white">
           <SectionHeader en="HOT LISTINGS" ko="가장 인기 있는 아이템" onMore={() => {}} />
           <HorizontalScroll>
-            {HOT_LISTINGS.map((item) => <ProductCard key={item.id} item={item} wide />)}
+            {HOT_LISTINGS.map((item) => <ProductCard key={item.id} item={item} wide onSelect={onProductSelect} />)}
           </HorizontalScroll>
         </div>
 

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "trunkroom",
+      "runtimeExecutable": "/Users/yoon/.nvm/versions/node/v24.15.0/bin/node",
+      "runtimeArgs": ["/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/node_modules/.bin/vite"],
+      "port": 5173
+    }
+  ]
+}

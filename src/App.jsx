@@ -2,6 +2,7 @@ import { useState } from "react";
 import TrunkRoomOnboarding from "./pages/onboarding/TrunkRoomOnboarding";
 import HomePage from "./pages/home/HomePage";
 import ClosetPage from "./pages/closet/ClosetPage";
+import CodiPage from "./pages/codi/CodiPage";
 import ProductDetailPage from "./pages/product/ProductDetailPage";
 import BottomNav from "./components/BottomNav";
 
@@ -44,12 +45,12 @@ export default function App() {
         Flex column layout (top → bottom):
           [1] Status bar   — shrink-0, 44 px
           [2] Page area    — flex-1, min-h-0  (fills everything between #1 and #3+#4)
-          [3] Bottom nav   — shrink-0, 56 px  ← ALWAYS visible, never clipped
+          [3] Bottom nav   — shrink-0, 60 px  ← ALWAYS visible, never clipped
           [4] Home pill    — shrink-0, 22 px  (iPhone home indicator)
 
-        Heights: 44 + flex-1 + 56 + 22 = 812  →  flex-1 = 690 px
-        BottomNav top  = 44 + 690 = 734 px from top  (78 px from bottom)
-        BottomNav bottom = 734 + 56 = 790 px from top (22 px from bottom)
+        Heights: 44 + flex-1 + 60 + 22 = 812  →  flex-1 = 686 px
+        BottomNav top  = 44 + 686 = 730 px from top  (82 px from bottom)
+        BottomNav bottom = 730 + 60 = 790 px from top (22 px from bottom)
         Corner-radius 44 clips at x ≈ 0 px at y = 790 → zero clip on tab content ✓
       */}
       <div
@@ -93,9 +94,9 @@ export default function App() {
         {/* ── [2] Page area ────────────────────────────────────────── */}
         <div className="relative flex-1 min-h-0 overflow-hidden bg-white">
           {activeTab === "home"   && <HomePage onProductSelect={setCurrentProduct} />}
-          {activeTab === "search" && <PlaceholderPage title="검색" />}
           {activeTab === "sell"   && <PlaceholderPage title="판매" />}
           {activeTab === "closet" && <ClosetPage />}
+          {activeTab === "codi"   && <CodiPage />}
           {activeTab === "menu"   && <PlaceholderPage title="메뉴" />}
 
           {/* Product detail overlay — absolute, covers full page area */}

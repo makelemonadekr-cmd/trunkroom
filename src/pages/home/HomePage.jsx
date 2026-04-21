@@ -2,41 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import TopBar from "../../components/TopBar";
 import ProductFilterSheet from "../../components/ProductFilterSheet";
 import StyleBookFilterSheet from "../../components/StyleBookFilterSheet";
-
-// ─── Mock weather data ────────────────────────────────────────────────────────
-// Replace MOCK_WEATHER with a real API call later.
-// Recommended: https://api.openweathermap.org/data/2.5/weather?q=Seoul&appid=KEY&units=metric
-const MOCK_WEATHER = {
-  location: "서울",
-  temp: 18,
-  feelsLike: 16,
-  condition: "맑음",
-  conditionCode: "clear",
-  high: 22,
-  low: 12,
-  humidity: 48,
-  wind: 3.2,
-};
-
-function getOutfitRec(temp, conditionCode) {
-  if (conditionCode === "rain") return { keyword: "레인 프루프 룩", desc: "비 오는 날엔 방수 소재와 레이어링이 핵심이에요.", tags: ["방수 재킷", "워터프루프 슈즈", "다크 팔레트"] };
-  if (temp <= 4)  return { keyword: "헤비 레이어드",    desc: "두꺼운 아우터로 온기를 잡아보세요.",          tags: ["패딩 코트", "울 니트", "머플러"] };
-  if (temp <= 8)  return { keyword: "울 코트 룩",       desc: "롱 코트 하나로 완성되는 시즌리스 스타일.",    tags: ["울 코트", "터틀넥", "앵클 부츠"] };
-  if (temp <= 11) return { keyword: "트렌치 레이어드",  desc: "트렌치 코트의 계절이에요.",                  tags: ["트렌치코트", "가디건", "스트레이트 데님"] };
-  if (temp <= 16) return { keyword: "자켓 코디",        desc: "얇은 자켓이나 블레이저 하나면 완성.",        tags: ["테일러드 자켓", "슬랙스", "로퍼"] };
-  if (temp <= 19) return { keyword: "라이트 아우터",    desc: "가벼운 아우터 하나로 선선함을 즐겨보세요.", tags: ["집업 재킷", "롱슬리브 티", "와이드 팬츠"] };
-  if (temp <= 22) return { keyword: "캐주얼 롱슬리브",  desc: "긴팔 하나로 깔끔하게 완성되는 데일리 룩.",   tags: ["오버핏 롱슬리브", "크롭 팬츠", "스니커즈"] };
-  if (temp <= 27) return { keyword: "서머 캐주얼",      desc: "통기성 좋은 소재로 시원하게 입어보세요.",    tags: ["린넨 셔츠", "반바지", "샌들"] };
-  return                  { keyword: "쿨 서머 미니멀",  desc: "최대한 가볍게, 소재로 말하는 여름 코디.",    tags: ["민소매 탑", "린넨 팬츠", "오픈토 슈즈"] };
-}
-
-const CONDITION_META = {
-  clear:  { bg: "#FFF8E7", icon: "☀️", label: "맑음" },
-  cloudy: { bg: "#F0F2F5", icon: "⛅",  label: "흐림" },
-  rain:   { bg: "#EEF3FA", icon: "🌧️",  label: "비"   },
-  snow:   { bg: "#F0F4FF", icon: "❄️",  label: "눈"   },
-  fog:    { bg: "#F4F4F4", icon: "🌫️",  label: "안개" },
-};
+import WeatherDetailScreen from "../weather/WeatherDetailScreen";
+import { useWeather, getOutfitRec, CONDITION_META } from "../../hooks/useWeather";
 
 // ─── 2 banner slides ──────────────────────────────────────────────────────────
 // Order: [0] mainimage (→ introducing), [1] banner2 (→ guide)
@@ -291,10 +258,33 @@ function BannerCarousel({ onBannerTap }) {
 
 // ─── Weather section ──────────────────────────────────────────────────────────
 
-function WeatherSection() {
-  const weather = MOCK_WEATHER;
-  const outfit  = getOutfitRec(weather.temp, weather.conditionCode);
-  const cond    = CONDITION_META[weather.conditionCode] || CONDITION_META.clear;
+function WeatherSection({ onExpand }) {
+  const { weather, loading } = useWeather();
+
+  // Skeleton while loading
+  if (loading && !weather) {
+    return (
+      <div className="py-6 bg-white">
+        <div className="flex items-end justify-between px-6 mb-4">
+          <div>
+            <p className="text-[11px] font-bold tracking-[0.12em] uppercase" style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>TODAY'S WEATHER</p>
+            <h2 className="text-[17px] font-bold leading-tight" style={{ color: "#222", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>오늘의 날씨 & 추천 코디</h2>
+          </div>
+        </div>
+        <div className="mx-6 rounded-2xl overflow-hidden mb-4" style={{ backgroundColor: "#F5F5F5", height: 112 }}>
+          <div className="animate-pulse h-full" style={{ backgroundColor: "#EBEBEB" }} />
+        </div>
+        <div className="mx-6 rounded-2xl overflow-hidden" style={{ backgroundColor: "#313439", height: 130 }}>
+          <div className="animate-pulse h-full" style={{ backgroundColor: "rgba(255,255,255,0.04)" }} />
+        </div>
+      </div>
+    );
+  }
+
+  if (!weather) return null;
+
+  const outfit = getOutfitRec(weather.temp, weather.conditionCode);
+  const cond   = CONDITION_META[weather.conditionCode] || CONDITION_META.clear;
 
   return (
     <div className="py-6 bg-white">
@@ -310,15 +300,19 @@ function WeatherSection() {
         <span className="text-[11px]" style={{ color: "#BBBBBB", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{weather.location}</span>
       </div>
 
-      {/* Weather card */}
-      <div className="mx-6 rounded-2xl overflow-hidden mb-4" style={{ backgroundColor: cond.bg }}>
+      {/* Tappable weather card */}
+      <button
+        className="mx-6 rounded-2xl overflow-hidden mb-4 w-[calc(100%-3rem)] text-left"
+        style={{ backgroundColor: cond.bg }}
+        onClick={onExpand}
+      >
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
           <div>
             <div className="flex items-end gap-1">
               <span className="text-[48px] font-thin leading-none" style={{ color: "#222", fontFamily: "system-ui, sans-serif", letterSpacing: "-0.04em" }}>{weather.temp}</span>
               <span className="text-[20px] mb-2" style={{ color: "#555" }}>°</span>
             </div>
-            <p className="text-[13px] font-medium mt-0.5" style={{ color: "#555", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{cond.label}</p>
+            <p className="text-[13px] font-medium mt-0.5" style={{ color: "#555", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{weather.condition}</p>
             <div className="flex gap-2 mt-1">
               <span className="text-[11px]" style={{ color: "#888", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>최고 {weather.high}°</span>
               <span className="text-[11px]" style={{ color: "#CCC" }}>|</span>
@@ -342,8 +336,15 @@ function WeatherSection() {
         <div className="px-5 pb-4 flex items-center gap-2">
           <span className="text-[11px]" style={{ color: "#999", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>체감 {weather.feelsLike}°</span>
           <div className="flex-1 h-px" style={{ backgroundColor: "rgba(0,0,0,0.07)" }} />
+          {/* "자세히 보기" hint */}
+          <div className="flex items-center gap-0.5">
+            <span className="text-[10px]" style={{ color: "#BBBBBB", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>자세히</span>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M4 2.5L7.5 6L4 9.5" stroke="#CCCCCC" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
         </div>
-      </div>
+      </button>
 
       {/* Outfit recommendation */}
       <div className="mx-6 rounded-2xl px-5 py-5" style={{ backgroundColor: "#313439" }}>
@@ -826,12 +827,19 @@ function Footer() {
 export default function HomePage({ onProductSelect }) {
   const [activeDetail,    setActiveDetail]    = useState(null);
   const [filterSheet,     setFilterSheet]     = useState(null); // null | "product" | "stylebook"
+  const [weatherOpen,     setWeatherOpen]     = useState(false);
+  const { weather } = useWeather();
 
   return (
     <div className="relative flex flex-col h-full bg-white overflow-hidden">
-      {/* Detail screen overlay */}
+      {/* Detail screen overlay (banner taps) */}
       {activeDetail && (
         <DetailScreen detailKey={activeDetail} onBack={() => setActiveDetail(null)} />
+      )}
+
+      {/* Weather detail overlay */}
+      {weatherOpen && (
+        <WeatherDetailScreen weather={weather} onBack={() => setWeatherOpen(false)} />
       )}
 
       {/* Filter overlays */}
@@ -858,7 +866,7 @@ export default function HomePage({ onProductSelect }) {
         </div>
 
         {/* Weather + Outfit */}
-        <WeatherSection />
+        <WeatherSection onExpand={() => setWeatherOpen(true)} />
 
         {/* Categories */}
         <Categories />

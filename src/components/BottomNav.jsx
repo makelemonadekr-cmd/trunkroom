@@ -16,37 +16,6 @@ function HomeIcon({ active }) {
   );
 }
 
-function SearchIcon({ active }) {
-  const c = active ? YELLOW : BLACK;
-  return (
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <circle cx="9.5" cy="9.5" r="7" stroke={c} strokeWidth="1.6" />
-      <path d="M14.5 14.5L20 20" stroke={c} strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function ClosetIcon({ active }) {
-  const c = active ? YELLOW : BLACK;
-  return (
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      {/* hanger hook */}
-      <path d="M11 3C11 3 9 4 9 5.5C9 6.6 9.9 7.2 11 7.5" stroke={c} strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M11 3C11 3 13 4 13 5.5C13 6.6 12.1 7.2 11 7.5" stroke={c} strokeWidth="1.5" strokeLinecap="round" />
-      {/* hanger body */}
-      <path
-        d="M11 7.5L2 14.5H20L11 7.5Z"
-        stroke={c}
-        fill={active ? "rgba(245,194,0,0.18)" : "none"}
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      {/* rod */}
-      <path d="M2 14.5H20" stroke={c} strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 function SellIcon({ active }) {
   const c = active ? YELLOW : BLACK;
   return (
@@ -65,6 +34,33 @@ function SellIcon({ active }) {
   );
 }
 
+function CodiIcon({ active }) {
+  const c = active ? YELLOW : BLACK;
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      {/* Back card */}
+      <rect
+        x="8" y="2" width="12" height="15"
+        rx="2"
+        stroke={c}
+        strokeWidth="1.5"
+        fill={active ? "rgba(245,194,0,0.12)" : "none"}
+      />
+      {/* Front card */}
+      <rect
+        x="2" y="5" width="12" height="15"
+        rx="2"
+        stroke={c}
+        strokeWidth="1.5"
+        fill={active ? "rgba(245,194,0,0.20)" : "white"}
+      />
+      {/* Decorative lines on front card */}
+      <path d="M5 10H11" stroke={c} strokeWidth="1.2" strokeLinecap="round" />
+      <path d="M5 13H9" stroke={c} strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function MenuIcon({ active }) {
   const c = active ? YELLOW : BLACK;
   return (
@@ -75,21 +71,98 @@ function MenuIcon({ active }) {
   );
 }
 
-const TABS = [
-  { id: "home",   label: "홈",   Icon: HomeIcon   },
-  { id: "search", label: "검색", Icon: SearchIcon },
-  { id: "closet", label: "옷장", Icon: ClosetIcon },
-  { id: "sell",   label: "판매", Icon: SellIcon   },
-  { id: "menu",   label: "메뉴", Icon: MenuIcon   },
+// Center closet tab — uses the official logo image
+function ClosetLogoTab({ active, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex flex-col items-center flex-1 relative"
+      style={{ minWidth: 0, paddingTop: 6 }}
+      aria-label="옷장"
+    >
+      {/* Elevated circle bg */}
+      <div
+        className="flex items-center justify-center rounded-full"
+        style={{
+          width: 46,
+          height: 46,
+          backgroundColor: active ? "#1a1a1a" : "#F5F5F5",
+          marginTop: -14,
+          boxShadow: "0 2px 12px rgba(0,0,0,0.13)",
+          transition: "background-color 0.2s",
+        }}
+      >
+        <img
+          src="/officiallogo.png"
+          alt="옷장"
+          style={{
+            width: 28,
+            height: 28,
+            objectFit: "contain",
+            filter: active ? "brightness(0) invert(1)" : "none",
+          }}
+        />
+      </div>
+      <span
+        className="text-[10px] leading-none mt-1"
+        style={{
+          color: active ? YELLOW : BLACK,
+          fontFamily: "'Spoqa Han Sans Neo', sans-serif",
+          fontWeight: active ? 700 : 400,
+        }}
+      >
+        옷장
+      </span>
+    </button>
+  );
+}
+
+const SIDE_TABS = [
+  { id: "home",  label: "홈",   Icon: HomeIcon  },
+  { id: "sell",  label: "판매", Icon: SellIcon  },
+  // center is handled separately
+  { id: "codi",  label: "코디", Icon: CodiIcon  },
+  { id: "menu",  label: "메뉴", Icon: MenuIcon  },
 ];
 
 export default function BottomNav({ active, onTabChange }) {
+  // Split into left-2 + center + right-2
+  const leftTabs  = SIDE_TABS.slice(0, 2);
+  const rightTabs = SIDE_TABS.slice(2);
+
   return (
     <div
-      className="flex items-center justify-around bg-white border-t border-[#EEEEEE] shrink-0"
-      style={{ height: 56, paddingBottom: 4 }}
+      className="flex items-end justify-around bg-white border-t border-[#EEEEEE] shrink-0"
+      style={{ height: 60, paddingBottom: 4 }}
     >
-      {TABS.map(({ id, label, Icon }) => {
+      {leftTabs.map(({ id, label, Icon }) => {
+        const isActive = active === id;
+        return (
+          <button
+            key={id}
+            onClick={() => onTabChange(id)}
+            className="flex flex-col items-center gap-[3px] flex-1 pt-2"
+            style={{ minWidth: 0 }}
+          >
+            <Icon active={isActive} />
+            <span
+              className="text-[10px] leading-none"
+              style={{
+                color: isActive ? YELLOW : BLACK,
+                fontFamily: "'Spoqa Han Sans Neo', sans-serif",
+                fontWeight: isActive ? 700 : 400,
+              }}
+            >
+              {label}
+            </span>
+          </button>
+        );
+      })}
+
+      {/* Center: 옷장 logo tab */}
+      <ClosetLogoTab active={active === "closet"} onClick={() => onTabChange("closet")} />
+
+      {rightTabs.map(({ id, label, Icon }) => {
         const isActive = active === id;
         return (
           <button

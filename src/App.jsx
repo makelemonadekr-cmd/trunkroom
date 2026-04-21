@@ -7,6 +7,9 @@ import SellPage from "./pages/sell/SellPage";
 import AddClosetItemScreen from "./pages/sell/AddClosetItemScreen";
 import CleanoutServiceScreen from "./pages/sell/CleanoutServiceScreen";
 import ProductDetailPage from "./pages/product/ProductDetailPage";
+import MenuPage from "./pages/menu/MenuPage";
+import PrivacyPolicyScreen from "./pages/legal/PrivacyPolicyScreen";
+import TermsOfServiceScreen from "./pages/legal/TermsOfServiceScreen";
 import BottomNav from "./components/BottomNav";
 
 const ONBOARDING_KEY = "trunkroom_onboarded";
@@ -30,6 +33,7 @@ export default function App() {
   );
   const [activeTab,      setActiveTab]      = useState("home");
   const [currentProduct, setCurrentProduct] = useState(null);
+  const [legalScreen,    setLegalScreen]    = useState(null); // null | "privacy" | "terms"
 
   // ── Sell flow overlay state ──────────────────────────────────────────────────
   // null | "quicksell" | "cleanout"
@@ -114,7 +118,12 @@ export default function App() {
 
         {/* ── [2] Page area ────────────────────────────────────────── */}
         <div className="relative flex-1 min-h-0 overflow-hidden bg-white">
-          {activeTab === "home"   && <HomePage onProductSelect={setCurrentProduct} />}
+          {activeTab === "home"   && (
+            <HomePage
+              onProductSelect={setCurrentProduct}
+              onLegalOpen={(type) => setLegalScreen(type)}
+            />
+          )}
           {activeTab === "sell"   && (
             <SellPage
               onQuickSell={() => setSellScreen("quicksell")}
@@ -124,7 +133,7 @@ export default function App() {
           )}
           {activeTab === "closet" && <ClosetPage />}
           {activeTab === "codi"   && <CodiPage />}
-          {activeTab === "menu"   && <PlaceholderPage title="메뉴" />}
+          {activeTab === "menu"   && <MenuPage />}
 
           {/* ── Sell flow overlays — sit above the active tab page ── */}
           {sellScreen === "quicksell" && activeTab === "sell" && (
@@ -145,6 +154,14 @@ export default function App() {
               product={currentProduct}
               onBack={() => setCurrentProduct(null)}
             />
+          )}
+
+          {/* Legal screen overlays (triggered from footer or menu) */}
+          {legalScreen === "privacy" && (
+            <PrivacyPolicyScreen onBack={() => setLegalScreen(null)} />
+          )}
+          {legalScreen === "terms" && (
+            <TermsOfServiceScreen onBack={() => setLegalScreen(null)} />
           )}
         </div>
 

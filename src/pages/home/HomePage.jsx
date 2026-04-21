@@ -13,6 +13,12 @@ import {
   getItemsBySubcategory,
 } from "../../constants/mockClosetData";
 import { filterClosetItemsByPiece } from "../../lib/filterClosetItemsByPiece";
+import {
+  COMPANY_NAME, COMPANY_CEO, BUSINESS_NUMBER,
+  COMPANY_URL, SUPPORT_EMAIL, PARTNERSHIP_EMAIL,
+  CUSTOMER_SERVICE_PHONE, SUPPORT_HOURS,
+  openExternalUrl, openMailTo, openTel,
+} from "../../constants/appConfig";
 
 // ─── 2 banner slides ──────────────────────────────────────────────────────────
 // Order: [0] mainimage (→ introducing), [1] banner2 (→ guide)
@@ -1084,32 +1090,72 @@ function StyleBook({ onFilterOpen }) {
   );
 }
 
-function Footer() {
+function Footer({ onLegalOpen }) {
+  const FGRAY = "rgba(255,255,255,0.38)";
+  const FNT   = "'Spoqa Han Sans Neo', sans-serif";
+  const FLINK = "rgba(255,255,255,0.62)";
+
+  const footerLinks = [
+    { label: "회사소개",         onPress: () => openExternalUrl(COMPANY_URL) },
+    { label: "제휴문의",         onPress: () => openMailTo(PARTNERSHIP_EMAIL, "[제휴문의] 트렁크룸") },
+    { label: "개인정보처리방침", onPress: () => onLegalOpen?.("privacy") },
+    { label: "이용약관",         onPress: () => onLegalOpen?.("terms") },
+  ];
+
   return (
     <div className="px-6 py-8" style={{ backgroundColor: "#222" }}>
-      <img src="/officiallogo.png" alt="Trunk room" style={{ height: 28, filter: "brightness(0) invert(1)", opacity: 0.85, marginBottom: 20 }} />
-      <div className="flex flex-wrap gap-5 mb-5">
-        {["회사소개", "제휴문의", "개인정보취급방침", "이용약관"].map((item) => (
-          <button key={item}>
-            <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.38)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{item}</span>
+      <img
+        src="/officiallogo.png"
+        alt="트렁크룸"
+        style={{ height: 28, filter: "brightness(0) invert(1)", opacity: 0.85, marginBottom: 20 }}
+      />
+
+      {/* Nav links */}
+      <div className="flex flex-wrap gap-x-5 gap-y-2 mb-5">
+        {footerLinks.map(({ label, onPress }) => (
+          <button key={label} onClick={onPress}>
+            <span className="text-[11px]" style={{ color: FGRAY, fontFamily: FNT }}>{label}</span>
           </button>
         ))}
       </div>
+
       <div className="border-t mb-5" style={{ borderColor: "rgba(255,255,255,0.09)" }} />
+
+      {/* Contact info */}
       <div className="flex gap-8 mb-5">
         <div>
-          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.38)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>고객센터</p>
-          <p className="text-[13px] font-bold mt-1" style={{ color: "rgba(255,255,255,0.82)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>1800-8474</p>
+          <p className="text-[11px]" style={{ color: FGRAY, fontFamily: FNT }}>고객센터</p>
+          <button onClick={() => openTel(CUSTOMER_SERVICE_PHONE)} className="text-left">
+            <p
+              className="text-[13px] font-bold mt-1 underline-offset-2 hover:underline"
+              style={{ color: "rgba(255,255,255,0.82)", fontFamily: FNT }}
+            >
+              {CUSTOMER_SERVICE_PHONE}
+            </p>
+          </button>
+          <p className="text-[10px] mt-0.5" style={{ color: FGRAY, fontFamily: FNT }}>{SUPPORT_HOURS}</p>
         </div>
         <div>
-          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.38)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>이메일</p>
-          <p className="text-[12px] font-medium mt-1" style={{ color: "rgba(255,255,255,0.62)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>hello@trunkroom.co.kr</p>
+          <p className="text-[11px]" style={{ color: FGRAY, fontFamily: FNT }}>이메일</p>
+          <button
+            onClick={() => openMailTo(SUPPORT_EMAIL, "[문의] 트렁크룸")}
+            className="text-left"
+          >
+            <p
+              className="text-[12px] font-medium mt-1"
+              style={{ color: FLINK, fontFamily: FNT }}
+            >
+              {SUPPORT_EMAIL}
+            </p>
+          </button>
         </div>
       </div>
-      <p className="text-[11px] leading-relaxed" style={{ color: "rgba(255,255,255,0.28)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
-        (주)메이크레모네이드 · 대표이사 김윤<br />
-        사업자등록번호 564-81-01782<br />
-        상담 운영시간 10:00–17:00 (주말 및 공휴일 휴무)
+
+      {/* Company legal info */}
+      <p className="text-[11px] leading-relaxed" style={{ color: "rgba(255,255,255,0.28)", fontFamily: FNT }}>
+        {COMPANY_NAME} · 대표이사 {COMPANY_CEO}<br />
+        사업자등록번호 {BUSINESS_NUMBER}<br />
+        {SUPPORT_HOURS}
       </p>
     </div>
   );
@@ -1117,7 +1163,7 @@ function Footer() {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
-export default function HomePage({ onProductSelect }) {
+export default function HomePage({ onProductSelect, onLegalOpen }) {
   const [activeDetail,    setActiveDetail]    = useState(null);
   const [filterSheet,     setFilterSheet]     = useState(null); // null | "product" | "stylebook"
   const [weatherOpen,     setWeatherOpen]     = useState(false);
@@ -1185,7 +1231,7 @@ export default function HomePage({ onProductSelect }) {
           </HorizontalScroll>
         </div>
 
-        <Footer />
+        <Footer onLegalOpen={onLegalOpen} />
       </div>
     </div>
   );

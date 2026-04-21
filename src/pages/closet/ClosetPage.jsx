@@ -6,59 +6,15 @@ import {
   CLOSET_ITEMS,
   getItemsByCategory,
 } from "../../constants/mockClosetData";
+import { STYLE_FILTER_OPTIONS } from "../../constants/styleCategories";
+import { SEASON_FILTER_OPTIONS } from "../../constants/seasonFilters";
+import { getOutfitsByStyleAndSeason } from "../../constants/mockOutfitData";
 
 const YELLOW = "#F5C200";
 const DARK   = "#1a1a1a";
 
-// ─── Sample outfit photos (코디북 tab) ────────────────────────────────────────
-const OUTFIT_PHOTOS = [
-  { id: 1, image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=75&fit=crop", count: 1 },
-  { id: 2, image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=75&fit=crop", count: 1 },
-  { id: 3, image: "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=400&q=75&fit=crop", count: 2 },
-  { id: 4, image: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75&fit=crop", count: 1 },
-  { id: 5, image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75&fit=crop", count: 3 },
-  { id: 6, image: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&q=75&fit=crop", count: 2 },
-];
-
 // ─── Category filter options ──────────────────────────────────────────────────
 const CAT_FILTERS = ["전체", ...MAIN_CATEGORIES.map((c) => c.label)];
-
-// ─── SVG icons ────────────────────────────────────────────────────────────────
-function OuterIcon() {
-  return (
-    <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
-      <path d="M13 36V16L9 10H7L4 16V28L8 30V36H36V30L40 28V16L37 10H35L31 16V36" stroke={DARK} strokeWidth="1.5" strokeLinejoin="round" fill="none" />
-      <path d="M13 10L22 17L22 19L13 10Z" fill={YELLOW} />
-      <path d="M31 10L22 17L22 19L31 10Z" fill={YELLOW} />
-      <path d="M22 19V36" stroke={DARK} strokeWidth="1.2" strokeDasharray="2 2" />
-      <path d="M13 10L22 17L31 10" stroke={DARK} strokeWidth="1.5" strokeLinejoin="round" />
-    </svg>
-  );
-}
-function DressIcon() {
-  return (
-    <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
-      <path d="M15 20L8 38H36L29 20H15Z" stroke={DARK} strokeWidth="1.5" strokeLinejoin="round" fill="none" />
-      <path d="M17 20V14H27V20" stroke={DARK} strokeWidth="1.5" strokeLinejoin="round" fill="none" />
-      <path d="M17 14C17 14 15 9 18 7" stroke={YELLOW} strokeWidth="2" strokeLinecap="round" />
-      <path d="M27 14C27 14 29 9 26 7" stroke={YELLOW} strokeWidth="2" strokeLinecap="round" />
-      <path d="M15 20H29" stroke={DARK} strokeWidth="1.2" />
-    </svg>
-  );
-}
-function SuitIcon() {
-  return (
-    <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
-      <path d="M12 36V16L9 10H8L5 16V28H12" stroke={DARK} strokeWidth="1.5" strokeLinejoin="round" fill="none" />
-      <path d="M32 36V16L35 10H36L39 16V28H32" stroke={DARK} strokeWidth="1.5" strokeLinejoin="round" fill="none" />
-      <path d="M12 10H32V36H12Z" stroke={DARK} strokeWidth="1.5" strokeLinejoin="round" fill="none" />
-      <path d="M12 10L22 16L22 18L12 10Z" fill={YELLOW} />
-      <path d="M32 10L22 16L22 18L32 10Z" fill={YELLOW} />
-      <path d="M12 10L22 16L32 10" stroke={DARK} strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M20 18L22 36L24 18L22 16Z" fill={YELLOW} stroke={YELLOW} strokeWidth="0.5" strokeLinejoin="round" />
-    </svg>
-  );
-}
 
 // ─── Closet header ────────────────────────────────────────────────────────────
 function ClosetHeader() {
@@ -84,12 +40,11 @@ function ClosetHeader() {
   );
 }
 
-// ─── Profile — follower/following inline, small and subtle ───────────────────
+// ─── Profile ──────────────────────────────────────────────────────────────────
 function ProfileSection() {
   return (
     <div className="px-5 py-4 bg-white" style={{ borderBottom: "1px solid #F0F0F0" }}>
       <div className="flex items-center gap-4">
-        {/* Avatar */}
         <div
           className="flex items-center justify-center rounded-full shrink-0"
           style={{ width: 56, height: 56, backgroundColor: "#EBEBEB" }}
@@ -100,8 +55,6 @@ function ProfileSection() {
             style={{ width: 32, height: 32, objectFit: "contain", opacity: 0.55 }}
           />
         </div>
-
-        {/* Name + follower/following inline (small, subtle) */}
         <div className="flex-1 min-w-0">
           <p
             className="text-[16px] font-bold truncate"
@@ -109,35 +62,21 @@ function ProfileSection() {
           >
             나의 옷장
           </p>
-          {/* Follower / following — very small, right of name */}
           <div className="flex items-center gap-3 mt-0.5">
-            <span
-              className="text-[11px]"
-              style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-            >
+            <span className="text-[11px]" style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
               팔로워 <span style={{ color: "#555", fontWeight: 700 }}>2,125</span>
             </span>
             <span style={{ color: "#E0E0E0", fontSize: 10 }}>·</span>
-            <span
-              className="text-[11px]"
-              style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-            >
+            <span className="text-[11px]" style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
               팔로잉 <span style={{ color: "#555", fontWeight: 700 }}>835</span>
             </span>
           </div>
         </div>
-
-        {/* 내 사이즈 button */}
         <button
           className="flex items-center gap-1 px-3 py-1.5 rounded-sm shrink-0"
           style={{ backgroundColor: "#F5F5F5", border: "1px solid #E8E8E8" }}
         >
-          <span
-            className="text-[12px] font-medium"
-            style={{ color: "#333", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-          >
-            내 사이즈
-          </span>
+          <span className="text-[12px] font-medium" style={{ color: "#333", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>내 사이즈</span>
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
             <path d="M4 2.5L7.5 6L4 9.5" stroke="#888" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -158,9 +97,7 @@ function SubStats() {
     <div className="flex items-stretch bg-white" style={{ borderBottom: "1px solid #F0F0F0" }}>
       {items.map((item, i) => (
         <div key={item.label} className="flex-1 flex flex-col items-center py-2.5 relative">
-          {i > 0 && (
-            <div className="absolute left-0 top-2 bottom-2" style={{ width: 1, backgroundColor: "#EEEEEE" }} />
-          )}
+          {i > 0 && <div className="absolute left-0 top-2 bottom-2" style={{ width: 1, backgroundColor: "#EEEEEE" }} />}
           <p className="text-[10px]" style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{item.label}</p>
           <p className="text-[15px] font-bold mt-0.5" style={{ color: DARK, fontFamily: "'Spoqa Han Sans Neo', sans-serif", letterSpacing: "-0.02em" }}>{item.value}</p>
         </div>
@@ -195,14 +132,11 @@ function SubTabs({ active, onChange }) {
   );
 }
 
-// ─── Single item card (compact, for clothing tab grid) ────────────────────────
+// ─── Clothing item card ────────────────────────────────────────────────────────
 function ClothingItemCard({ item }) {
   const [imgErr, setImgErr] = useState(false);
   return (
-    <div
-      className="rounded-xl overflow-hidden bg-white"
-      style={{ border: "1px solid #F0F0F0" }}
-    >
+    <div className="rounded-xl overflow-hidden bg-white" style={{ border: "1px solid #F0F0F0" }}>
       <div className="relative overflow-hidden" style={{ aspectRatio: "3/4", backgroundColor: "#F5F5F5" }}>
         {!imgErr ? (
           <img
@@ -221,7 +155,9 @@ function ClothingItemCard({ item }) {
           </div>
         )}
         <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md" style={{ backgroundColor: "rgba(0,0,0,0.55)" }}>
-          <span className="text-[8px] font-bold text-white" style={{ fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{item.subcategory}</span>
+          <span className="text-[8px] font-bold text-white" style={{ fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+            {item.subcategory ?? item.subCategory}
+          </span>
         </div>
         {item.isForSale && (
           <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md" style={{ backgroundColor: YELLOW }}>
@@ -232,7 +168,9 @@ function ClothingItemCard({ item }) {
       <div className="px-2 pt-1.5 pb-2.5">
         <p className="text-[9px] uppercase tracking-wide truncate" style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{item.brand}</p>
         <p className="text-[11px] font-medium mt-0.5 truncate" style={{ color: DARK, fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{item.name}</p>
-        <p className="text-[10px] mt-0.5" style={{ color: "#BBBBBB", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{item.color} · {item.size}</p>
+        <p className="text-[10px] mt-0.5" style={{ color: "#BBBBBB", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+          {item.color} · {item.size}
+        </p>
       </div>
     </div>
   );
@@ -242,23 +180,15 @@ function ClothingItemCard({ item }) {
 function ClothingTab({ onMorePress }) {
   const [catFilter, setCatFilter] = useState("전체");
 
-  const filtered = catFilter === "전체"
-    ? CLOSET_ITEMS
-    : getItemsByCategory(catFilter);
+  const filtered = catFilter === "전체" ? CLOSET_ITEMS : getItemsByCategory(catFilter);
 
   return (
     <div>
-      {/* Category filter chips */}
       <div className="py-3 bg-white" style={{ borderBottom: "1px solid #F4F4F4" }}>
         <FilterChips options={CAT_FILTERS} active={catFilter} onChange={setCatFilter} />
       </div>
-
-      {/* Count + 더보기 row */}
       <div className="flex items-center justify-between px-5 py-3">
-        <p
-          className="text-[12px] font-medium"
-          style={{ color: "#888", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-        >
+        <p className="text-[12px] font-medium" style={{ color: "#888", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
           {catFilter === "전체" ? "전체" : catFilter} {filtered.length}개
         </p>
         {filtered.length > 0 && (
@@ -273,25 +203,17 @@ function ClothingTab({ onMorePress }) {
           </button>
         )}
       </div>
-
-      {/* 2-col item grid (show first 8, 더보기 opens full list) */}
       <div className="grid grid-cols-2 gap-3 px-4 pb-4">
         {filtered.slice(0, 8).map((item) => (
           <ClothingItemCard key={item.id} item={item} />
         ))}
       </div>
-
       {filtered.length > 8 && (
         <div className="px-4 pb-6">
           <button
             onClick={() => onMorePress({ title: catFilter === "전체" ? "전체 의류" : catFilter, items: filtered })}
             className="w-full py-3 rounded-xl text-[13px] font-bold"
-            style={{
-              backgroundColor: "#F5F5F5",
-              color: "#555",
-              fontFamily: "'Spoqa Han Sans Neo', sans-serif",
-              border: "1px solid #EBEBEB",
-            }}
+            style={{ backgroundColor: "#F5F5F5", color: "#555", fontFamily: "'Spoqa Han Sans Neo', sans-serif", border: "1px solid #EBEBEB" }}
           >
             {filtered.length - 8}개 더보기
           </button>
@@ -301,64 +223,160 @@ function ClothingTab({ onMorePress }) {
   );
 }
 
-// ─── 코디북 tab ───────────────────────────────────────────────────────────────
+// ─── 코디북 tab (updated: 스타일 + 시즌 dual filter) ─────────────────────────
 function CodibookTab() {
-  const [liked, setLiked] = useState({});
+  const [styleFilter,  setStyleFilter]  = useState("전체");
+  const [seasonFilter, setSeasonFilter] = useState("전체");
+  const [liked,        setLiked]        = useState({});
+
   const toggle = (id) => setLiked((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  // Category row (legacy icons)
-  const [activeCategory, setActiveCategory] = useState("outer");
-  const cats = [
-    { id: "outer", label: "OUTER", Icon: OuterIcon },
-    { id: "dress", label: "DRESS", Icon: DressIcon },
-    { id: "suit",  label: "SUIT",  Icon: SuitIcon  },
-  ];
+  const filtered = getOutfitsByStyleAndSeason(styleFilter, seasonFilter);
 
   return (
     <div>
-      {/* Category row */}
-      <div className="flex items-center justify-around bg-white py-4" style={{ borderBottom: "1px solid #F4F4F4" }}>
-        {cats.map(({ id, label, Icon }) => {
-          const isActive = activeCategory === id;
-          return (
-            <button key={id} onClick={() => setActiveCategory(id)} className="flex flex-col items-center gap-1.5">
-              <div
-                className="flex items-center justify-center rounded-xl"
+      {/* Row 1: 스타일 filter */}
+      <div
+        className="bg-white pt-3 pb-2"
+        style={{ borderBottom: "none" }}
+      >
+        <p
+          className="px-4 text-[10px] font-bold tracking-[0.12em] uppercase mb-2"
+          style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+        >
+          스타일
+        </p>
+        <div
+          className="flex overflow-x-auto px-4 gap-2"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {STYLE_FILTER_OPTIONS.map((s) => {
+            const isActive = styleFilter === s;
+            return (
+              <button
+                key={s}
+                onClick={() => setStyleFilter(s)}
+                className="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all"
                 style={{
-                  width: 60, height: 60,
-                  backgroundColor: isActive ? "#FFFBEB" : "#F7F7F7",
-                  border: isActive ? `1.5px solid ${YELLOW}` : "1.5px solid transparent",
+                  backgroundColor: isActive ? DARK : "#F2F2F2",
+                  color:           isActive ? "white" : "#555",
+                  fontFamily:      "'Spoqa Han Sans Neo', sans-serif",
+                  border:          isActive ? `1.5px solid ${DARK}` : "1.5px solid transparent",
                 }}
               >
-                <Icon />
-              </div>
-              <span className="text-[10px] font-bold tracking-wider" style={{ color: isActive ? DARK : "#888", fontFamily: "system-ui, sans-serif", letterSpacing: "0.08em" }}>{label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Photo grid */}
-      <div className="bg-white px-3 pt-3 pb-4">
-        <div className="grid grid-cols-2 gap-2">
-          {OUTFIT_PHOTOS.map((photo) => (
-            <div key={photo.id} className="relative rounded-sm overflow-hidden bg-[#F5F5F5]">
-              <img src={photo.image} alt="" style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", display: "block" }} />
-              <div className="absolute top-2 right-2 flex flex-col items-center gap-0.5">
-                <button onClick={() => toggle(photo.id)} className="w-7 h-7 flex items-center justify-center rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.82)" }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M7 12L1.5 6.5C1 6 1 5.5 1 4.8C1 3.2 2.5 2 4.2 2C5.1 2 5.9 2.5 6.5 3.1L7 3.7L7.5 3.1C8.1 2.5 8.9 2 9.8 2C11.5 2 13 3.2 13 4.8C13 5.5 12.9 6 12.5 6.5L7 12Z"
-                      fill={liked[photo.id] ? "#E84040" : "none"} stroke={liked[photo.id] ? "#E84040" : "#888"} strokeWidth="1.2" />
-                  </svg>
-                </button>
-                <div className="flex items-center justify-center rounded-full" style={{ width: 16, height: 16, backgroundColor: "rgba(0,0,0,0.55)" }}>
-                  <span className="text-[9px] font-bold text-white">{photo.count}</span>
-                </div>
-              </div>
-            </div>
-          ))}
+                {s}
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      {/* Row 2: 시즌 filter */}
+      <div className="bg-white pt-2 pb-3" style={{ borderBottom: "1px solid #F0F0F0" }}>
+        <p
+          className="px-4 text-[10px] font-bold tracking-[0.12em] uppercase mb-2"
+          style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+        >
+          시즌
+        </p>
+        <div className="flex px-4 gap-2">
+          {SEASON_FILTER_OPTIONS.map((s) => {
+            const isActive = seasonFilter === s;
+            return (
+              <button
+                key={s}
+                onClick={() => setSeasonFilter(s)}
+                className="shrink-0 px-3 py-1 rounded-full text-[11px] font-medium transition-all"
+                style={{
+                  backgroundColor: isActive ? YELLOW : "#F9F9F9",
+                  color:           isActive ? DARK    : "#888",
+                  fontFamily:      "'Spoqa Han Sans Neo', sans-serif",
+                  border:          isActive ? `1.5px solid ${YELLOW}` : "1.5px solid #EBEBEB",
+                }}
+              >
+                {s}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Result count */}
+      <div className="px-4 py-2 bg-white">
+        <p className="text-[11px]" style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+          {styleFilter !== "전체" ? `${styleFilter} · ` : ""}
+          {seasonFilter !== "전체" ? `${seasonFilter} · ` : ""}
+          {filtered.length}개 코디
+        </p>
+      </div>
+
+      {/* Outfit grid */}
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 gap-3">
+          <span style={{ fontSize: 36 }}>🔍</span>
+          <p className="text-[13px]" style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+            해당 조건의 코디가 없어요
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white px-3 pt-2 pb-4">
+          <div className="grid grid-cols-2 gap-2">
+            {filtered.map((outfit) => (
+              <div key={outfit.id} className="relative rounded-2xl overflow-hidden bg-[#F5F5F5]">
+                <img
+                  src={outfit.previewImage}
+                  alt={outfit.title}
+                  style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", display: "block" }}
+                />
+                {/* Gradient overlay */}
+                <div
+                  className="absolute inset-0"
+                  style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 55%)" }}
+                />
+                {/* Like button */}
+                <button
+                  onClick={() => toggle(outfit.id)}
+                  className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full"
+                  style={{ backgroundColor: "rgba(255,255,255,0.82)" }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path
+                      d="M7 12L1.5 6.5C1 6 1 5.5 1 4.8C1 3.2 2.5 2 4.2 2C5.1 2 5.9 2.5 6.5 3.1L7 3.7L7.5 3.1C8.1 2.5 8.9 2 9.8 2C11.5 2 13 3.2 13 4.8C13 5.5 12.9 6 12.5 6.5L7 12Z"
+                      fill={liked[outfit.id] ? "#E84040" : "none"}
+                      stroke={liked[outfit.id] ? "#E84040" : "#888"}
+                      strokeWidth="1.2"
+                    />
+                  </svg>
+                </button>
+                {/* Style + season badges */}
+                <div className="absolute top-2 left-2 flex flex-col gap-1">
+                  <span
+                    className="px-1.5 py-0.5 rounded-full text-[8px] font-bold"
+                    style={{ backgroundColor: "rgba(0,0,0,0.55)", color: "white", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+                  >
+                    {outfit.style}
+                  </span>
+                </div>
+                {/* Bottom title */}
+                <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5">
+                  <p
+                    className="text-white text-[11px] font-bold leading-snug"
+                    style={{ fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+                  >
+                    {outfit.title}
+                  </p>
+                  <p
+                    className="text-[9px] mt-0.5"
+                    style={{ color: "rgba(255,255,255,0.6)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+                  >
+                    {outfit.season.join(" · ")}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -378,15 +396,13 @@ function HistoryTab() {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 export default function ClosetPage() {
-  // Default to 내 의류 tab (spec §3)
   const [activeSubTab, setActiveSubTab] = useState("clothing");
-  const [fullList, setFullList]         = useState(null); // { title, items }
+  const [fullList,     setFullList]     = useState(null);
 
   return (
     <div className="flex flex-col h-full bg-white overflow-hidden">
       <ClosetHeader />
 
-      {/* Scrollable body */}
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
         <ProfileSection />
         <SubStats />

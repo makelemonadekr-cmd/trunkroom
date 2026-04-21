@@ -13,6 +13,7 @@ import {
   getItemsBySubcategory,
   getWeatherRecommendedClosetOutfit,
 } from "../../constants/mockClosetData";
+import { getRecommendedOutfitsByItem } from "../../lib/getRecommendedOutfitsByItem";
 
 // ─── 2 banner slides ──────────────────────────────────────────────────────────
 // Order: [0] mainimage (→ introducing), [1] banner2 (→ guide)
@@ -265,10 +266,189 @@ function BannerCarousel({ onBannerTap }) {
   );
 }
 
+// ─── Tappable weather-recommended item card ───────────────────────────────────
+
+function WeatherItemCard({ item, isSelected, onTap }) {
+  const [imgErr, setImgErr] = useState(false);
+  return (
+    <button
+      onClick={() => onTap(item)}
+      className="shrink-0 rounded-xl overflow-hidden transition-all"
+      style={{
+        width: 100,
+        marginRight: 10,
+        scrollSnapAlign: "start",
+        border: isSelected ? "2px solid #1a1a1a" : "2px solid transparent",
+        boxShadow: isSelected ? "0 4px 14px rgba(0,0,0,0.18)" : "none",
+        transform: isSelected ? "scale(1.03)" : "scale(1)",
+      }}
+    >
+      <div className="relative overflow-hidden" style={{ height: 120, backgroundColor: "#F5F5F5" }}>
+        {!imgErr ? (
+          <img
+            src={item.image}
+            alt={item.name}
+            className="absolute inset-0 w-full h-full"
+            style={{ objectFit: "cover", objectPosition: "center top" }}
+            onError={() => setImgErr(true)}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center opacity-20">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <rect x="2" y="5" width="18" height="13" rx="2" stroke="#999" strokeWidth="1.5" />
+              <circle cx="11" cy="11.5" r="3.5" stroke="#999" strokeWidth="1.5" />
+            </svg>
+          </div>
+        )}
+        {isSelected && (
+          <div className="absolute inset-0 flex items-end justify-end p-1.5">
+            <div
+              className="flex items-center justify-center rounded-full"
+              style={{ width: 18, height: 18, backgroundColor: "#1a1a1a" }}
+            >
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M2 5L4.2 7L8 3" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="px-1.5 pt-1 pb-1.5" style={{ backgroundColor: isSelected ? "#1a1a1a" : "white" }}>
+        <p
+          className="text-[8px] uppercase tracking-wide truncate"
+          style={{ color: isSelected ? "rgba(255,255,255,0.5)" : "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+        >
+          {item.brand}
+        </p>
+        <p
+          className="text-[10px] font-medium truncate mt-0.5"
+          style={{ color: isSelected ? "white" : "#222", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+        >
+          {item.name}
+        </p>
+      </div>
+    </button>
+  );
+}
+
+// ─── Outfit recommendation cards (shown when an item is tapped) ───────────────
+
+function RecommendedOutfitCards({ anchorItem }) {
+  const outfits = getRecommendedOutfitsByItem(anchorItem, 4);
+
+  if (!outfits.length) return null;
+
+  return (
+    <div className="mx-6 mt-4 rounded-2xl overflow-hidden" style={{ border: "1px solid #F0F0F0" }}>
+      {/* Panel header */}
+      <div className="px-4 pt-4 pb-3 flex items-center justify-between" style={{ backgroundColor: "#FAFAFA" }}>
+        <div>
+          <p
+            className="text-[10px] font-bold tracking-[0.14em] uppercase"
+            style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+          >
+            STYLE MATCH
+          </p>
+          <h3
+            className="text-[14px] font-bold leading-snug mt-0.5"
+            style={{ color: "#1a1a1a", fontFamily: "'Spoqa Han Sans Neo', sans-serif", letterSpacing: "-0.02em" }}
+          >
+            이 아이템으로 추천 코디
+          </h3>
+        </div>
+        {/* Anchor item mini thumb */}
+        <div
+          className="rounded-lg overflow-hidden shrink-0"
+          style={{ width: 36, height: 36, backgroundColor: "#EBEBEB", border: "1.5px solid #1a1a1a" }}
+        >
+          <img
+            src={anchorItem.image}
+            alt={anchorItem.name}
+            className="w-full h-full"
+            style={{ objectFit: "cover", objectPosition: "center top" }}
+          />
+        </div>
+      </div>
+
+      {/* Outfit grid */}
+      <div className="bg-white px-3 pt-3 pb-4">
+        <div className="grid grid-cols-2 gap-2">
+          {outfits.map((outfit) => (
+            <OutfitRecommendationCard key={outfit.id} outfit={outfit} anchorItem={anchorItem} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OutfitRecommendationCard({ outfit, anchorItem }) {
+  const [liked, setLiked] = useState(false);
+  const [likes, setLikes] = useState(outfit.likes);
+  const isExact = outfit.itemIds.includes(anchorItem.id);
+
+  return (
+    <div
+      className="relative rounded-2xl overflow-hidden"
+      style={{ aspectRatio: "3/4", backgroundColor: outfit.color, cursor: "pointer" }}
+    >
+      <img
+        src={outfit.previewImage}
+        alt={outfit.title}
+        className="absolute inset-0 w-full h-full"
+        style={{ objectFit: "cover", objectPosition: "center top" }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.08) 55%, transparent 100%)" }}
+      />
+      {/* Top: style chip + like */}
+      <div className="absolute top-2 left-2 right-2 flex items-start justify-between">
+        <span
+          className="px-1.5 py-0.5 rounded-full text-[8px] font-bold"
+          style={{
+            backgroundColor: isExact ? "#F5C200" : "rgba(255,255,255,0.18)",
+            color:            isExact ? "#1a1a1a" : "white",
+            fontFamily:       "'Spoqa Han Sans Neo', sans-serif",
+            backdropFilter:   "blur(4px)",
+          }}
+        >
+          {outfit.style}
+        </span>
+        <button
+          onClick={(e) => { e.stopPropagation(); setLiked((v) => !v); setLikes((n) => liked ? n - 1 : n + 1); }}
+          className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
+          style={{ backgroundColor: "rgba(0,0,0,0.25)", backdropFilter: "blur(4px)" }}
+        >
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <path
+              d="M5 8.5L1 4.5C.7 4.2.5 3.8.5 3.4.5 2.3 1.4 1.5 2.5 1.5 3.1 1.5 3.6 1.8 5 2.9 6.4 1.8 6.9 1.5 7.5 1.5 8.6 1.5 9.5 2.3 9.5 3.4 9.5 3.8 9.3 4.2 9 4.5L5 8.5Z"
+              fill={liked ? "#E84040" : "none"}
+              stroke={liked ? "#E84040" : "rgba(255,255,255,0.85)"}
+              strokeWidth="0.9"
+            />
+          </svg>
+          <span className="text-[8px]" style={{ color: liked ? "#ff7070" : "rgba(255,255,255,0.85)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{likes}</span>
+        </button>
+      </div>
+      {/* Bottom */}
+      <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5">
+        <p className="text-white text-[11px] font-bold leading-snug" style={{ fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+          {outfit.title}
+        </p>
+        <p className="text-[9px] mt-0.5" style={{ color: "rgba(255,255,255,0.55)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+          {outfit.season.join(" · ")}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ─── Weather section ──────────────────────────────────────────────────────────
 
 function WeatherSection({ onExpand }) {
   const { weather, loading } = useWeather();
+  const [selectedItem, setSelectedItem] = useState(null);
 
   // Skeleton while loading
   if (loading && !weather) {
@@ -292,8 +472,13 @@ function WeatherSection({ onExpand }) {
 
   if (!weather) return null;
 
-  const outfit = getOutfitRec(weather.temp, weather.conditionCode);
-  const cond   = CONDITION_META[weather.conditionCode] || CONDITION_META.clear;
+  const outfit    = getOutfitRec(weather.temp, weather.conditionCode);
+  const cond      = CONDITION_META[weather.conditionCode] || CONDITION_META.clear;
+  const recItems  = getWeatherRecommendedClosetOutfit(weather, CLOSET_ITEMS);
+
+  function handleItemTap(item) {
+    setSelectedItem((prev) => prev?.id === item.id ? null : item);
+  }
 
   return (
     <div className="py-6 bg-white">
@@ -309,7 +494,7 @@ function WeatherSection({ onExpand }) {
         <span className="text-[11px]" style={{ color: "#BBBBBB", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{weather.location}</span>
       </div>
 
-      {/* Tappable weather card */}
+      {/* Tappable weather card → opens weather detail */}
       <button
         className="mx-6 rounded-2xl overflow-hidden mb-4 w-[calc(100%-3rem)] text-left"
         style={{ backgroundColor: cond.bg }}
@@ -345,7 +530,6 @@ function WeatherSection({ onExpand }) {
         <div className="px-5 pb-4 flex items-center gap-2">
           <span className="text-[11px]" style={{ color: "#999", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>체감 {weather.feelsLike}°</span>
           <div className="flex-1 h-px" style={{ backgroundColor: "rgba(0,0,0,0.07)" }} />
-          {/* "자세히 보기" hint */}
           <div className="flex items-center gap-0.5">
             <span className="text-[10px]" style={{ color: "#BBBBBB", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>자세히</span>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -355,7 +539,7 @@ function WeatherSection({ onExpand }) {
         </div>
       </button>
 
-      {/* Outfit recommendation */}
+      {/* Style recommendation card */}
       <div className="mx-6 rounded-2xl px-5 py-5" style={{ backgroundColor: "#313439" }}>
         <div className="flex items-start justify-between mb-4">
           <div>
@@ -375,105 +559,51 @@ function WeatherSection({ onExpand }) {
         </div>
       </div>
 
-      {/* ── 내 옷장 속 추천 코디 ── */}
-      <ClosetOutfitRec weather={weather} />
-    </div>
-  );
-}
-
-// ─── Closet-based outfit recommendation ──────────────────────────────────────
-function ClosetOutfitRec({ weather }) {
-  if (!weather) return null;
-
-  const recItems = getWeatherRecommendedClosetOutfit(weather, CLOSET_ITEMS);
-  if (!recItems.length) return null;
-
-  const ROLE_LABEL = { 상의: "TOP", 하의: "BOTTOM", 아우터: "OUTER", 원피스: "ONE PIECE" };
-
-  return (
-    <div className="mx-6 mt-4 mb-0">
-      <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid #F0F0F0" }}>
-        {/* Header */}
-        <div className="px-4 pt-4 pb-3 flex items-start justify-between" style={{ backgroundColor: "#FAFAFA" }}>
-          <div>
-            <p
-              className="text-[10px] font-bold tracking-[0.14em] uppercase"
-              style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-            >
-              MY CLOSET PICK
+      {/* ── 추천 아이템 (tappable) ── */}
+      {recItems.length > 0 && (
+        <div className="mt-5">
+          <div className="flex items-center justify-between px-6 mb-3">
+            <div>
+              <p className="text-[10px] font-bold tracking-[0.14em] uppercase" style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>MY CLOSET</p>
+              <h3 className="text-[15px] font-bold leading-tight" style={{ color: "#1a1a1a", fontFamily: "'Spoqa Han Sans Neo', sans-serif", letterSpacing: "-0.02em" }}>추천 아이템</h3>
+            </div>
+            <p className="text-[11px]" style={{ color: "#BBBBBB", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+              탭하면 코디 추천 →
             </p>
-            <h3
-              className="text-[14px] font-bold leading-tight mt-0.5"
-              style={{ color: "#1a1a1a", fontFamily: "'Spoqa Han Sans Neo', sans-serif", letterSpacing: "-0.02em" }}
-            >
-              내 옷장 속 추천 코디
-            </h3>
           </div>
-          <span
-            className="text-[11px] font-bold px-2 py-0.5 rounded-full"
-            style={{ backgroundColor: "#F5F5F5", color: "#888", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-          >
-            {weather.temp}° 기준
-          </span>
-        </div>
 
-        {/* Item row */}
-        <div className="flex bg-white px-3 pt-3 pb-4 gap-3">
-          {recItems.map(({ role, item }) => {
-            const [imgErr, setImgErr] = useState(false);
-            return (
-              <div key={item.id} className="flex-1 min-w-0 flex flex-col items-center">
-                {/* Role label */}
-                <span
-                  className="text-[9px] font-bold tracking-widest uppercase mb-1.5 px-1.5 py-0.5 rounded-sm"
-                  style={{
-                    backgroundColor: "#F0F0F0",
-                    color: "#888",
-                    fontFamily: "system-ui, sans-serif",
-                  }}
-                >
-                  {ROLE_LABEL[role] || role}
-                </span>
-                {/* Image */}
-                <div
-                  className="w-full rounded-xl overflow-hidden relative"
-                  style={{ aspectRatio: "3/4", backgroundColor: "#F5F5F5" }}
-                >
-                  {!imgErr ? (
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="absolute inset-0 w-full h-full"
-                      style={{ objectFit: "cover", objectPosition: "center top" }}
-                      onError={() => setImgErr(true)}
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <rect x="2" y="5" width="16" height="11" rx="1.5" stroke="#999" strokeWidth="1.5" />
-                        <circle cx="10" cy="10.5" r="3" stroke="#999" strokeWidth="1.5" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-                {/* Name */}
-                <p
-                  className="text-[10px] font-medium text-center mt-1.5 w-full truncate"
-                  style={{ color: "#333", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-                >
-                  {item.name}
-                </p>
-                <p
-                  className="text-[9px] text-center truncate w-full"
-                  style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-                >
-                  {item.brand}
-                </p>
-              </div>
-            );
-          })}
+          {/* Horizontal scroll of tappable item cards */}
+          <div
+            className="flex overflow-x-auto px-6"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none", scrollSnapType: "x mandatory" }}
+          >
+            {recItems.map(({ item }) => (
+              <WeatherItemCard
+                key={item.id}
+                item={item}
+                isSelected={selectedItem?.id === item.id}
+                onTap={handleItemTap}
+              />
+            ))}
+            <div className="shrink-0 w-2" />
+          </div>
+
+          {/* Hint text when nothing selected */}
+          {!selectedItem && (
+            <p
+              className="text-[11px] text-center mt-3 px-6"
+              style={{ color: "#CCCCCC", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+            >
+              아이템을 탭하면 함께 입는 코디를 추천해 드려요
+            </p>
+          )}
         </div>
-      </div>
+      )}
+
+      {/* ── 이 아이템으로 추천 코디 (appears when item is tapped) ── */}
+      {selectedItem && (
+        <RecommendedOutfitCards anchorItem={selectedItem} />
+      )}
     </div>
   );
 }

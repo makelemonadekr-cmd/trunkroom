@@ -49,11 +49,68 @@ export const SUBCATEGORIES = {
   스포츠:   ["스포츠 레깅스", "스포츠 브라", "트레이닝 재킷", "러닝화", "요가복", "압박 반바지", "윈드브레이커", "스포츠 티셔츠", "스포츠 양말", "헤드밴드"],
 };
 
+// ─── Tag → style mapping (for auto-deriving styleTags from existing tags) ─────
+const _TAG_STYLE_MAP = {
+  // 미니멀
+  "미니멀": "미니멀", "베이직": "미니멀", "클래식": "미니멀", "타임리스": "미니멀",
+  "린넨": "미니멀", "슬림": "미니멀", "리브드": "미니멀",
+  // 캐주얼
+  "캐주얼": "캐주얼", "데일리": "캐주얼", "레이어드": "캐주얼", "코튼": "캐주얼",
+  "집업": "캐주얼", "와이드": "캐주얼",
+  // 페미닌
+  "페미닌": "페미닌", "로맨틱": "페미닌", "플로럴": "페미닌", "러플": "페미닌",
+  "실크": "페미닌", "사틴": "페미닌", "스퀘어넥": "페미닌", "크롭": "페미닌",
+  "타이 프론트": "페미닌",
+  // 스트릿
+  "스트릿": "스트릿", "오버핏": "스트릿", "그래픽": "스트릿", "나일론": "스트릿",
+  "보머": "스트릿", "라이더스": "스트릿", "엣지": "스트릿",
+  // 오피스룩
+  "오피스": "오피스룩", "세미포멀": "오피스룩", "테일러드": "오피스룩",
+  "더블브레스트": "오피스룩", "더블": "오피스룩", "포멀": "오피스룩",
+  "플리츠": "오피스룩",
+  // 스포티
+  "스포티": "스포티", "액티브": "스포티", "기능성": "스포티", "압박": "스포티",
+  "방풍": "스포티", "메시": "스포티",
+  // 빈티지
+  "빈티지": "빈티지", "레트로": "빈티지", "체크": "빈티지", "데님": "빈티지",
+  // Y2K
+  "Y2K": "Y2K", "트렌디": "Y2K", "볼륨": "Y2K",
+  // 주말룩 / 캐주얼 extras
+  "케이블": "캐주얼", "립": "캐주얼", "보디핏": "캐주얼",
+  "하이라이즈": "캐주얼", "울": "미니멀", "테리": "캐주얼",
+  "럭셔리": "모던시크", "다운": "미니멀", "경량": "미니멀",
+  "요가": "스포티", "편안함": "스포티",
+  // 모던시크
+  "시크": "모던시크", "드라마틱": "모던시크", "우아한": "모던시크",
+  // 여행룩 / 리조트
+  "이브닝": "하객룩", "파티": "하객룩",
+};
+
+function _deriveStyleTags(tags) {
+  const seen = new Set();
+  const result = [];
+  for (const tag of (tags ?? [])) {
+    const style = _TAG_STYLE_MAP[tag];
+    if (style && !seen.has(style)) {
+      seen.add(style);
+      result.push(style);
+    }
+    if (result.length >= 2) break;
+  }
+  return result;
+}
+
 // ─── Item factory ─────────────────────────────────────────────────────────────
 let _uid = 1;
 function mk(name, brand, category, subcategory, image, color, size, season, tags, price = 0, isForSale = false) {
   return {
-    id:          `item-${_uid++}`,
+    id:           `item-${_uid++}`,
+    // ── New schema fields ──
+    displayName:  name,
+    mainCategory: category,
+    subCategory:  subcategory,
+    styleTags:    _deriveStyleTags(tags),
+    // ── Legacy fields (kept for backward compat) ──
     name,
     brand,
     category,
@@ -61,11 +118,15 @@ function mk(name, brand, category, subcategory, image, color, size, season, tags
     image,
     color,
     size,
-    season:      Array.isArray(season) ? season : [season],
+    season:       Array.isArray(season) ? season : [season],
     tags,
     price,
     isForSale,
-    description: `${brand} ${name}`,
+    condition:    "good",
+    source:       "manual",
+    createdAt:    "2024-01-01",
+    updatedAt:    "2024-01-01",
+    description:  `${brand} ${name}`,
   };
 }
 
@@ -284,14 +345,23 @@ export const CLOSET_ITEMS = [
 
 // ─── Helper functions (replace with backend API calls later) ─────────────────
 
-/** All items in a given main category */
+/** All items in a given main category (supports both legacy and new schema) */
 export function getItemsByCategory(category) {
-  return CLOSET_ITEMS.filter((item) => item.category === category);
+  return CLOSET_ITEMS.filter(
+    (item) => item.mainCategory === category || item.category === category
+  );
 }
 
-/** All items in a given subcategory */
+/** All items in a given subcategory (supports both legacy and new schema) */
 export function getItemsBySubcategory(subcategory) {
-  return CLOSET_ITEMS.filter((item) => item.subcategory === subcategory);
+  return CLOSET_ITEMS.filter(
+    (item) => item.subCategory === subcategory || item.subcategory === subcategory
+  );
+}
+
+/** All items matching a given style tag */
+export function getItemsByStyleTag(styleTag) {
+  return CLOSET_ITEMS.filter((item) => item.styleTags?.includes(styleTag));
 }
 
 /**

@@ -102,7 +102,21 @@ function _deriveStyleTags(tags) {
 
 // ─── Item factory ─────────────────────────────────────────────────────────────
 let _uid = 1;
-function mk(name, brand, category, subcategory, image, color, size, season, tags, price = 0, isForSale = false) {
+/**
+ * @param {string} name
+ * @param {string} brand
+ * @param {string} category
+ * @param {string} subcategory
+ * @param {string} image
+ * @param {string} color
+ * @param {string} size
+ * @param {string|string[]} season
+ * @param {string[]} tags
+ * @param {number} [price=0]
+ * @param {boolean} [isForSale=false]
+ * @param {{ condition?: string, wearCount?: number, lastWornAt?: string|null, hasBox?: boolean }} [opts={}]
+ */
+function mk(name, brand, category, subcategory, image, color, size, season, tags, price = 0, isForSale = false, opts = {}) {
   return {
     id:           `item-${_uid++}`,
     // ── New schema fields ──
@@ -122,7 +136,10 @@ function mk(name, brand, category, subcategory, image, color, size, season, tags
     tags,
     price,
     isForSale,
-    condition:    "good",
+    condition:    opts.condition  ?? "상태 좋음",
+    wearCount:    opts.wearCount  ?? 0,
+    lastWornAt:   opts.lastWornAt ?? null,
+    hasBox:       opts.hasBox     ?? false,
     source:       "manual",
     createdAt:    "2024-01-01",
     updatedAt:    "2024-01-01",
@@ -342,6 +359,50 @@ export const CLOSET_ITEMS = [
   mk("요가 조거팬츠",       "LULULEMON",      "스포츠","요가복",       IMG.trousers,  "그레이","S",  ["봄","가을"],     ["요가","편안함"],        89000),
   mk("윈드브레이커",        "NORTHFACE",      "스포츠","윈드브레이커", IMG.streetJkt, "블루",  "M",  ["봄","가을"],     ["방풍","기능성"],       145000),
 ];
+
+// ─── Demo wear / condition overrides ─────────────────────────────────────────
+// Applied once at module load. lastWornAt < "2025-04-21" → "1년 이상 미착용"
+// (today = 2026-04-21, so anything before 2025-04-21 counts as over 1 year ago)
+;(function _applyDemoOverrides() {
+  const o = CLOSET_ITEMS;
+  [
+    // 상의
+    [0,  {wearCount:18, lastWornAt:"2026-03-20", condition:"사용감 있음"}],   // 클래식 화이트 반팔
+    [1,  {wearCount:4,  lastWornAt:"2024-09-10"}],                           // 오버핏 블랙 반팔 — >1yr
+    [2,  {wearCount:0,  lastWornAt:null, hasBox:true, condition:"새상품급"}], // 스트라이프 반팔 — never worn
+    [5,  {wearCount:22, lastWornAt:"2026-01-08", condition:"사용감 있음"}],   // 머슬핏 긴팔
+    [9,  {wearCount:3,  lastWornAt:"2024-12-20", hasBox:true}],              // 터틀넥 긴팔 — >1yr
+    [11, {wearCount:1,  lastWornAt:"2023-11-05"}],                           // 체크 패턴 셔츠 — >1yr (2yr+)
+    [14, {wearCount:0,  lastWornAt:null, hasBox:true, condition:"새상품급"}], // 실크 브이넥 블라우스
+    [16, {wearCount:2,  lastWornAt:"2024-06-18"}],                           // 러플 블라우스 — >1yr
+    [18, {wearCount:9,  lastWornAt:"2025-11-15"}],                           // 메리노울 크루넥 — recent
+    [19, {wearCount:0,  lastWornAt:null, condition:"새상품급"}],              // 케이블 니트 — never worn
+    [23, {wearCount:30, lastWornAt:"2026-04-01", condition:"사용감 있음"}],   // 오버핏 기모 후드
+    [24, {wearCount:0,  lastWornAt:null, hasBox:true, condition:"새상품급"}], // 심플 후드 집업
+    [26, {wearCount:35, lastWornAt:"2026-04-18", condition:"사용감 있음"}],   // 베이직 맨투맨
+    [28, {wearCount:1,  lastWornAt:"2024-05-20"}],                           // 오버핏 크루넥 스웻 — >1yr
+    // 하의
+    [37, {wearCount:45, lastWornAt:"2026-04-19", condition:"사용감 있음"}],   // 스트레이트 데님 — #1 worn
+    [38, {wearCount:8,  lastWornAt:"2025-10-22"}],                           // 와이드 워시드 데님 — recent
+    [39, {wearCount:0,  lastWornAt:null, hasBox:true, condition:"새상품급"}], // 슬림 스키니 데님
+    [42, {wearCount:12, lastWornAt:"2025-09-15"}],                           // 와이드 슬랙스 — recent
+    [50, {wearCount:3,  lastWornAt:"2024-11-20"}],                           // 플리츠 미니스커트 — >1yr
+    [54, {wearCount:1,  lastWornAt:"2023-12-28"}],                           // 사틴 미디스커트 — >1yr
+    // 아우터
+    [69, {wearCount:6,  lastWornAt:"2025-10-18", hasBox:true}],              // 클래식 트렌치 — seasonal
+    [74, {wearCount:0,  lastWornAt:null, hasBox:true, condition:"새상품급"}], // 더블 브레스트 코트
+    [77, {wearCount:2,  lastWornAt:"2024-02-15"}],                           // 숏 패딩 — >1yr
+    [81, {wearCount:10, lastWornAt:"2026-02-20"}],                           // 테일러드 블레이저
+    [88, {wearCount:1,  lastWornAt:"2024-10-30", hasBox:true}],              // 라이더스 레더 — >1yr
+    // 원피스
+    [94, {wearCount:0,  lastWornAt:null, condition:"새상품급"}],              // 플로럴 미니 원피스
+    [98, {wearCount:2,  lastWornAt:"2024-08-15", hasBox:true}],              // 사틴 미디 드레스 — >1yr
+    // 신발
+    [107,{wearCount:40, lastWornAt:"2026-04-10", condition:"사용감 있음"}],   // 에어포스 1
+    [111,{wearCount:1,  lastWornAt:"2024-05-20", hasBox:true}],              // 탄 로퍼 — >1yr
+    [114,{wearCount:5,  lastWornAt:"2025-11-30"}],                           // 앵클 부츠 — recent
+  ].forEach(([idx, data]) => Object.assign(o[idx], data));
+}());
 
 // ─── Helper functions (replace with backend API calls later) ─────────────────
 

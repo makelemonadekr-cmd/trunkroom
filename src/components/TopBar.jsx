@@ -1,8 +1,11 @@
-export default function TopBar({ notificationCount = 4, onFilter }) {
+export default function TopBar({ notificationCount = 4, onSearchTap }) {
   return (
     <div className="flex items-center gap-3 px-4 h-12 bg-white border-b border-[#F5F5F5] shrink-0">
-      {/* Search bar */}
-      <div className="flex-1 flex items-center gap-2 h-9 bg-[#F5F5F5] rounded-sm px-3">
+      {/* Search bar — tappable, opens SearchFilterScreen */}
+      <button
+        className="flex-1 flex items-center gap-2 h-9 bg-[#F5F5F5] rounded-sm px-3 text-left"
+        onClick={onSearchTap}
+      >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
           <circle cx="6.5" cy="6.5" r="5" stroke="#AAAAAA" strokeWidth="1.4" />
           <path d="M10.5 10.5L14 14" stroke="#AAAAAA" strokeWidth="1.4" strokeLinecap="round" />
@@ -13,18 +16,7 @@ export default function TopBar({ notificationCount = 4, onFilter }) {
         >
           검색
         </span>
-      </div>
-
-      {/* Filter button */}
-      {onFilter && (
-        <button className="w-9 h-9 flex items-center justify-center shrink-0" onClick={onFilter}>
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M3 5H17" stroke="#333" strokeWidth="1.5" strokeLinecap="round" />
-            <path d="M6 10H14" stroke="#333" strokeWidth="1.5" strokeLinecap="round" />
-            <path d="M9 15H11" stroke="#333" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-        </button>
-      )}
+      </button>
 
       {/* Icons */}
       <div className="flex items-center gap-1">

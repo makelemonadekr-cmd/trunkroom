@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import TopBar from "../../components/TopBar";
-import ProductFilterSheet from "../../components/ProductFilterSheet";
 import StyleBookFilterSheet from "../../components/StyleBookFilterSheet";
+import SearchFilterScreen from "../../components/SearchFilterScreen";
 import WeatherDetailScreen from "../weather/WeatherDetailScreen";
 import FullListScreen from "../closet/FullListScreen";
 import { useWeather, getOutfitRec, CONDITION_META } from "../../hooks/useWeather";
@@ -1165,10 +1165,19 @@ function Footer({ onLegalOpen }) {
 
 export default function HomePage({ onProductSelect, onLegalOpen }) {
   const [activeDetail,    setActiveDetail]    = useState(null);
-  const [filterSheet,     setFilterSheet]     = useState(null); // null | "product" | "stylebook"
+  const [filterSheet,     setFilterSheet]     = useState(null); // null | "stylebook"
   const [weatherOpen,     setWeatherOpen]     = useState(false);
   const [fullList,        setFullList]        = useState(null); // { title, items }
+  const [searchOpen,      setSearchOpen]      = useState(false);
   const { weather } = useWeather();
+
+  function handleSearchResults(results) {
+    setSearchOpen(false);
+    setFullList({
+      title: `검색 결과 (${results.length}개)`,
+      items: results,
+    });
+  }
 
   return (
     <div className="relative flex flex-col h-full bg-white overflow-hidden">
@@ -1182,7 +1191,7 @@ export default function HomePage({ onProductSelect, onLegalOpen }) {
         <WeatherDetailScreen weather={weather} onBack={() => setWeatherOpen(false)} />
       )}
 
-      {/* Full list overlay (더보기) */}
+      {/* Full list overlay (더보기 / search results) */}
       {fullList && (
         <FullListScreen
           title={fullList.title}
@@ -1191,15 +1200,20 @@ export default function HomePage({ onProductSelect, onLegalOpen }) {
         />
       )}
 
-      {/* Filter overlays */}
-      {filterSheet === "product" && (
-        <ProductFilterSheet onClose={() => setFilterSheet(null)} onApply={() => {}} />
+      {/* Search / filter overlay */}
+      {searchOpen && (
+        <SearchFilterScreen
+          onClose={() => setSearchOpen(false)}
+          onSearch={handleSearchResults}
+        />
       )}
+
+      {/* Style book filter overlay */}
       {filterSheet === "stylebook" && (
         <StyleBookFilterSheet onClose={() => setFilterSheet(null)} onApply={() => {}} />
       )}
 
-      <TopBar notificationCount={4} onFilter={() => setFilterSheet("product")} />
+      <TopBar notificationCount={4} onSearchTap={() => setSearchOpen(true)} />
 
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
 

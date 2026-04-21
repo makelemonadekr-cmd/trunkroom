@@ -13,7 +13,7 @@ export const APP_NAME                = "트렁크룸";
 export const APP_VERSION             = "1.0.0";
 
 // ─── URLs & contact ──────────────────────────────────────────────────────────
-export const COMPANY_URL             = "https://makelemonde.kr";
+export const COMPANY_URL             = "https://makelemonade.kr";
 export const SUPPORT_EMAIL           = "hello@makelemonade.kr";
 export const PARTNERSHIP_EMAIL       = "hello@makelemonade.kr";
 export const CUSTOMER_SERVICE_PHONE  = "1800-8474";

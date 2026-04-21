@@ -9,9 +9,9 @@ export default function TopBar({ notificationCount = 4, onFilter }) {
         </svg>
         <span
           className="text-[13px]"
-          style={{ color: "#BBBBBB", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+          style={{ color: "#CCCCCC", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
         >
-          브랜드, 스타일, 셀러 검색
+          검색
         </span>
       </div>
 

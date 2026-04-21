@@ -3,7 +3,16 @@ import TopBar from "../../components/TopBar";
 import ProductFilterSheet from "../../components/ProductFilterSheet";
 import StyleBookFilterSheet from "../../components/StyleBookFilterSheet";
 import WeatherDetailScreen from "../weather/WeatherDetailScreen";
+import FullListScreen from "../closet/FullListScreen";
 import { useWeather, getOutfitRec, CONDITION_META } from "../../hooks/useWeather";
+import {
+  MAIN_CATEGORIES,
+  SUBCATEGORIES,
+  CLOSET_ITEMS,
+  getItemsByCategory,
+  getItemsBySubcategory,
+  getWeatherRecommendedClosetOutfit,
+} from "../../constants/mockClosetData";
 
 // ─── 2 banner slides ──────────────────────────────────────────────────────────
 // Order: [0] mainimage (→ introducing), [1] banner2 (→ guide)
@@ -365,6 +374,106 @@ function WeatherSection({ onExpand }) {
           ))}
         </div>
       </div>
+
+      {/* ── 내 옷장 속 추천 코디 ── */}
+      <ClosetOutfitRec weather={weather} />
+    </div>
+  );
+}
+
+// ─── Closet-based outfit recommendation ──────────────────────────────────────
+function ClosetOutfitRec({ weather }) {
+  if (!weather) return null;
+
+  const recItems = getWeatherRecommendedClosetOutfit(weather, CLOSET_ITEMS);
+  if (!recItems.length) return null;
+
+  const ROLE_LABEL = { 상의: "TOP", 하의: "BOTTOM", 아우터: "OUTER", 원피스: "ONE PIECE" };
+
+  return (
+    <div className="mx-6 mt-4 mb-0">
+      <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid #F0F0F0" }}>
+        {/* Header */}
+        <div className="px-4 pt-4 pb-3 flex items-start justify-between" style={{ backgroundColor: "#FAFAFA" }}>
+          <div>
+            <p
+              className="text-[10px] font-bold tracking-[0.14em] uppercase"
+              style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+            >
+              MY CLOSET PICK
+            </p>
+            <h3
+              className="text-[14px] font-bold leading-tight mt-0.5"
+              style={{ color: "#1a1a1a", fontFamily: "'Spoqa Han Sans Neo', sans-serif", letterSpacing: "-0.02em" }}
+            >
+              내 옷장 속 추천 코디
+            </h3>
+          </div>
+          <span
+            className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: "#F5F5F5", color: "#888", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+          >
+            {weather.temp}° 기준
+          </span>
+        </div>
+
+        {/* Item row */}
+        <div className="flex bg-white px-3 pt-3 pb-4 gap-3">
+          {recItems.map(({ role, item }) => {
+            const [imgErr, setImgErr] = useState(false);
+            return (
+              <div key={item.id} className="flex-1 min-w-0 flex flex-col items-center">
+                {/* Role label */}
+                <span
+                  className="text-[9px] font-bold tracking-widest uppercase mb-1.5 px-1.5 py-0.5 rounded-sm"
+                  style={{
+                    backgroundColor: "#F0F0F0",
+                    color: "#888",
+                    fontFamily: "system-ui, sans-serif",
+                  }}
+                >
+                  {ROLE_LABEL[role] || role}
+                </span>
+                {/* Image */}
+                <div
+                  className="w-full rounded-xl overflow-hidden relative"
+                  style={{ aspectRatio: "3/4", backgroundColor: "#F5F5F5" }}
+                >
+                  {!imgErr ? (
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="absolute inset-0 w-full h-full"
+                      style={{ objectFit: "cover", objectPosition: "center top" }}
+                      onError={() => setImgErr(true)}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <rect x="2" y="5" width="16" height="11" rx="1.5" stroke="#999" strokeWidth="1.5" />
+                        <circle cx="10" cy="10.5" r="3" stroke="#999" strokeWidth="1.5" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                {/* Name */}
+                <p
+                  className="text-[10px] font-medium text-center mt-1.5 w-full truncate"
+                  style={{ color: "#333", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+                >
+                  {item.name}
+                </p>
+                <p
+                  className="text-[9px] text-center truncate w-full"
+                  style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+                >
+                  {item.brand}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
@@ -508,27 +617,7 @@ const HOT_LISTINGS = [
   },
 ];
 
-const CATEGORIES = [
-  { id: 1, label: "상의",     emoji: "👕" },
-  { id: 2, label: "하의",     emoji: "👖" },
-  { id: 3, label: "아우터",   emoji: "🧥" },
-  { id: 4, label: "원피스",   emoji: "👗" },
-  { id: 5, label: "신발",     emoji: "👟" },
-  { id: 6, label: "가방",     emoji: "👜" },
-  { id: 7, label: "액세서리", emoji: "💍" },
-  { id: 8, label: "스포츠",   emoji: "🎽" },
-];
-
-const CAT_SUBS = {
-  상의:     ["반팔 티셔츠", "긴팔 티셔츠", "셔츠/블라우스", "니트/스웨터", "후드티"],
-  하의:     ["데님 팬츠", "슬랙스", "미니스커트", "미디스커트", "조거팬츠"],
-  아우터:   ["트렌치코트", "패딩", "블레이저", "코트", "가디건"],
-  원피스:   ["미니 원피스", "미디 원피스", "맥시 원피스", "점프수트", "니트 원피스"],
-  신발:     ["스니커즈", "로퍼", "힐/펌프스", "부츠", "샌들"],
-  가방:     ["숄더백", "크로스백", "토트백", "클러치", "백팩"],
-  액세서리: ["목걸이", "귀걸이", "반지", "선글라스", "벨트"],
-  스포츠:   ["레깅스", "스포츠 브라", "트레이닝 팬츠", "윈드브레이커", "운동화"],
-};
+// MAIN_CATEGORIES and SUBCATEGORIES are now imported from mockClosetData
 
 const STYLE_BOOKS = [
   {
@@ -647,8 +736,44 @@ function ProductCard({ item, wide = false, onSelect }) {
   );
 }
 
-function Categories() {
-  const [selected, setSelected] = useState(null);
+// ─── Small closet item card for horizontal carousel ──────────────────────────
+function ClosetMiniCard({ item, onMore }) {
+  const [imgErr, setImgErr] = useState(false);
+  return (
+    <div
+      className="shrink-0 rounded-xl overflow-hidden bg-white"
+      style={{ width: 110, marginRight: 10, scrollSnapAlign: "start", border: "1px solid #F0F0F0" }}
+    >
+      <div className="relative overflow-hidden" style={{ height: 130, backgroundColor: "#F5F5F5" }}>
+        {!imgErr ? (
+          <img
+            src={item.image}
+            alt={item.name}
+            className="absolute inset-0 w-full h-full"
+            style={{ objectFit: "cover", objectPosition: "center top" }}
+            onError={() => setImgErr(true)}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center opacity-20">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="6" width="18" height="13" rx="2" stroke="#999" strokeWidth="1.5" />
+              <circle cx="12" cy="12.5" r="3.5" stroke="#999" strokeWidth="1.5" />
+            </svg>
+          </div>
+        )}
+      </div>
+      <div className="px-2 pt-1.5 pb-2">
+        <p className="text-[8px] uppercase tracking-wide truncate" style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{item.brand}</p>
+        <p className="text-[11px] font-medium mt-0.5 truncate" style={{ color: "#1a1a1a", fontFamily: "'Spoqa Han Sans Neo', sans-serif", lineHeight: 1.3 }}>{item.name}</p>
+        <p className="text-[10px] mt-0.5 truncate" style={{ color: "#BBBBBB", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{item.color}</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Categories component ─────────────────────────────────────────────────────
+function Categories({ onMorePress }) {
+  const [selected,  setSelected]  = useState(null);
   const [activeSub, setActiveSub] = useState(null);
 
   function handleCatClick(cat) {
@@ -657,17 +782,18 @@ function Categories() {
       setActiveSub(null);
     } else {
       setSelected(cat.label);
-      setActiveSub(CAT_SUBS[cat.label]?.[0] ?? null);
+      setActiveSub(SUBCATEGORIES[cat.label]?.[0] ?? null);
     }
   }
 
-  const subs = selected ? CAT_SUBS[selected] : null;
+  const subs      = selected ? SUBCATEGORIES[selected] : null;
+  const subItems  = activeSub ? getItemsBySubcategory(activeSub) : [];
 
   return (
     <div className="py-6 bg-white">
       <SectionHeader en="CATEGORIES" ko="내 옷장 속 카테고리" />
       <div className="grid grid-cols-4 gap-3 px-6">
-        {CATEGORIES.map((cat) => {
+        {MAIN_CATEGORIES.map((cat) => {
           const isActive = selected === cat.label;
           return (
             <button
@@ -691,36 +817,84 @@ function Categories() {
         })}
       </div>
 
-      {/* Sub-category tags */}
+      {/* Sub-category panel */}
       {subs && (
         <div className="mt-4 px-5">
-          <div
-            className="p-3 rounded-2xl"
-            style={{ backgroundColor: "#F8F8F8" }}
-          >
-            <p className="text-[10px] font-bold tracking-widest uppercase mb-2.5 px-1" style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
-              {selected} 세부 카테고리
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {subs.map((sub) => {
-                const isSubActive = activeSub === sub;
-                return (
-                  <button
-                    key={sub}
-                    onClick={() => setActiveSub(sub)}
-                    className="px-3 py-1.5 rounded-full text-[12px] font-medium transition-all"
-                    style={{
-                      backgroundColor: isSubActive ? "#1a1a1a" : "white",
-                      color: isSubActive ? "white" : "#555",
-                      fontFamily: "'Spoqa Han Sans Neo', sans-serif",
-                      border: isSubActive ? "1.5px solid #1a1a1a" : "1.5px solid #E8E8E8",
-                    }}
-                  >
-                    {sub}
-                  </button>
-                );
-              })}
+          <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "#F8F8F8" }}>
+            {/* Sub-category chip row */}
+            <div className="pt-3 pb-2">
+              <p
+                className="text-[10px] font-bold tracking-widest uppercase mb-2.5 px-3"
+                style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+              >
+                {selected} 세부 카테고리
+              </p>
+              <div
+                className="flex overflow-x-auto px-3 gap-2"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              >
+                {subs.map((sub) => {
+                  const isSubActive = activeSub === sub;
+                  return (
+                    <button
+                      key={sub}
+                      onClick={() => setActiveSub(sub)}
+                      className="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all"
+                      style={{
+                        backgroundColor: isSubActive ? "#1a1a1a" : "white",
+                        color:           isSubActive ? "white"   : "#555",
+                        fontFamily:      "'Spoqa Han Sans Neo', sans-serif",
+                        border:          isSubActive ? "1.5px solid #1a1a1a" : "1.5px solid #E8E8E8",
+                        whiteSpace:      "nowrap",
+                      }}
+                    >
+                      {sub}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+
+            {/* Horizontal item carousel for selected subcategory */}
+            {activeSub && (
+              <div className="pb-3">
+                {subItems.length === 0 ? (
+                  <p
+                    className="text-[12px] px-4 py-3"
+                    style={{ color: "#CCCCCC", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+                  >
+                    등록된 아이템이 없어요
+                  </p>
+                ) : (
+                  <>
+                    <div
+                      className="flex overflow-x-auto pl-3 pr-2 pb-1 pt-2"
+                      style={{ scrollbarWidth: "none", msOverflowStyle: "none", scrollSnapType: "x mandatory" }}
+                    >
+                      {subItems.map((item) => (
+                        <ClosetMiniCard key={item.id} item={item} />
+                      ))}
+                      <div className="shrink-0 w-2" />
+                    </div>
+                    {/* 더보기 */}
+                    <button
+                      onClick={() => onMorePress({
+                        title: `${selected} · ${activeSub}`,
+                        items: subItems,
+                      })}
+                      className="mx-3 mt-1 flex items-center gap-1"
+                    >
+                      <span className="text-[11px] font-medium" style={{ color: "#888", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+                        {activeSub} 더보기 ({subItems.length})
+                      </span>
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <path d="M4 2.5L7.5 6L4 9.5" stroke="#888" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -828,6 +1002,7 @@ export default function HomePage({ onProductSelect }) {
   const [activeDetail,    setActiveDetail]    = useState(null);
   const [filterSheet,     setFilterSheet]     = useState(null); // null | "product" | "stylebook"
   const [weatherOpen,     setWeatherOpen]     = useState(false);
+  const [fullList,        setFullList]        = useState(null); // { title, items }
   const { weather } = useWeather();
 
   return (
@@ -840,6 +1015,15 @@ export default function HomePage({ onProductSelect }) {
       {/* Weather detail overlay */}
       {weatherOpen && (
         <WeatherDetailScreen weather={weather} onBack={() => setWeatherOpen(false)} />
+      )}
+
+      {/* Full list overlay (더보기) */}
+      {fullList && (
+        <FullListScreen
+          title={fullList.title}
+          items={fullList.items}
+          onBack={() => setFullList(null)}
+        />
       )}
 
       {/* Filter overlays */}
@@ -861,7 +1045,7 @@ export default function HomePage({ onProductSelect }) {
         <WeatherSection onExpand={() => setWeatherOpen(true)} />
 
         {/* Categories — 내 옷장 속 카테고리 */}
-        <Categories />
+        <Categories onMorePress={(data) => setFullList(data)} />
 
         {/* NEW LISTINGS */}
         <div className="py-6 bg-white">

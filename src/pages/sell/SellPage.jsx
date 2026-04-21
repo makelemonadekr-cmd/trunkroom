@@ -369,19 +369,6 @@ export default function SellPage({ onQuickSell, onSellFromCloset, onCleanout }) 
               />
             </div>
 
-            {/* Section label */}
-            <div className="px-5 mb-4">
-              <p
-                className="text-[11px] font-bold tracking-[0.14em] uppercase"
-                style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-              >
-                프로모션
-              </p>
-            </div>
-
-            {/* Promo banner */}
-            <PromoBanner onPress={onCleanout} />
-
             {/* Tips section */}
             <div className="mx-5 mt-5 mb-6 rounded-2xl p-4" style={{ backgroundColor: "#FAFAFA", border: "1px solid #F0F0F0" }}>
               <p

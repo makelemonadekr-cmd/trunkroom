@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 @layer base {
   * {
@@ -21,4 +19,12 @@
     padding: 0;
     margin: 0;
   }
+}
+
+/* Custom theme tokens for Tailwind v4 */
+@theme {
+  --color-brand-dark: #313439;
+  --color-brand-yellow: #F5C200;
+  --color-brand-text: #333333;
+  --font-family-spoqa: 'Spoqa Han Sans Neo', sans-serif;
 }

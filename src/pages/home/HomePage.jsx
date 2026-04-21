@@ -11,9 +11,8 @@ import {
   CLOSET_ITEMS,
   getItemsByCategory,
   getItemsBySubcategory,
-  getWeatherRecommendedClosetOutfit,
 } from "../../constants/mockClosetData";
-import { getRecommendedOutfitsByItem } from "../../lib/getRecommendedOutfitsByItem";
+import { filterClosetItemsByPiece } from "../../lib/filterClosetItemsByPiece";
 
 // ─── 2 banner slides ──────────────────────────────────────────────────────────
 // Order: [0] mainimage (→ introducing), [1] banner2 (→ guide)
@@ -266,24 +265,16 @@ function BannerCarousel({ onBannerTap }) {
   );
 }
 
-// ─── Tappable weather-recommended item card ───────────────────────────────────
+// ─── Closet mini card (dark variant) — used inside recommendation dark card ───
 
-function WeatherItemCard({ item, isSelected, onTap }) {
+function ClosetMiniCardDark({ item }) {
   const [imgErr, setImgErr] = useState(false);
   return (
-    <button
-      onClick={() => onTap(item)}
-      className="shrink-0 rounded-xl overflow-hidden transition-all"
-      style={{
-        width: 100,
-        marginRight: 10,
-        scrollSnapAlign: "start",
-        border: isSelected ? "2px solid #1a1a1a" : "2px solid transparent",
-        boxShadow: isSelected ? "0 4px 14px rgba(0,0,0,0.18)" : "none",
-        transform: isSelected ? "scale(1.03)" : "scale(1)",
-      }}
+    <div
+      className="shrink-0 rounded-xl overflow-hidden"
+      style={{ width: 86, marginRight: 8, scrollSnapAlign: "start", backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
     >
-      <div className="relative overflow-hidden" style={{ height: 120, backgroundColor: "#F5F5F5" }}>
+      <div className="relative overflow-hidden" style={{ height: 100, backgroundColor: "rgba(255,255,255,0.05)" }}>
         {!imgErr ? (
           <img
             src={item.image}
@@ -293,153 +284,97 @@ function WeatherItemCard({ item, isSelected, onTap }) {
             onError={() => setImgErr(true)}
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center opacity-20">
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-              <rect x="2" y="5" width="18" height="13" rx="2" stroke="#999" strokeWidth="1.5" />
-              <circle cx="11" cy="11.5" r="3.5" stroke="#999" strokeWidth="1.5" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="2" y="4" width="16" height="12" rx="2" stroke="rgba(255,255,255,0.25)" strokeWidth="1.3" />
+              <circle cx="10" cy="10" r="3" stroke="rgba(255,255,255,0.25)" strokeWidth="1.3" />
             </svg>
           </div>
         )}
-        {isSelected && (
-          <div className="absolute inset-0 flex items-end justify-end p-1.5">
-            <div
-              className="flex items-center justify-center rounded-full"
-              style={{ width: 18, height: 18, backgroundColor: "#1a1a1a" }}
-            >
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M2 5L4.2 7L8 3" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-          </div>
-        )}
       </div>
-      <div className="px-1.5 pt-1 pb-1.5" style={{ backgroundColor: isSelected ? "#1a1a1a" : "white" }}>
+      <div className="px-1.5 pt-1 pb-1.5">
         <p
           className="text-[8px] uppercase tracking-wide truncate"
-          style={{ color: isSelected ? "rgba(255,255,255,0.5)" : "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+          style={{ color: "rgba(255,255,255,0.35)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
         >
           {item.brand}
         </p>
         <p
-          className="text-[10px] font-medium truncate mt-0.5"
-          style={{ color: isSelected ? "white" : "#222", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+          className="text-[9px] font-medium mt-0.5 leading-tight"
+          style={{ color: "rgba(255,255,255,0.8)", fontFamily: "'Spoqa Han Sans Neo', sans-serif",
+            display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
         >
-          {item.name}
+          {item.displayName ?? item.name}
         </p>
-      </div>
-    </button>
-  );
-}
-
-// ─── Outfit recommendation cards (shown when an item is tapped) ───────────────
-
-function RecommendedOutfitCards({ anchorItem }) {
-  const outfits = getRecommendedOutfitsByItem(anchorItem, 4);
-
-  if (!outfits.length) return null;
-
-  return (
-    <div className="mx-6 mt-4 rounded-2xl overflow-hidden" style={{ border: "1px solid #F0F0F0" }}>
-      {/* Panel header */}
-      <div className="px-4 pt-4 pb-3 flex items-center justify-between" style={{ backgroundColor: "#FAFAFA" }}>
-        <div>
-          <p
-            className="text-[10px] font-bold tracking-[0.14em] uppercase"
-            style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-          >
-            STYLE MATCH
-          </p>
-          <h3
-            className="text-[14px] font-bold leading-snug mt-0.5"
-            style={{ color: "#1a1a1a", fontFamily: "'Spoqa Han Sans Neo', sans-serif", letterSpacing: "-0.02em" }}
-          >
-            이 아이템으로 추천 코디
-          </h3>
-        </div>
-        {/* Anchor item mini thumb */}
-        <div
-          className="rounded-lg overflow-hidden shrink-0"
-          style={{ width: 36, height: 36, backgroundColor: "#EBEBEB", border: "1.5px solid #1a1a1a" }}
-        >
-          <img
-            src={anchorItem.image}
-            alt={anchorItem.name}
-            className="w-full h-full"
-            style={{ objectFit: "cover", objectPosition: "center top" }}
-          />
-        </div>
-      </div>
-
-      {/* Outfit grid */}
-      <div className="bg-white px-3 pt-3 pb-4">
-        <div className="grid grid-cols-2 gap-2">
-          {outfits.map((outfit) => (
-            <OutfitRecommendationCard key={outfit.id} outfit={outfit} anchorItem={anchorItem} />
-          ))}
-        </div>
       </div>
     </div>
   );
 }
 
-function OutfitRecommendationCard({ outfit, anchorItem }) {
-  const [liked, setLiked] = useState(false);
-  const [likes, setLikes] = useState(outfit.likes);
-  const isExact = outfit.itemIds.includes(anchorItem.id);
+// ─── Inline closet filter panel (expands inside recommendation card) ──────────
+
+function ClosetItemsByPiece({ piece }) {
+  const items = filterClosetItemsByPiece(piece);
 
   return (
     <div
-      className="relative rounded-2xl overflow-hidden"
-      style={{ aspectRatio: "3/4", backgroundColor: outfit.color, cursor: "pointer" }}
+      className="mt-4 pt-4"
+      style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}
     >
-      <img
-        src={outfit.previewImage}
-        alt={outfit.title}
-        className="absolute inset-0 w-full h-full"
-        style={{ objectFit: "cover", objectPosition: "center top" }}
-      />
-      <div
-        className="absolute inset-0"
-        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.08) 55%, transparent 100%)" }}
-      />
-      {/* Top: style chip + like */}
-      <div className="absolute top-2 left-2 right-2 flex items-start justify-between">
+      {/* Panel header */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-1.5">
+          <span style={{ fontSize: 14 }}>{piece.emoji}</span>
+          <p
+            className="text-[12px] font-bold"
+            style={{ color: "white", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+          >
+            내 옷장 속 {piece.label}
+          </p>
+        </div>
         <span
-          className="px-1.5 py-0.5 rounded-full text-[8px] font-bold"
-          style={{
-            backgroundColor: isExact ? "#F5C200" : "rgba(255,255,255,0.18)",
-            color:            isExact ? "#1a1a1a" : "white",
-            fontFamily:       "'Spoqa Han Sans Neo', sans-serif",
-            backdropFilter:   "blur(4px)",
-          }}
+          className="text-[10px] px-2 py-0.5 rounded-full"
+          style={{ backgroundColor: items.length > 0 ? "rgba(245,194,0,0.2)" : "rgba(255,255,255,0.1)", color: items.length > 0 ? "#F5C200" : "rgba(255,255,255,0.35)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
         >
-          {outfit.style}
+          {items.length > 0 ? `${items.length}개 보유` : "미보유"}
         </span>
-        <button
-          onClick={(e) => { e.stopPropagation(); setLiked((v) => !v); setLikes((n) => liked ? n - 1 : n + 1); }}
-          className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
-          style={{ backgroundColor: "rgba(0,0,0,0.25)", backdropFilter: "blur(4px)" }}
+      </div>
+
+      {items.length === 0 ? (
+        /* Empty state */
+        <div
+          className="rounded-xl px-4 py-4 flex items-center gap-3"
+          style={{ backgroundColor: "rgba(255,255,255,0.05)", border: "1px dashed rgba(255,255,255,0.12)" }}
         >
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-            <path
-              d="M5 8.5L1 4.5C.7 4.2.5 3.8.5 3.4.5 2.3 1.4 1.5 2.5 1.5 3.1 1.5 3.6 1.8 5 2.9 6.4 1.8 6.9 1.5 7.5 1.5 8.6 1.5 9.5 2.3 9.5 3.4 9.5 3.8 9.3 4.2 9 4.5L5 8.5Z"
-              fill={liked ? "#E84040" : "none"}
-              stroke={liked ? "#E84040" : "rgba(255,255,255,0.85)"}
-              strokeWidth="0.9"
-            />
-          </svg>
-          <span className="text-[8px]" style={{ color: liked ? "#ff7070" : "rgba(255,255,255,0.85)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{likes}</span>
-        </button>
-      </div>
-      {/* Bottom */}
-      <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5">
-        <p className="text-white text-[11px] font-bold leading-snug" style={{ fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
-          {outfit.title}
-        </p>
-        <p className="text-[9px] mt-0.5" style={{ color: "rgba(255,255,255,0.55)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
-          {outfit.season.join(" · ")}
-        </p>
-      </div>
+          <div
+            className="flex items-center justify-center rounded-full shrink-0"
+            style={{ width: 32, height: 32, backgroundColor: "rgba(255,255,255,0.08)" }}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 3V11M3 7H11" stroke="rgba(255,255,255,0.35)" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.5)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+              아직 등록된 아이템이 없어요
+            </p>
+            <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.28)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+              옷장에서 {piece.label}을(를) 추가해 보세요
+            </p>
+          </div>
+        </div>
+      ) : (
+        /* Closet item scroll */
+        <div
+          className="flex overflow-x-auto pb-1"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none", scrollSnapType: "x mandatory" }}
+        >
+          {items.map((item) => (
+            <ClosetMiniCardDark key={item.id} item={item} />
+          ))}
+          <div className="shrink-0 w-2" />
+        </div>
+      )}
     </div>
   );
 }
@@ -448,7 +383,7 @@ function OutfitRecommendationCard({ outfit, anchorItem }) {
 
 function WeatherSection({ onExpand }) {
   const { weather, loading } = useWeather();
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedPiece, setSelectedPiece] = useState(null);
 
   // Skeleton while loading
   if (loading && !weather) {
@@ -463,7 +398,7 @@ function WeatherSection({ onExpand }) {
         <div className="mx-6 rounded-2xl overflow-hidden mb-4" style={{ backgroundColor: "#F5F5F5", height: 112 }}>
           <div className="animate-pulse h-full" style={{ backgroundColor: "#EBEBEB" }} />
         </div>
-        <div className="mx-6 rounded-2xl overflow-hidden" style={{ backgroundColor: "#313439", height: 130 }}>
+        <div className="mx-6 rounded-2xl overflow-hidden" style={{ backgroundColor: "#313439", height: 280 }}>
           <div className="animate-pulse h-full" style={{ backgroundColor: "rgba(255,255,255,0.04)" }} />
         </div>
       </div>
@@ -472,12 +407,11 @@ function WeatherSection({ onExpand }) {
 
   if (!weather) return null;
 
-  const outfit    = getOutfitRec(weather.temp, weather.conditionCode);
-  const cond      = CONDITION_META[weather.conditionCode] || CONDITION_META.clear;
-  const recItems  = getWeatherRecommendedClosetOutfit(weather, CLOSET_ITEMS);
+  const outfit = getOutfitRec(weather.temp, weather.conditionCode);
+  const cond   = CONDITION_META[weather.conditionCode] || CONDITION_META.clear;
 
-  function handleItemTap(item) {
-    setSelectedItem((prev) => prev?.id === item.id ? null : item);
+  function handlePieceTap(piece) {
+    setSelectedPiece((prev) => prev?.label === piece.label ? null : piece);
   }
 
   return (
@@ -494,7 +428,7 @@ function WeatherSection({ onExpand }) {
         <span className="text-[11px]" style={{ color: "#BBBBBB", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{weather.location}</span>
       </div>
 
-      {/* Tappable weather card → opens weather detail */}
+      {/* ── Weather card (taps → weather detail) ── */}
       <button
         className="mx-6 rounded-2xl overflow-hidden mb-4 w-[calc(100%-3rem)] text-left"
         style={{ backgroundColor: cond.bg }}
@@ -539,71 +473,126 @@ function WeatherSection({ onExpand }) {
         </div>
       </button>
 
-      {/* Style recommendation card */}
-      <div className="mx-6 rounded-2xl px-5 py-5" style={{ backgroundColor: "#313439" }}>
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <p className="text-[10px] font-bold tracking-[0.18em] uppercase" style={{ color: "rgba(255,255,255,0.38)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>STYLE PICK</p>
-            <h3 className="text-[16px] font-bold text-white mt-0.5 leading-tight" style={{ fontFamily: "'Spoqa Han Sans Neo', sans-serif", letterSpacing: "-0.02em" }}>오늘의 추천 코디</h3>
-          </div>
-          <span className="text-[13px] font-bold px-2.5 py-1 rounded-full" style={{ backgroundColor: "#F5C200", color: "#222", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{weather.temp}°</span>
-        </div>
-        <div className="inline-block px-3 py-1 rounded-sm mb-3" style={{ backgroundColor: "rgba(245,194,0,0.14)", border: "1px solid rgba(245,194,0,0.28)" }}>
-          <span className="text-[12px] font-bold" style={{ color: "#F5C200", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{outfit.keyword}</span>
-        </div>
-        <p className="text-[13px] leading-relaxed mb-4" style={{ color: "rgba(255,255,255,0.62)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{outfit.desc}</p>
-        <div className="flex flex-wrap gap-2">
-          {outfit.tags.map((tag) => (
-            <span key={tag} className="text-[11px] px-3 py-1.5 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.72)", fontFamily: "'Spoqa Han Sans Neo', sans-serif", border: "1px solid rgba(255,255,255,0.11)" }}>{tag}</span>
-          ))}
-        </div>
-      </div>
+      {/* ── 오늘의 트렁크룸 추천 코디 card ── */}
+      <div className="mx-6 rounded-2xl overflow-hidden" style={{ backgroundColor: "#313439" }}>
 
-      {/* ── 추천 아이템 (tappable) ── */}
-      {recItems.length > 0 && (
-        <div className="mt-5">
-          <div className="flex items-center justify-between px-6 mb-3">
-            <div>
-              <p className="text-[10px] font-bold tracking-[0.14em] uppercase" style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>MY CLOSET</p>
-              <h3 className="text-[15px] font-bold leading-tight" style={{ color: "#1a1a1a", fontFamily: "'Spoqa Han Sans Neo', sans-serif", letterSpacing: "-0.02em" }}>추천 아이템</h3>
-            </div>
-            <p className="text-[11px]" style={{ color: "#BBBBBB", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
-              탭하면 코디 추천 →
-            </p>
-          </div>
-
-          {/* Horizontal scroll of tappable item cards */}
+        {/* Editorial outfit image — aligned to recommendation theme */}
+        <div className="relative" style={{ height: 158 }}>
+          <img
+            src={outfit.image}
+            alt={outfit.keyword}
+            className="absolute inset-0 w-full h-full"
+            style={{ objectFit: "cover", objectPosition: "center 20%" }}
+          />
+          {/* Gradient overlay — dark at bottom so text is readable */}
           <div
-            className="flex overflow-x-auto px-6"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none", scrollSnapType: "x mandatory" }}
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(to bottom, rgba(49,52,57,0.15) 0%, rgba(49,52,57,0.62) 60%, rgba(49,52,57,1) 100%)" }}
+          />
+          {/* Temp badge — top right */}
+          <div className="absolute top-4 right-4">
+            <span
+              className="text-[13px] font-bold px-2.5 py-1 rounded-full"
+              style={{ backgroundColor: "#F5C200", color: "#222", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+            >
+              {weather.temp}°
+            </span>
+          </div>
+          {/* Title overlay — bottom of image */}
+          <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
+            <p
+              className="text-[10px] font-bold tracking-[0.18em] uppercase mb-1"
+              style={{ color: "rgba(255,255,255,0.5)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+            >
+              TRUNKROOM PICK
+            </p>
+            <h3
+              className="text-[16px] font-bold text-white leading-tight"
+              style={{ fontFamily: "'Spoqa Han Sans Neo', sans-serif", letterSpacing: "-0.025em" }}
+            >
+              오늘의 트렁크룸 추천 코디
+            </h3>
+          </div>
+        </div>
+
+        {/* Content area */}
+        <div className="px-5 pt-4 pb-5">
+          {/* Keyword badge */}
+          <div
+            className="inline-flex items-center px-3 py-1 rounded-sm mb-3"
+            style={{ backgroundColor: "rgba(245,194,0,0.14)", border: "1px solid rgba(245,194,0,0.28)" }}
           >
-            {recItems.map(({ item }) => (
-              <WeatherItemCard
-                key={item.id}
-                item={item}
-                isSelected={selectedItem?.id === item.id}
-                onTap={handleItemTap}
-              />
-            ))}
-            <div className="shrink-0 w-2" />
+            <span
+              className="text-[12px] font-bold"
+              style={{ color: "#F5C200", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+            >
+              {outfit.keyword}
+            </span>
           </div>
 
-          {/* Hint text when nothing selected */}
-          {!selectedItem && (
-            <p
-              className="text-[11px] text-center mt-3 px-6"
-              style={{ color: "#CCCCCC", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-            >
-              아이템을 탭하면 함께 입는 코디를 추천해 드려요
-            </p>
+          {/* Weather-aware recommendation copy */}
+          <p
+            className="text-[13px] leading-relaxed"
+            style={{ color: "rgba(255,255,255,0.72)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+          >
+            {outfit.desc}
+          </p>
+
+          {/* ── Piece chips (tappable → filters closet) ── */}
+          <div
+            className="mt-4 pt-4"
+            style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}
+          >
+            <div className="flex items-center justify-between mb-2.5">
+              <p
+                className="text-[11px] font-bold"
+                style={{ color: "rgba(255,255,255,0.55)", fontFamily: "'Spoqa Han Sans Neo', sans-serif", letterSpacing: "0.04em" }}
+              >
+                오늘의 추천 아이템
+              </p>
+              <p
+                className="text-[10px]"
+                style={{ color: "rgba(255,255,255,0.28)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+              >
+                탭하면 내 옷장에서 찾아드려요
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {outfit.pieces.map((piece) => {
+                const isActive = selectedPiece?.label === piece.label;
+                return (
+                  <button
+                    key={piece.label}
+                    onClick={() => handlePieceTap(piece)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all"
+                    style={{
+                      backgroundColor: isActive ? "#F5C200"                    : "rgba(255,255,255,0.09)",
+                      color:           isActive ? "#1a1a1a"                    : "rgba(255,255,255,0.78)",
+                      border:          isActive ? "1.5px solid #F5C200"        : "1.5px solid rgba(255,255,255,0.14)",
+                      fontFamily:      "'Spoqa Han Sans Neo', sans-serif",
+                      transform:       isActive ? "scale(1.04)" : "scale(1)",
+                    }}
+                  >
+                    <span style={{ fontSize: 12 }}>{piece.emoji}</span>
+                    <span className="text-[11px] font-medium">{piece.label}</span>
+                    {isActive && (
+                      <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                        <path d="M1.5 4.5L3.7 6.5L7.5 2.5" stroke="#1a1a1a" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Inline closet items (expands when piece is tapped) ── */}
+          {selectedPiece && (
+            <ClosetItemsByPiece piece={selectedPiece} />
           )}
         </div>
-      )}
-
-      {/* ── 이 아이템으로 추천 코디 (appears when item is tapped) ── */}
-      {selectedItem && (
-        <RecommendedOutfitCards anchorItem={selectedItem} />
-      )}
+      </div>
     </div>
   );
 }

@@ -52,25 +52,121 @@ export const CONDITION_META = {
 };
 
 // ── Outfit recommendation ─────────────────────────────────────────────────────
-
+//
+// Each record includes:
+//   keyword    — short style label shown as a badge
+//   desc       — weather-aware, fashion-natural recommendation sentence
+//   image      — curated editorial Unsplash image matching the look
+//   pieces     — tappable outfit pieces: { label, emoji, subcats[] }
+//                subcats must match subcategory names in mockClosetData.js
+//
 export function getOutfitRec(temp, conditionCode) {
   if (conditionCode === "rain")
-    return { keyword: "레인 프루프 룩",   desc: "비 오는 날엔 방수 소재와 레이어링이 핵심이에요.",        tags: ["방수 재킷", "워터프루프 슈즈", "다크 팔레트"] };
+    return {
+      keyword: "레인 프루프 룩",
+      desc: "오늘은 비가 내려요. 방수 소재 아우터로 레이어드하고 다크 팔레트로 비 오는 날 무드를 완성해 보세요.",
+      image: "https://images.unsplash.com/photo-1554412933-514a83d2f3c8?w=500&q=85&fit=crop",
+      pieces: [
+        { label: "트렌치코트", emoji: "🧥", subcats: ["트렌치코트"] },
+        { label: "슬랙스",    emoji: "👖", subcats: ["슬랙스"] },
+        { label: "앵클 부츠", emoji: "👢", subcats: ["앵클 부츠"] },
+        { label: "숄더백",    emoji: "👜", subcats: ["숄더백", "크로스백"] },
+      ],
+    };
   if (temp <= 4)
-    return { keyword: "헤비 레이어드",    desc: "두꺼운 아우터로 온기를 잡아보세요.",                    tags: ["패딩 코트", "울 니트", "머플러"] };
+    return {
+      keyword: "헤비 레이어드",
+      desc: `체감 온도가 매우 낮아요. 두꺼운 패딩이나 롱 다운으로 든든하게 레이어드하고, 울 니트로 체온을 잡아보세요.`,
+      image: "https://images.unsplash.com/photo-1512036666432-2181c1f26420?w=500&q=85&fit=crop",
+      pieces: [
+        { label: "패딩",      emoji: "🧥", subcats: ["패딩", "다운재킷"] },
+        { label: "울 니트",   emoji: "🧶", subcats: ["니트/스웨터"] },
+        { label: "슬랙스",    emoji: "👖", subcats: ["슬랙스", "청바지"] },
+        { label: "앵클 부츠", emoji: "👢", subcats: ["앵클 부츠"] },
+      ],
+    };
   if (temp <= 8)
-    return { keyword: "울 코트 룩",       desc: "롱 코트 하나로 완성되는 시즌리스 스타일.",              tags: ["울 코트", "터틀넥", "앵클 부츠"] };
+    return {
+      keyword: "울 코트 룩",
+      desc: "꽤 쌀쌀한 날이에요. 롱 울 코트에 터틀넥을 더하면 타임리스한 겨울 코디가 완성돼요. 앵클 부츠로 마무리하면 완벽해요.",
+      image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=500&q=85&fit=crop",
+      pieces: [
+        { label: "울 코트",   emoji: "🧥", subcats: ["울 코트", "오버핏코트"] },
+        { label: "터틀넥",    emoji: "👕", subcats: ["긴팔 티셔츠", "니트/스웨터"] },
+        { label: "슬랙스",    emoji: "👖", subcats: ["슬랙스"] },
+        { label: "앵클 부츠", emoji: "👢", subcats: ["앵클 부츠"] },
+      ],
+    };
   if (temp <= 11)
-    return { keyword: "트렌치 레이어드",  desc: "트렌치 코트의 계절이에요.",                            tags: ["트렌치코트", "가디건", "스트레이트 데님"] };
+    return {
+      keyword: "트렌치 레이어드",
+      desc: "일교차가 있는 선선한 날이에요. 트렌치코트로 가볍게 레이어드하기 딱 좋아요. 가디건과 스트레이트 데님으로 완성해 보세요.",
+      image: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=500&q=85&fit=crop",
+      pieces: [
+        { label: "트렌치코트",     emoji: "🧥", subcats: ["트렌치코트"] },
+        { label: "가디건",         emoji: "🧶", subcats: ["가디건"] },
+        { label: "스트레이트 데님", emoji: "👖", subcats: ["청바지"] },
+        { label: "로퍼",           emoji: "👟", subcats: ["로퍼"] },
+      ],
+    };
   if (temp <= 16)
-    return { keyword: "자켓 코디",        desc: "얇은 자켓이나 블레이저 하나면 완성.",                  tags: ["테일러드 자켓", "슬랙스", "로퍼"] };
+    return {
+      keyword: "블레이저 코디",
+      desc: "가을 바람이 살랑이는 날이에요. 테일러드 블레이저에 슬랙스를 매치하면 센스 있는 코디가 완성돼요.",
+      image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=500&q=85&fit=crop",
+      pieces: [
+        { label: "블레이저", emoji: "🧥", subcats: ["블레이저"] },
+        { label: "슬랙스",  emoji: "👖", subcats: ["슬랙스"] },
+        { label: "셔츠",    emoji: "👔", subcats: ["셔츠"] },
+        { label: "로퍼",    emoji: "👟", subcats: ["로퍼"] },
+      ],
+    };
   if (temp <= 19)
-    return { keyword: "라이트 아우터",    desc: "가벼운 아우터 하나로 선선함을 즐겨보세요.",            tags: ["집업 재킷", "롱슬리브 티", "와이드 팬츠"] };
+    return {
+      keyword: "라이트 아우터",
+      desc: "선선한 바람이 느껴지는 날이에요. 가벼운 집업이나 가디건으로 레이어드하고, 와이드 팬츠로 여유 있게 완성해 보세요.",
+      image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=500&q=85&fit=crop",
+      pieces: [
+        { label: "집업 재킷",  emoji: "🧥", subcats: ["점퍼", "후드티"] },
+        { label: "긴팔",       emoji: "👕", subcats: ["긴팔 티셔츠", "맨투맨"] },
+        { label: "와이드 팬츠", emoji: "👖", subcats: ["와이드팬츠"] },
+        { label: "스니커즈",   emoji: "👟", subcats: ["스니커즈"] },
+      ],
+    };
   if (temp <= 22)
-    return { keyword: "캐주얼 롱슬리브",  desc: "긴팔 하나로 깔끔하게 완성되는 데일리 룩.",             tags: ["오버핏 롱슬리브", "크롭 팬츠", "스니커즈"] };
+    return {
+      keyword: "캐주얼 롱슬리브",
+      desc: "긴팔 하나로 딱 좋을 쾌적한 날씨예요. 오버핏 맨투맨에 깔끔한 팬츠를 더해 간결한 데일리 룩을 완성해 보세요.",
+      image: "https://images.unsplash.com/photo-1556906781-9a412961a28d?w=500&q=85&fit=crop",
+      pieces: [
+        { label: "오버핏 긴팔", emoji: "👕", subcats: ["긴팔 티셔츠", "맨투맨"] },
+        { label: "크롭 팬츠",  emoji: "👖", subcats: ["청바지", "슬랙스"] },
+        { label: "스니커즈",   emoji: "👟", subcats: ["스니커즈"] },
+      ],
+    };
   if (temp <= 27)
-    return { keyword: "서머 캐주얼",      desc: "통기성 좋은 소재로 시원하게 입어보세요.",              tags: ["린넨 셔츠", "반바지", "샌들"] };
-  return   { keyword: "쿨 서머 미니멀",  desc: "최대한 가볍게, 소재로 말하는 여름 코디.",              tags: ["민소매 탑", "린넨 팬츠", "오픈토 슈즈"] };
+    return {
+      keyword: "서머 캐주얼",
+      desc: "더위가 느껴지는 날이에요. 통기성 좋은 린넨 소재로 시원하고 여유롭게 입어보세요. 샌들로 가볍게 마무리해요.",
+      image: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=500&q=85&fit=crop",
+      pieces: [
+        { label: "린넨 셔츠",  emoji: "👔", subcats: ["셔츠", "블라우스"] },
+        { label: "반바지",     emoji: "🩳", subcats: ["반바지", "미니스커트"] },
+        { label: "샌들",       emoji: "🩴", subcats: ["샌들", "뮬"] },
+        { label: "에코백",     emoji: "👜", subcats: ["에코백", "토트백"] },
+      ],
+    };
+  return {
+    keyword: "쿨 서머 미니멀",
+    desc: "무더운 날씨예요. 최대한 가볍게, 민소매 탑과 린넨 팬츠로 시원한 미니멀 서머 룩을 완성해 보세요.",
+    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=85&fit=crop",
+    pieces: [
+      { label: "민소매 탑",   emoji: "👗", subcats: ["탱크탑", "크롭탑"] },
+      { label: "린넨 팬츠",  emoji: "👖", subcats: ["와이드팬츠"] },
+      { label: "오픈토 슈즈", emoji: "🩴", subcats: ["샌들", "뮬", "스포츠 샌들"] },
+      { label: "미니 원피스", emoji: "👗", subcats: ["미니 원피스", "캐주얼 원피스"] },
+    ],
+  };
 }
 
 // ── Open-Meteo fetcher (replace this function to swap providers) ──────────────

@@ -814,8 +814,8 @@ function Footer() {
         </div>
       </div>
       <p className="text-[11px] leading-relaxed" style={{ color: "rgba(255,255,255,0.28)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
-        (주)메이크레모네이드 · 대표이사 홍길동<br />
-        사업자등록번호 000-00-00000<br />
+        (주)메이크레모네이드 · 대표이사 김윤<br />
+        사업자등록번호 564-81-01782<br />
         상담 운영시간 10:00–17:00 (주말 및 공휴일 휴무)
       </p>
     </div>

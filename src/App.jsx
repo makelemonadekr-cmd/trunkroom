@@ -3,6 +3,9 @@ import TrunkRoomOnboarding from "./pages/onboarding/TrunkRoomOnboarding";
 import HomePage from "./pages/home/HomePage";
 import ClosetPage from "./pages/closet/ClosetPage";
 import CodiPage from "./pages/codi/CodiPage";
+import SellPage from "./pages/sell/SellPage";
+import AddClosetItemScreen from "./pages/sell/AddClosetItemScreen";
+import CleanoutServiceScreen from "./pages/sell/CleanoutServiceScreen";
 import ProductDetailPage from "./pages/product/ProductDetailPage";
 import BottomNav from "./components/BottomNav";
 
@@ -28,10 +31,28 @@ export default function App() {
   const [activeTab,      setActiveTab]      = useState("home");
   const [currentProduct, setCurrentProduct] = useState(null);
 
+  // ── Sell flow overlay state ──────────────────────────────────────────────────
+  // null | "quicksell" | "cleanout"
+  // "closet" routes via tab switch — no overlay needed
+  const [sellScreen, setSellScreen] = useState(null);
+
   const handleOnboardingComplete = () => {
     localStorage.setItem(ONBOARDING_KEY, "1");
     setPhase("app");
   };
+
+  // When switching tabs, clear any sell overlays
+  function handleTabChange(tab) {
+    setSellScreen(null);
+    setCurrentProduct(null);
+    setActiveTab(tab);
+  }
+
+  // "내 옷장 속 아이템 판매" → go to closet tab directly
+  function handleSellFromCloset() {
+    setSellScreen(null);
+    setActiveTab("closet");
+  }
 
   if (phase === "onboarding") {
     return <TrunkRoomOnboarding onComplete={handleOnboardingComplete} />;
@@ -94,10 +115,29 @@ export default function App() {
         {/* ── [2] Page area ────────────────────────────────────────── */}
         <div className="relative flex-1 min-h-0 overflow-hidden bg-white">
           {activeTab === "home"   && <HomePage onProductSelect={setCurrentProduct} />}
-          {activeTab === "sell"   && <PlaceholderPage title="판매" />}
+          {activeTab === "sell"   && (
+            <SellPage
+              onQuickSell={() => setSellScreen("quicksell")}
+              onSellFromCloset={handleSellFromCloset}
+              onCleanout={() => setSellScreen("cleanout")}
+            />
+          )}
           {activeTab === "closet" && <ClosetPage />}
           {activeTab === "codi"   && <CodiPage />}
           {activeTab === "menu"   && <PlaceholderPage title="메뉴" />}
+
+          {/* ── Sell flow overlays — sit above the active tab page ── */}
+          {sellScreen === "quicksell" && activeTab === "sell" && (
+            <AddClosetItemScreen
+              onClose={() => setSellScreen(null)}
+              onSave={() => setSellScreen(null)}
+            />
+          )}
+          {sellScreen === "cleanout" && activeTab === "sell" && (
+            <CleanoutServiceScreen
+              onBack={() => setSellScreen(null)}
+            />
+          )}
 
           {/* Product detail overlay — absolute, covers full page area */}
           {currentProduct && (
@@ -109,7 +149,7 @@ export default function App() {
         </div>
 
         {/* ── [3] Bottom navigation — ALWAYS inside the phone ─────── */}
-        <BottomNav active={activeTab} onTabChange={setActiveTab} />
+        <BottomNav active={activeTab} onTabChange={handleTabChange} />
 
         {/* ── [4] iPhone home indicator ───────────────────────────── */}
         <div

@@ -857,6 +857,9 @@ export default function HomePage({ onProductSelect }) {
         {/* Carousel — 2 banners */}
         <BannerCarousel onBannerTap={(key) => setActiveDetail(key)} />
 
+        {/* Weather + Outfit — above new listings */}
+        <WeatherSection onExpand={() => setWeatherOpen(true)} />
+
         {/* NEW LISTINGS */}
         <div className="py-6 bg-white">
           <SectionHeader en="NEW LISTINGS" ko="새로 등록된 아이템" onMore={() => {}} />
@@ -864,9 +867,6 @@ export default function HomePage({ onProductSelect }) {
             {NEW_LISTINGS.map((item) => <ProductCard key={item.id} item={item} onSelect={onProductSelect} />)}
           </HorizontalScroll>
         </div>
-
-        {/* Weather + Outfit */}
-        <WeatherSection onExpand={() => setWeatherOpen(true)} />
 
         {/* Categories */}
         <Categories />

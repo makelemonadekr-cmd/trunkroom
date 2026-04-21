@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import TopBar from "../../components/TopBar";
 import StyleBookFilterSheet from "../../components/StyleBookFilterSheet";
 import SearchFilterScreen from "../../components/SearchFilterScreen";
+import FavoritesScreen from "../../components/FavoritesScreen";
+import { useFavorites } from "../../lib/favoritesStore";
 import WeatherDetailScreen from "../weather/WeatherDetailScreen";
 import FullListScreen from "../closet/FullListScreen";
 import { useWeather, getOutfitRec, CONDITION_META } from "../../hooks/useWeather";
@@ -792,10 +794,11 @@ function HorizontalScroll({ children }) {
 }
 
 function ProductCard({ item, wide = false, onSelect }) {
-  const [liked,    setLiked]    = useState(false);
+  const { isFavorite, toggleFavorite } = useFavorites();
   const [imgError, setImgError] = useState(false);
   const w = wide ? 163 : 148;
   const h = wide ? 210 : 190;
+  const fav = isFavorite(item.id);
 
   return (
     <div
@@ -814,7 +817,6 @@ function ProductCard({ item, wide = false, onSelect }) {
             onError={() => setImgError(true)}
           />
         ) : (
-          /* Fallback color block if image fails */
           <div className="absolute inset-0 flex items-center justify-center opacity-25">
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
               <rect x="4" y="8" width="24" height="18" rx="2" stroke="#666" strokeWidth="1.5" />
@@ -823,7 +825,7 @@ function ProductCard({ item, wide = false, onSelect }) {
             </svg>
           </div>
         )}
-        {/* Subtle image scrim so badges read cleanly */}
+        {/* Subtle image scrim */}
         <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, transparent 30%)" }} />
 
         {/* Condition badge */}
@@ -838,14 +840,18 @@ function ProductCard({ item, wide = false, onSelect }) {
           {item.condition}
         </div>
 
-        {/* Like */}
-        <button className="absolute bottom-2 right-2" onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}>
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        {/* Favorite heart — top-right */}
+        <button
+          className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full"
+          style={{ backgroundColor: "rgba(255,255,255,0.88)", backdropFilter: "blur(4px)" }}
+          onClick={(e) => { e.stopPropagation(); toggleFavorite(item, "other_closet"); }}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path
-              d="M10 17L3 10C2.17 9.17 2 8.04 2 7C2 4.79 3.79 3 6 3C7.32 3 8.52 3.65 9.38 4.62L10 5.3L10.62 4.62C11.48 3.65 12.68 3 14 3C16.21 3 18 4.79 18 7C18 8.04 17.83 9.17 17 10L10 17Z"
-              fill={liked ? "#E84040" : "none"}
-              stroke={liked ? "#E84040" : "rgba(255,255,255,0.85)"}
-              strokeWidth="1.4"
+              d="M7 12L1.5 6.5C1 6 1 5.5 1 4.8C1 3.2 2.5 2 4.2 2C5.1 2 5.9 2.5 6.5 3.1L7 3.7L7.5 3.1C8.1 2.5 8.9 2 9.8 2C11.5 2 13 3.2 13 4.8C13 5.5 12.9 6 12.5 6.5L7 12Z"
+              fill={fav ? "#E84040" : "none"}
+              stroke={fav ? "#E84040" : "#888"}
+              strokeWidth="1.3"
             />
           </svg>
         </button>
@@ -1169,6 +1175,7 @@ export default function HomePage({ onProductSelect, onLegalOpen }) {
   const [weatherOpen,     setWeatherOpen]     = useState(false);
   const [fullList,        setFullList]        = useState(null); // { title, items }
   const [searchOpen,      setSearchOpen]      = useState(false);
+  const [favoritesOpen,   setFavoritesOpen]   = useState(false);
   const { weather } = useWeather();
 
   function handleSearchResults(results) {
@@ -1208,12 +1215,21 @@ export default function HomePage({ onProductSelect, onLegalOpen }) {
         />
       )}
 
+      {/* Favorites overlay */}
+      {favoritesOpen && (
+        <FavoritesScreen onBack={() => setFavoritesOpen(false)} />
+      )}
+
       {/* Style book filter overlay */}
       {filterSheet === "stylebook" && (
         <StyleBookFilterSheet onClose={() => setFilterSheet(null)} onApply={() => {}} />
       )}
 
-      <TopBar notificationCount={4} onSearchTap={() => setSearchOpen(true)} />
+      <TopBar
+        notificationCount={4}
+        onSearchTap={() => setSearchOpen(true)}
+        onFavoritesOpen={() => setFavoritesOpen(true)}
+      />
 
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
 

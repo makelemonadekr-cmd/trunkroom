@@ -857,8 +857,11 @@ export default function HomePage({ onProductSelect }) {
         {/* Carousel — 2 banners */}
         <BannerCarousel onBannerTap={(key) => setActiveDetail(key)} />
 
-        {/* Weather + Outfit — above new listings */}
+        {/* Weather + Outfit */}
         <WeatherSection onExpand={() => setWeatherOpen(true)} />
+
+        {/* Categories — 내 옷장 속 카테고리 */}
+        <Categories />
 
         {/* NEW LISTINGS */}
         <div className="py-6 bg-white">
@@ -867,9 +870,6 @@ export default function HomePage({ onProductSelect }) {
             {NEW_LISTINGS.map((item) => <ProductCard key={item.id} item={item} onSelect={onProductSelect} />)}
           </HorizontalScroll>
         </div>
-
-        {/* Categories */}
-        <Categories />
 
         {/* Style Book */}
         <StyleBook onFilterOpen={() => setFilterSheet("stylebook")} />

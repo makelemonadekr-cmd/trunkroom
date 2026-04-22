@@ -17,7 +17,8 @@ import {
 } from "../../constants/mockClosetData";
 import { filterClosetItemsByPiece } from "../../lib/filterClosetItemsByPiece";
 import {
-  COMPANY_NAME, COMPANY_CEO, BUSINESS_NUMBER,
+  COMPANY_NAME, COMPANY_CEO, BUSINESS_NUMBER, TELECOM_REG_NUMBER,
+  APP_VERSION,
   COMPANY_URL, SUPPORT_EMAIL, PARTNERSHIP_EMAIL,
   CUSTOMER_SERVICE_PHONE, SUPPORT_HOURS,
   openExternalUrl, openMailTo, openTel,
@@ -755,12 +756,12 @@ const STYLE_BOOKS = [
   },
   {
     id: 2, title: "Vintage Vibes", count: 18, color: "#6B5040",
-    image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=300&q=80&fit=crop",
+    image: "https://images.unsplash.com/photo-1554412933-514a83d2f3c8?w=300&q=80&fit=crop",
     tags: ["빈티지", "레트로", "웜톤"],
   },
   {
     id: 3, title: "Street Core",   count: 31, color: "#1A2A3A",
-    image: "https://images.unsplash.com/photo-1554412933-514a83d2f3c8?w=300&q=80&fit=crop",
+    image: "https://images.unsplash.com/photo-1556906781-9a412961a28d?w=300&q=80&fit=crop",
     tags: ["스트릿", "오버핏", "캐주얼"],
   },
   {
@@ -1099,8 +1100,9 @@ function StyleBook({ onFilterOpen }) {
 
 function Footer({ onLegalOpen }) {
   const FGRAY = "rgba(255,255,255,0.38)";
+  const FDIM  = "rgba(255,255,255,0.22)";
   const FNT   = "'Spoqa Han Sans Neo', sans-serif";
-  const FLINK = "rgba(255,255,255,0.62)";
+  const FLINK = "rgba(255,255,255,0.58)";
 
   const footerLinks = [
     { label: "회사소개",         onPress: () => openExternalUrl(COMPANY_URL) },
@@ -1110,15 +1112,25 @@ function Footer({ onLegalOpen }) {
   ];
 
   return (
-    <div className="px-6 py-8" style={{ backgroundColor: "#222" }}>
-      <img
-        src="/officiallogo.png"
-        alt="트렁크룸"
-        style={{ height: 28, filter: "brightness(0) invert(1)", opacity: 0.85, marginBottom: 20 }}
-      />
+    <div className="px-5 pt-5 pb-6" style={{ backgroundColor: "#222" }}>
+
+      {/* Brand row: logo + tagline */}
+      <div className="flex items-center gap-2.5 mb-3">
+        <img
+          src="/officiallogo.png"
+          alt="트렁크룸"
+          style={{ height: 22, filter: "brightness(0) invert(1)", opacity: 0.75 }}
+        />
+        <div>
+          <p className="text-[11px] font-bold" style={{ color: "rgba(255,255,255,0.72)", fontFamily: FNT, letterSpacing: "-0.02em" }}>
+            내일의 옷장, 트렁크룸
+          </p>
+          <p className="text-[9px]" style={{ color: FDIM, fontFamily: FNT }}>v{APP_VERSION}</p>
+        </div>
+      </div>
 
       {/* Nav links */}
-      <div className="flex flex-wrap gap-x-5 gap-y-2 mb-5">
+      <div className="flex flex-wrap gap-x-4 gap-y-1.5 mb-3">
         {footerLinks.map(({ label, onPress }) => (
           <button key={label} onClick={onPress}>
             <span className="text-[11px]" style={{ color: FGRAY, fontFamily: FNT }}>{label}</span>
@@ -1126,43 +1138,24 @@ function Footer({ onLegalOpen }) {
         ))}
       </div>
 
-      <div className="border-t mb-5" style={{ borderColor: "rgba(255,255,255,0.09)" }} />
+      <div className="border-t mb-3" style={{ borderColor: "rgba(255,255,255,0.09)" }} />
 
-      {/* Contact info */}
-      <div className="flex gap-8 mb-5">
-        <div>
-          <p className="text-[11px]" style={{ color: FGRAY, fontFamily: FNT }}>고객센터</p>
-          <button onClick={() => openTel(CUSTOMER_SERVICE_PHONE)} className="text-left">
-            <p
-              className="text-[13px] font-bold mt-1 underline-offset-2 hover:underline"
-              style={{ color: "rgba(255,255,255,0.82)", fontFamily: FNT }}
-            >
-              {CUSTOMER_SERVICE_PHONE}
-            </p>
-          </button>
-          <p className="text-[10px] mt-0.5" style={{ color: FGRAY, fontFamily: FNT }}>{SUPPORT_HOURS}</p>
-        </div>
-        <div>
-          <p className="text-[11px]" style={{ color: FGRAY, fontFamily: FNT }}>이메일</p>
-          <button
-            onClick={() => openMailTo(SUPPORT_EMAIL, "[문의] 트렁크룸")}
-            className="text-left"
-          >
-            <p
-              className="text-[12px] font-medium mt-1"
-              style={{ color: FLINK, fontFamily: FNT }}
-            >
-              {SUPPORT_EMAIL}
-            </p>
-          </button>
-        </div>
+      {/* Contact info — single row */}
+      <div className="flex items-center gap-4 mb-3">
+        <button onClick={() => openTel(CUSTOMER_SERVICE_PHONE)} className="flex items-center gap-1.5">
+          <span className="text-[10px]" style={{ color: FDIM, fontFamily: FNT }}>고객센터</span>
+          <span className="text-[11px] font-bold" style={{ color: FLINK, fontFamily: FNT }}>{CUSTOMER_SERVICE_PHONE}</span>
+        </button>
+        <span style={{ color: "rgba(255,255,255,0.12)", fontSize: 10 }}>|</span>
+        <button onClick={() => openMailTo(SUPPORT_EMAIL, "[문의] 트렁크룸")}>
+          <span className="text-[11px]" style={{ color: FLINK, fontFamily: FNT }}>{SUPPORT_EMAIL}</span>
+        </button>
       </div>
 
-      {/* Company legal info */}
-      <p className="text-[11px] leading-relaxed" style={{ color: "rgba(255,255,255,0.28)", fontFamily: FNT }}>
-        {COMPANY_NAME} · 대표이사 {COMPANY_CEO}<br />
-        사업자등록번호 {BUSINESS_NUMBER}<br />
-        {SUPPORT_HOURS}
+      {/* Company legal — compact two lines */}
+      <p className="text-[10px] leading-relaxed" style={{ color: FDIM, fontFamily: FNT }}>
+        {COMPANY_NAME} · 대표이사 {COMPANY_CEO} · 사업자등록번호 {BUSINESS_NUMBER}<br />
+        통신사업자등록번호 {TELECOM_REG_NUMBER} · {SUPPORT_HOURS}
       </p>
     </div>
   );

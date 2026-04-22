@@ -3,7 +3,7 @@ import PrivacyPolicyScreen from "../legal/PrivacyPolicyScreen";
 import TermsOfServiceScreen from "../legal/TermsOfServiceScreen";
 import AccountSettingsScreen from "./AccountSettingsScreen";
 import {
-  COMPANY_NAME, COMPANY_CEO, BUSINESS_NUMBER,
+  COMPANY_NAME, COMPANY_CEO, BUSINESS_NUMBER, TELECOM_REG_NUMBER,
   COMPANY_URL, SUPPORT_EMAIL, PARTNERSHIP_EMAIL,
   CUSTOMER_SERVICE_PHONE, SUPPORT_HOURS, APP_VERSION,
   openExternalUrl, openMailTo, openTel,
@@ -156,8 +156,9 @@ const InfoIcon = () => (
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function MenuPage() {
-  const [screen,      setScreen]      = useState(null);  // null | "privacy" | "terms"
-  const [accountOpen, setAccountOpen] = useState(false);
+  const [screen,       setScreen]       = useState(null);  // null | "privacy" | "terms"
+  const [accountOpen,  setAccountOpen]  = useState(false);
+  const [appInfoOpen,  setAppInfoOpen]  = useState(false);
 
   return (
     <div className="relative flex flex-col h-full overflow-hidden" style={{ backgroundColor: LIGHT }}>
@@ -282,25 +283,70 @@ export default function MenuPage() {
           />
         </RowGroup>
 
-        {/* ── 앱 정보 ── */}
+        {/* ── 앱 정보 (collapsible) ── */}
         <SectionLabel>앱 정보</SectionLabel>
         <RowGroup>
-          <InfoRow label="버전" value={`v${APP_VERSION}`} />
-          <InfoRow label="회사" value={COMPANY_NAME} />
-          <InfoRow label="대표" value={COMPANY_CEO} />
-          <InfoRow label="사업자등록번호" value={BUSINESS_NUMBER} last />
+          <button
+            onClick={() => setAppInfoOpen((v) => !v)}
+            className="w-full flex items-center justify-between px-4 py-3.5 text-left active:opacity-60 transition-opacity"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center rounded-xl shrink-0" style={{ width: 34, height: 34, backgroundColor: LIGHT }}>
+                <InfoIcon />
+              </div>
+              <div>
+                <p className="text-[14px] font-medium" style={{ color: DARK, fontFamily: FONT }}>앱 정보</p>
+                <p className="text-[11px] mt-0.5" style={{ color: "#AAAAAA", fontFamily: FONT }}>
+                  {COMPANY_NAME} · v{APP_VERSION}
+                </p>
+              </div>
+            </div>
+            <svg
+              width="14" height="14" viewBox="0 0 14 14" fill="none"
+              style={{ transform: appInfoOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
+            >
+              <path d="M5 3L9 7L5 11" stroke="#CCCCCC" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+
+          {/* Expanded detail */}
+          {appInfoOpen && (
+            <div style={{ borderTop: `1px solid ${DIVIDER}` }}>
+              {[
+                { label: "버전",              value: `v${APP_VERSION}` },
+                { label: "회사",              value: COMPANY_NAME },
+                { label: "대표이사",          value: COMPANY_CEO },
+                { label: "사업자등록번호",    value: BUSINESS_NUMBER },
+                { label: "통신사업자등록번호", value: TELECOM_REG_NUMBER },
+              ].map(({ label, value }, i, arr) => (
+                <div
+                  key={label}
+                  className="flex items-center justify-between px-4 py-2.5"
+                  style={{ borderBottom: i < arr.length - 1 ? `1px solid ${DIVIDER}` : "none" }}
+                >
+                  <p className="text-[12px]" style={{ color: "#999", fontFamily: FONT }}>{label}</p>
+                  <p className="text-[12px] font-medium text-right" style={{ color: DARK, fontFamily: FONT, maxWidth: "55%" }}>{value}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </RowGroup>
 
-        {/* ── App icon + name ── */}
-        <div className="flex flex-col items-center mt-8 mb-2 gap-2">
+        {/* ── Brand footer ── */}
+        <div className="flex items-center justify-center gap-2.5 mt-8 mb-2">
           <img
             src="/officiallogo.png"
             alt="트렁크룸"
-            style={{ width: 40, height: 40, objectFit: "contain", opacity: 0.35 }}
+            style={{ width: 32, height: 32, objectFit: "contain", opacity: 0.35 }}
           />
-          <p className="text-[11px]" style={{ color: "#CCCCCC", fontFamily: FONT }}>
-            TRUNK ROOM v{APP_VERSION}
-          </p>
+          <div>
+            <p className="text-[12px] font-bold" style={{ color: "#BBBBBB", fontFamily: FONT, letterSpacing: "-0.02em" }}>
+              내일의 옷장, 트렁크룸
+            </p>
+            <p className="text-[10px] mt-0.5" style={{ color: "#DDDDDD", fontFamily: FONT }}>
+              v{APP_VERSION}
+            </p>
+          </div>
         </div>
       </div>
     </div>

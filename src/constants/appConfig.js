@@ -9,6 +9,7 @@
 export const COMPANY_NAME            = "(주)메이크레모네이드";
 export const COMPANY_CEO             = "김윤";
 export const BUSINESS_NUMBER         = "564-81-01782";
+export const TELECOM_REG_NUMBER      = "제2023-서울마포-3375호";
 export const APP_NAME                = "트렁크룸";
 export const APP_VERSION             = "1.0.0";
 

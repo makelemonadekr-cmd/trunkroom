@@ -1,6 +1,7 @@
 import { useState } from "react";
 import FullListScreen from "./FullListScreen";
 import AddClosetItemScreen from "../sell/AddClosetItemScreen";
+import OutfitDetailScreen from "../../components/OutfitDetailScreen";
 import {
   MAIN_CATEGORIES,
   CLOSET_ITEMS,
@@ -262,8 +263,14 @@ function ClothingItemCard({ item }) {
 function CategorySwipeRow({ active, onChange }) {
   return (
     <div
-      className="flex overflow-x-auto px-4 gap-2.5 py-3"
-      style={{ scrollbarWidth: "none", msOverflowStyle: "none", scrollSnapType: "x mandatory" }}
+      className="flex overflow-x-auto gap-2.5 py-3"
+      style={{
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+        scrollSnapType: "x mandatory",
+        paddingLeft: 20,
+        paddingRight: 20,
+      }}
     >
       {CAT_SWIPE_LIST.map((cat) => {
         const isActive = active === cat.label;
@@ -365,7 +372,7 @@ function ClothingTab({ onMorePress }) {
 }
 
 // ─── 코디북 tab ───────────────────────────────────────────────────────────────
-function CodibookTab() {
+function CodibookTab({ onOutfitTap }) {
   const [styleFilter,  setStyleFilter]  = useState("전체");
   const [seasonFilter, setSeasonFilter] = useState("전체");
   const [liked,        setLiked]        = useState({});
@@ -442,7 +449,11 @@ function CodibookTab() {
         <div className="bg-white px-3 pt-2 pb-4">
           <div className="grid grid-cols-2 gap-2">
             {filtered.map((outfit) => (
-              <div key={outfit.id} className="relative rounded-2xl overflow-hidden bg-[#F5F5F5]">
+              <div
+                key={outfit.id}
+                className="relative rounded-2xl overflow-hidden bg-[#F5F5F5] active:opacity-90 transition-opacity cursor-pointer"
+                onClick={() => onOutfitTap?.(outfit)}
+              >
                 <img
                   src={outfit.previewImage}
                   alt={outfit.title}
@@ -450,7 +461,7 @@ function CodibookTab() {
                 />
                 <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 55%)" }} />
                 <button
-                  onClick={() => toggle(outfit.id)}
+                  onClick={(e) => { e.stopPropagation(); toggle(outfit.id); }}
                   className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full"
                   style={{ backgroundColor: "rgba(255,255,255,0.82)" }}
                 >
@@ -496,12 +507,13 @@ function HistoryTab() {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 export default function ClosetPage() {
-  const [activeSubTab, setActiveSubTab] = useState("clothing");
-  const [fullList,     setFullList]     = useState(null);
-  const [addItemOpen,  setAddItemOpen]  = useState(false); // spec #4
+  const [activeSubTab,  setActiveSubTab]  = useState("clothing");
+  const [fullList,      setFullList]      = useState(null);
+  const [addItemOpen,   setAddItemOpen]   = useState(false);
+  const [outfitDetail,  setOutfitDetail]  = useState(null); // spec #47
 
   return (
-    <div className="flex flex-col h-full bg-white overflow-hidden">
+    <div className="relative flex flex-col h-full bg-white overflow-hidden">
       <ClosetHeader />
 
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
@@ -512,11 +524,13 @@ export default function ClosetPage() {
         {activeSubTab === "clothing" && (
           <ClothingTab onMorePress={(data) => setFullList(data)} />
         )}
-        {activeSubTab === "codebook" && <CodibookTab />}
+        {activeSubTab === "codebook" && (
+          <CodibookTab onOutfitTap={(outfit) => setOutfitDetail(outfit)} />
+        )}
         {activeSubTab === "history"  && <HistoryTab />}
       </div>
 
-      {/* spec #4 / #12A: "아이템 등록하기" yellow primary CTA */}
+      {/* CTA: "아이템 등록하기" on 내 아이템 tab, "내 코디 만들기" on 코디북 tab */}
       <div
         className="px-4 py-3 bg-white shrink-0"
         style={{ borderTop: "1px solid #F0F0F0" }}
@@ -538,7 +552,7 @@ export default function ClosetPage() {
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
             <path d="M9 3V15M3 9H15" stroke="#1a1a1a" strokeWidth="2.2" strokeLinecap="round" />
           </svg>
-          아이템 등록하기
+          {activeSubTab === "codebook" ? "내 코디 만들기" : "아이템 등록하기"}
         </button>
       </div>
 
@@ -551,7 +565,15 @@ export default function ClosetPage() {
         />
       )}
 
-      {/* spec #4: AddClosetItemScreen overlay (same as quicksell flow) */}
+      {/* Outfit detail overlay (spec #47) */}
+      {outfitDetail && (
+        <OutfitDetailScreen
+          outfit={outfitDetail}
+          onBack={() => setOutfitDetail(null)}
+        />
+      )}
+
+      {/* AddClosetItemScreen overlay */}
       {addItemOpen && (
         <AddClosetItemScreen
           onClose={() => setAddItemOpen(false)}

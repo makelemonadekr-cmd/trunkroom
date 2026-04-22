@@ -2,13 +2,14 @@ import { useState } from "react";
 import { STYLE_FILTER_OPTIONS } from "../../constants/styleCategories";
 import { SEASON_FILTER_OPTIONS } from "../../constants/seasonFilters";
 import { OUTFIT_DATA, getOutfitsByStyleAndSeason } from "../../constants/mockOutfitData";
+import OutfitDetailScreen from "../../components/OutfitDetailScreen";
 
 const DARK   = "#1a1a1a";
 const YELLOW = "#F5C200";
 
 // ─── Outfit card ──────────────────────────────────────────────────────────────
 
-function OutfitCard({ board }) {
+function OutfitCard({ board, onTap }) {
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(board.likes);
 
@@ -20,8 +21,9 @@ function OutfitCard({ board }) {
 
   return (
     <div
-      className="relative rounded-2xl overflow-hidden"
+      className="relative rounded-2xl overflow-hidden active:opacity-90 transition-opacity"
       style={{ aspectRatio: "3/4", backgroundColor: board.color, cursor: "pointer" }}
+      onClick={() => onTap?.(board)}
     >
       {/* Image */}
       <img
@@ -135,13 +137,22 @@ function OutfitCard({ board }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function CodiPage() {
-  const [styleFilter,  setStyleFilter]  = useState("전체");
-  const [seasonFilter, setSeasonFilter] = useState("전체");
+  const [styleFilter,    setStyleFilter]    = useState("전체");
+  const [seasonFilter,   setSeasonFilter]   = useState("전체");
+  const [selectedOutfit, setSelectedOutfit] = useState(null);
 
   const filtered = getOutfitsByStyleAndSeason(styleFilter, seasonFilter);
 
   return (
-    <div className="flex flex-col h-full bg-white overflow-hidden">
+    <div className="relative flex flex-col h-full bg-white overflow-hidden">
+
+      {/* Outfit detail overlay */}
+      {selectedOutfit && (
+        <OutfitDetailScreen
+          outfit={selectedOutfit}
+          onBack={() => setSelectedOutfit(null)}
+        />
+      )}
 
       {/* ── Header ── */}
       <div
@@ -173,7 +184,7 @@ export default function CodiPage() {
             className="text-[12px] font-bold text-white"
             style={{ fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
           >
-            코디 만들기
+            내 코디 만들기
           </span>
         </button>
       </div>
@@ -260,7 +271,7 @@ export default function CodiPage() {
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {filtered.map((board) => (
-              <OutfitCard key={board.id} board={board} />
+              <OutfitCard key={board.id} board={board} onTap={setSelectedOutfit} />
             ))}
           </div>
         )}

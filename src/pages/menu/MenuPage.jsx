@@ -1,6 +1,7 @@
 import { useState } from "react";
 import PrivacyPolicyScreen from "../legal/PrivacyPolicyScreen";
 import TermsOfServiceScreen from "../legal/TermsOfServiceScreen";
+import AccountSettingsScreen from "./AccountSettingsScreen";
 import {
   COMPANY_NAME, COMPANY_CEO, BUSINESS_NUMBER,
   COMPANY_URL, SUPPORT_EMAIL, PARTNERSHIP_EMAIL,
@@ -155,14 +156,16 @@ const InfoIcon = () => (
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function MenuPage() {
-  const [screen, setScreen] = useState(null); // null | "privacy" | "terms"
+  const [screen,      setScreen]      = useState(null);  // null | "privacy" | "terms"
+  const [accountOpen, setAccountOpen] = useState(false);
 
   return (
     <div className="relative flex flex-col h-full overflow-hidden" style={{ backgroundColor: LIGHT }}>
 
-      {/* Legal screen overlays */}
+      {/* Screen overlays */}
       {screen === "privacy" && <PrivacyPolicyScreen onBack={() => setScreen(null)} />}
       {screen === "terms"   && <TermsOfServiceScreen onBack={() => setScreen(null)} />}
+      {accountOpen && <AccountSettingsScreen onBack={() => setAccountOpen(false)} />}
 
       {/* ── Header ── */}
       <div
@@ -186,8 +189,11 @@ export default function MenuPage() {
       {/* ── Scrollable content ── */}
       <div className="flex-1 overflow-y-auto pb-6" style={{ scrollbarWidth: "none" }}>
 
-        {/* Profile card */}
-        <div className="mx-4 mt-5 rounded-2xl overflow-hidden">
+        {/* Profile card — tappable → AccountSettingsScreen */}
+        <button
+          onClick={() => setAccountOpen(true)}
+          className="mx-4 mt-5 rounded-2xl overflow-hidden w-[calc(100%-2rem)] active:opacity-75 transition-opacity text-left"
+        >
           <div
             className="flex items-center gap-4 px-5 py-4"
             style={{ backgroundColor: DARK }}
@@ -201,7 +207,7 @@ export default function MenuPage() {
                 <path d="M3 20C3 15.58 6.58 12 11 12C15.42 12 19 15.58 19 20" stroke="rgba(255,255,255,0.7)" strokeWidth="1.6" strokeLinecap="round" />
               </svg>
             </div>
-            <div>
+            <div className="flex-1">
               <p className="text-[14px] font-bold text-white" style={{ fontFamily: FONT }}>
                 내 계정
               </p>
@@ -209,16 +215,19 @@ export default function MenuPage() {
                 트렁크룸 회원
               </p>
             </div>
-            <div className="ml-auto">
+            <div className="flex items-center gap-2.5 shrink-0">
               <span
                 className="text-[10px] font-bold px-2.5 py-1 rounded-full"
                 style={{ backgroundColor: "#F5C200", color: DARK, fontFamily: FONT }}
               >
                 MY CLOSET
               </span>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M5 3L9 7L5 11" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </div>
           </div>
-        </div>
+        </button>
 
         {/* ── 서비스 ── */}
         <SectionLabel>서비스</SectionLabel>

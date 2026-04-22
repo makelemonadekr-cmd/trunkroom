@@ -53,14 +53,6 @@ export default function TopBar({ notificationCount = 4, onSearchTap, onFavorites
           )}
         </button>
 
-        {/* Hamburger / menu */}
-        <button className="w-9 h-9 flex items-center justify-center">
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-            <path d="M3 6H19" stroke="#333" strokeWidth="1.6" strokeLinecap="round" />
-            <path d="M3 11H19" stroke="#333" strokeWidth="1.6" strokeLinecap="round" />
-            <path d="M3 16H19" stroke="#333" strokeWidth="1.6" strokeLinecap="round" />
-          </svg>
-        </button>
       </div>
     </div>
   );

@@ -65,8 +65,9 @@ function MenuIcon({ active }) {
   const c = active ? YELLOW : BLACK;
   return (
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <circle cx="11" cy="8" r="3.5" stroke={c} strokeWidth="1.6" />
-      <path d="M4 20C4 16.13 7.13 13 11 13C14.87 13 18 16.13 18 20" stroke={c} strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M3 6H19"  stroke={c} strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M3 11H19" stroke={c} strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M3 16H19" stroke={c} strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }

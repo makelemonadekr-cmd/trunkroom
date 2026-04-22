@@ -86,9 +86,9 @@ function ClosetLogoTab({ active, onClick }) {
         style={{
           width: 46,
           height: 46,
-          backgroundColor: active ? "#1a1a1a" : "#F5F5F5",
+          backgroundColor: active ? "#F5C200" : "#F5F5F5",
           marginTop: -14,
-          boxShadow: "0 2px 12px rgba(0,0,0,0.13)",
+          boxShadow: active ? "0 2px 12px rgba(245,194,0,0.35)" : "0 2px 12px rgba(0,0,0,0.13)",
           transition: "background-color 0.2s",
         }}
       >
@@ -99,7 +99,7 @@ function ClosetLogoTab({ active, onClick }) {
             width: 28,
             height: 28,
             objectFit: "contain",
-            filter: active ? "brightness(0) invert(1)" : "none",
+            filter: active ? "brightness(0)" : "none",
           }}
         />
       </div>

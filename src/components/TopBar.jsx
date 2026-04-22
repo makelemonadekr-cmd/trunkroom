@@ -1,4 +1,4 @@
-export default function TopBar({ notificationCount = 4, onSearchTap, onFavoritesOpen }) {
+export default function TopBar({ notificationCount = 4, onSearchTap, onFavoritesOpen, onNotificationsOpen }) {
   return (
     <div className="flex items-center gap-3 px-4 h-12 bg-white border-b border-[#F5F5F5] shrink-0">
       {/* Search bar — tappable, opens SearchFilterScreen */}
@@ -33,7 +33,7 @@ export default function TopBar({ notificationCount = 4, onSearchTap, onFavorites
         </button>
 
         {/* Notification bell with badge */}
-        <button className="w-9 h-9 flex items-center justify-center relative">
+        <button className="w-9 h-9 flex items-center justify-center relative" onClick={onNotificationsOpen}>
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
             <path
               d="M11 3C7.69 3 5 5.69 5 9V14L3 16H19L17 14V9C17 5.69 14.31 3 11 3Z"

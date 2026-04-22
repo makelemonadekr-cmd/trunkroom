@@ -3,6 +3,7 @@ import TopBar from "../../components/TopBar";
 import StyleBookFilterSheet from "../../components/StyleBookFilterSheet";
 import SearchFilterScreen from "../../components/SearchFilterScreen";
 import FavoritesScreen from "../../components/FavoritesScreen";
+import NotificationCenterScreen from "../../components/NotificationCenterScreen";
 import { useFavorites } from "../../lib/favoritesStore";
 import WeatherDetailScreen from "../weather/WeatherDetailScreen";
 import FullListScreen from "../closet/FullListScreen";
@@ -1174,8 +1175,9 @@ export default function HomePage({ onProductSelect, onLegalOpen }) {
   const [filterSheet,     setFilterSheet]     = useState(null); // null | "stylebook"
   const [weatherOpen,     setWeatherOpen]     = useState(false);
   const [fullList,        setFullList]        = useState(null); // { title, items }
-  const [searchOpen,      setSearchOpen]      = useState(false);
-  const [favoritesOpen,   setFavoritesOpen]   = useState(false);
+  const [searchOpen,        setSearchOpen]        = useState(false);
+  const [favoritesOpen,     setFavoritesOpen]     = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const { weather } = useWeather();
 
   function handleSearchResults(results) {
@@ -1184,6 +1186,85 @@ export default function HomePage({ onProductSelect, onLegalOpen }) {
       title: `검색 결과 (${results.length}개)`,
       items: results,
     });
+  }
+
+  // ── Notification routing ──────────────────────────────────────────────────
+  function handleNotificationAction(notification) {
+    setNotificationsOpen(false);
+
+    const { relatedRoute, relatedStyle } = notification;
+
+    // "오래 안 입은 아이템" — items not worn in 1+ year or never worn
+    if (relatedRoute === "unworn_list") {
+      const cutoff = new Date();
+      cutoff.setFullYear(cutoff.getFullYear() - 1);
+      const items = CLOSET_ITEMS.filter(
+        (i) => !i.lastWornAt || new Date(i.lastWornAt) < cutoff
+      );
+      setFullList({ title: "오래 안 입은 아이템", items });
+      return;
+    }
+
+    // "자주 입는 아이템" — sorted by wearCount desc
+    if (relatedRoute === "worn_list") {
+      const items = [...CLOSET_ITEMS]
+        .filter((i) => (i.wearCount ?? 0) > 0)
+        .sort((a, b) => (b.wearCount ?? 0) - (a.wearCount ?? 0))
+        .slice(0, 20);
+      setFullList({ title: "자주 입는 아이템 TOP 20", items });
+      return;
+    }
+
+    // "판매 연결형" — long-unworn items as resale candidates
+    if (relatedRoute === "sell_flow") {
+      const cutoff = new Date();
+      cutoff.setFullYear(cutoff.getFullYear() - 1);
+      const items = CLOSET_ITEMS.filter(
+        (i) => !i.lastWornAt || new Date(i.lastWornAt) < cutoff
+      );
+      setFullList({ title: "판매 추천 아이템", items });
+      return;
+    }
+
+    // "관리 필요" — items never worn (미착용 + 새상품급)
+    if (relatedRoute === "manage_items") {
+      const items = CLOSET_ITEMS.filter(
+        (i) => (i.wearCount ?? 0) === 0 && !i.lastWornAt
+      );
+      setFullList({
+        title: "관리가 필요한 아이템",
+        items: items.length > 0 ? items : CLOSET_ITEMS.slice(0, 12),
+      });
+      return;
+    }
+
+    // "계절 전환" — items that include 봄 season
+    if (relatedRoute === "seasonal_items") {
+      const items = CLOSET_ITEMS.filter((i) => i.season?.includes("봄"));
+      setFullList({ title: "봄 시즌 아이템", items });
+      return;
+    }
+
+    // "팔로우한 옷장" — show a representative slice
+    if (relatedRoute === "closet_view") {
+      setFullList({
+        title: "팔로우한 옷장 새 아이템",
+        items: CLOSET_ITEMS.filter((i) => i.mainCategory === "아우터").slice(0, 15),
+      });
+      return;
+    }
+
+    // "스타일 기반" — filter by relatedStyle tag
+    if (relatedRoute === "style_results") {
+      const items = relatedStyle
+        ? CLOSET_ITEMS.filter((i) => i.styleTags?.includes(relatedStyle))
+        : [];
+      setFullList({
+        title: relatedStyle ? `${relatedStyle} 스타일 아이템` : "추천 아이템",
+        items: items.length > 0 ? items : CLOSET_ITEMS.slice(0, 12),
+      });
+      return;
+    }
   }
 
   return (
@@ -1220,6 +1301,14 @@ export default function HomePage({ onProductSelect, onLegalOpen }) {
         <FavoritesScreen onBack={() => setFavoritesOpen(false)} />
       )}
 
+      {/* Notification center overlay */}
+      {notificationsOpen && (
+        <NotificationCenterScreen
+          onBack={() => setNotificationsOpen(false)}
+          onAction={handleNotificationAction}
+        />
+      )}
+
       {/* Style book filter overlay */}
       {filterSheet === "stylebook" && (
         <StyleBookFilterSheet onClose={() => setFilterSheet(null)} onApply={() => {}} />
@@ -1229,6 +1318,7 @@ export default function HomePage({ onProductSelect, onLegalOpen }) {
         notificationCount={4}
         onSearchTap={() => setSearchOpen(true)}
         onFavoritesOpen={() => setFavoritesOpen(true)}
+        onNotificationsOpen={() => setNotificationsOpen(true)}
       />
 
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>

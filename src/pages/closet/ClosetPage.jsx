@@ -271,9 +271,10 @@ function CategorySwipeRow({ active, onChange }) {
           <button
             key={cat.id}
             onClick={() => onChange(cat.label)}
-            className="shrink-0 flex flex-col items-center gap-1.5 pt-2.5 pb-2 rounded-xl transition-all"
+            className="shrink-0 flex flex-col items-center justify-center gap-1.5 rounded-xl transition-all"
             style={{
-              width:           66,
+              width:           62,
+              height:          62,
               backgroundColor: isActive ? DARK : "#F5F5F5",
               scrollSnapAlign: "start",
               transform:       isActive ? "scale(0.96)" : "scale(1)",
@@ -515,28 +516,29 @@ export default function ClosetPage() {
         {activeSubTab === "history"  && <HistoryTab />}
       </div>
 
-      {/* spec #4: "1초만에 아이템 추가" CTA */}
+      {/* spec #4 / #12A: "아이템 등록하기" yellow primary CTA */}
       <div
         className="px-4 py-3 bg-white shrink-0"
         style={{ borderTop: "1px solid #F0F0F0" }}
       >
         <button
           onClick={() => setAddItemOpen(true)}
-          className="w-full flex items-center justify-center gap-2 rounded-sm"
+          className="w-full flex items-center justify-center gap-2 rounded-2xl transition-all"
           style={{
-            backgroundColor: "#313439",
-            height:          48,
+            backgroundColor: "#F5C200",
+            height:          52,
             fontFamily:      FONT,
             fontSize:        15,
             fontWeight:      700,
-            color:           "white",
+            color:           "#1a1a1a",
             letterSpacing:   "-0.01em",
+            boxShadow:       "0 4px 16px rgba(245,194,0,0.30)",
           }}
         >
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <path d="M9 3V15M3 9H15" stroke="white" strokeWidth="2" strokeLinecap="round" />
+            <path d="M9 3V15M3 9H15" stroke="#1a1a1a" strokeWidth="2.2" strokeLinecap="round" />
           </svg>
-          1초만에 아이템 추가
+          아이템 등록하기
         </button>
       </div>
 

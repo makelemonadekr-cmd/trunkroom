@@ -1,13 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import TopBar from "../../components/TopBar";
-import StyleBookFilterSheet from "../../components/StyleBookFilterSheet";
+import LazyImage from "../../components/LazyImage";
+import OutfitDetailScreen from "../../components/OutfitDetailScreen";
+import { OUTFIT_DATA } from "../../constants/mockOutfitData";
 import SearchFilterScreen from "../../components/SearchFilterScreen";
 import FavoritesScreen from "../../components/FavoritesScreen";
 import NotificationCenterScreen from "../../components/NotificationCenterScreen";
 import { useFavorites } from "../../lib/favoritesStore";
 import WeatherDetailScreen from "../weather/WeatherDetailScreen";
 import FullListScreen from "../closet/FullListScreen";
-import { useWeather, getOutfitRec, CONDITION_META } from "../../hooks/useWeather";
+import { useWeather, CONDITION_META } from "../../hooks/useWeather";
+import { getWeatherOutfitRec, buildWeatherContext } from "../../services/weatherRecommendation";
+import { getWearRecord, todayStr } from "../../lib/wearHistoryStore";
 import {
   MAIN_CATEGORIES,
   SUBCATEGORIES,
@@ -87,6 +91,162 @@ function DetailScreen({ detailKey, onBack }) {
           style={{ width: "100%", display: "block" }}
         />
       </div>
+    </div>
+  );
+}
+
+// ─── Today Record Card ────────────────────────────────────────────────────────
+// Square card (aspect-ratio 1:1) centred on today's outfit.
+// • Not recorded → yellow gradient with camera + CTA copy
+// • Recorded     → dark card with item grid + "오늘의 코디 완성!" badge
+
+function TodayRecordCard({ onRecordToday }) {
+  const todayRecord = getWearRecord(todayStr());
+  const hasRecord   = !!todayRecord;
+  const FONT = "'Spoqa Han Sans Neo', sans-serif";
+
+  // Gather item images for the "recorded" state
+  const recordedItems = hasRecord
+    ? (todayRecord.itemIds ?? [])
+        .map((id) => CLOSET_ITEMS.find((i) => i.id === id))
+        .filter(Boolean)
+        .slice(0, 4)
+    : [];
+
+  return (
+    <div className="px-4 pt-4 pb-1">
+      <button
+        className="relative w-full overflow-hidden rounded-2xl active:opacity-90"
+        style={{ aspectRatio: "1 / 1", display: "block" }}
+        onClick={onRecordToday}
+      >
+        {hasRecord ? (
+          /* ── Recorded state ── */
+          <>
+            {/* Background: dark gradient */}
+            <div
+              className="absolute inset-0"
+              style={{ background: "linear-gradient(135deg, #1a1a1a 0%, #2e2e2e 100%)" }}
+            />
+            {/* Item grid */}
+            <div className="absolute inset-0 p-5 flex flex-col gap-3">
+              {/* 완료 badge */}
+              <div className="flex items-center gap-2">
+                <div
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full"
+                  style={{ backgroundColor: "#F5C200" }}
+                >
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path d="M1.5 5L3.8 7.5L8.5 2.5" stroke="#1a1a1a" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span className="text-[11px] font-bold" style={{ color: "#1a1a1a", fontFamily: FONT }}>오늘의 코디 완성!</span>
+                </div>
+              </div>
+              {/* Item thumbnails */}
+              {recordedItems.length > 0 ? (
+                <div className="flex-1 grid gap-2" style={{ gridTemplateColumns: recordedItems.length === 1 ? "1fr" : "1fr 1fr" }}>
+                  {recordedItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="rounded-xl overflow-hidden"
+                      style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                    >
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span style={{ fontSize: 32 }}>👗</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : todayRecord.photoUrl ? (
+                <div className="flex-1 rounded-xl overflow-hidden">
+                  <img
+                    src={todayRecord.photoUrl}
+                    alt="오늘의 코디"
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                </div>
+              ) : (
+                <div className="flex-1 flex items-center justify-center">
+                  <span style={{ fontSize: 64 }}>👗</span>
+                </div>
+              )}
+              {/* Bottom label */}
+              <p className="text-[12px] font-medium" style={{ color: "rgba(255,255,255,0.55)", fontFamily: FONT }}>
+                기록 수정하기 →
+              </p>
+            </div>
+          </>
+        ) : (
+          /* ── Not recorded state ── */
+          <>
+            {/* Warm yellow gradient background */}
+            <div
+              className="absolute inset-0"
+              style={{ background: "linear-gradient(145deg, #FFF3B0 0%, #FFE066 40%, #F5C200 100%)" }}
+            />
+            {/* Decorative circle */}
+            <div
+              className="absolute"
+              style={{
+                width: 260, height: 260,
+                borderRadius: "50%",
+                border: "1px solid rgba(255,255,255,0.45)",
+                top: -60, right: -60,
+              }}
+            />
+            <div
+              className="absolute"
+              style={{
+                width: 180, height: 180,
+                borderRadius: "50%",
+                border: "1px solid rgba(255,255,255,0.3)",
+                top: -20, right: -20,
+              }}
+            />
+            {/* Content */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-8">
+              {/* Camera icon circle */}
+              <div
+                className="flex items-center justify-center rounded-full"
+                style={{ width: 72, height: 72, backgroundColor: "rgba(255,255,255,0.65)", backdropFilter: "blur(8px)" }}
+              >
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                  <path d="M12 6L10 9H6C4.9 9 4 9.9 4 11V24C4 25.1 4.9 26 6 26H26C27.1 26 28 25.1 28 24V11C28 9.9 27.1 9 26 9H22L20 6H12Z" stroke="#1a1a1a" strokeWidth="1.8" strokeLinejoin="round" />
+                  <circle cx="16" cy="17" r="4.5" stroke="#1a1a1a" strokeWidth="1.8" />
+                  <circle cx="23.5" cy="13" r="1" fill="#1a1a1a" />
+                </svg>
+              </div>
+              {/* Copy */}
+              <div className="text-center">
+                <p className="text-[20px] font-bold leading-snug" style={{ color: "#1a1a1a", fontFamily: FONT, letterSpacing: "-0.03em" }}>
+                  오늘의 착장을<br />기록해보세요
+                </p>
+                <p className="text-[13px] mt-2 leading-relaxed" style={{ color: "rgba(0,0,0,0.45)", fontFamily: FONT }}>
+                  사진을 찍거나 아이템을 선택해<br />나만의 코디를 남겨보세요
+                </p>
+              </div>
+              {/* CTA pill */}
+              <div
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full"
+                style={{ backgroundColor: "#1a1a1a" }}
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M5.5 2.5L9.5 7L5.5 11.5" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="text-[13px] font-bold text-white" style={{ fontFamily: FONT }}>기록 시작하기</span>
+              </div>
+            </div>
+          </>
+        )}
+      </button>
     </div>
   );
 }
@@ -277,11 +437,12 @@ function BannerCarousel({ onBannerTap }) {
 
 // ─── Closet mini card (dark variant) — used inside recommendation dark card ───
 
-function ClosetMiniCardDark({ item }) {
+function ClosetMiniCardDark({ item, onTap }) {
   const [imgErr, setImgErr] = useState(false);
   return (
-    <div
-      className="shrink-0 rounded-xl overflow-hidden"
+    <button
+      onClick={() => onTap?.(item)}
+      className="shrink-0 rounded-xl overflow-hidden text-left active:opacity-75"
       style={{ width: 86, marginRight: 8, scrollSnapAlign: "start", backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
     >
       <div className="relative overflow-hidden" style={{ height: 100, backgroundColor: "rgba(255,255,255,0.05)" }}>
@@ -317,13 +478,13 @@ function ClosetMiniCardDark({ item }) {
           {item.displayName ?? item.name}
         </p>
       </div>
-    </div>
+    </button>
   );
 }
 
 // ─── Inline closet filter panel (expands inside recommendation card) ──────────
 
-function ClosetItemsByPiece({ piece }) {
+function ClosetItemsByPiece({ piece, onItemTap }) {
   const items = filterClosetItemsByPiece(piece);
 
   return (
@@ -380,7 +541,7 @@ function ClosetItemsByPiece({ piece }) {
           style={{ scrollbarWidth: "none", msOverflowStyle: "none", scrollSnapType: "x mandatory" }}
         >
           {items.map((item) => (
-            <ClosetMiniCardDark key={item.id} item={item} />
+            <ClosetMiniCardDark key={item.id} item={item} onTap={onItemTap} />
           ))}
           <div className="shrink-0 w-2" />
         </div>
@@ -391,7 +552,7 @@ function ClosetItemsByPiece({ piece }) {
 
 // ─── Weather section ──────────────────────────────────────────────────────────
 
-function WeatherSection({ onExpand }) {
+function WeatherSection({ onExpand, onItemTap }) {
   const { weather, loading } = useWeather();
   const [selectedPiece, setSelectedPiece] = useState(null);
 
@@ -402,7 +563,7 @@ function WeatherSection({ onExpand }) {
         <div className="flex items-end justify-between px-6 mb-4">
           <div>
             <p className="text-[11px] font-bold tracking-[0.12em] uppercase" style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>TODAY'S WEATHER</p>
-            <h2 className="text-[17px] font-bold leading-tight" style={{ color: "#222", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>오늘의 날씨 & 추천 코디</h2>
+            <h2 className="text-[17px] font-bold leading-tight" style={{ color: "#222", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>오늘의 날씨 & 추천 스타일</h2>
           </div>
         </div>
         <div className="mx-6 rounded-2xl overflow-hidden mb-4" style={{ backgroundColor: "#F5F5F5", height: 112 }}>
@@ -417,7 +578,7 @@ function WeatherSection({ onExpand }) {
 
   if (!weather) return null;
 
-  const outfit = getOutfitRec(weather.temp, weather.conditionCode);
+  const outfit = getWeatherOutfitRec(buildWeatherContext(weather));
   const cond   = CONDITION_META[weather.conditionCode] || CONDITION_META.clear;
 
   function handlePieceTap(piece) {
@@ -432,7 +593,7 @@ function WeatherSection({ onExpand }) {
             TODAY'S WEATHER
           </p>
           <h2 className="text-[17px] font-bold leading-tight" style={{ color: "#222", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
-            오늘의 날씨 & 추천 코디
+            오늘의 날씨 & 추천 스타일
           </h2>
         </div>
         <span className="text-[11px]" style={{ color: "#BBBBBB", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{weather.location}</span>
@@ -483,16 +644,16 @@ function WeatherSection({ onExpand }) {
         </div>
       </button>
 
-      {/* ── 오늘의 트렁크룸 추천 코디 card ── */}
+      {/* ── 오늘의 트렁크룸 추천 스타일 card ── */}
       <div className="mx-6 rounded-2xl overflow-hidden" style={{ backgroundColor: "#313439" }}>
 
         {/* Editorial outfit image — aligned to recommendation theme */}
         <div className="relative" style={{ height: 158 }}>
-          <img
+          <LazyImage
             src={outfit.image}
             alt={outfit.keyword}
-            className="absolute inset-0 w-full h-full"
-            style={{ objectFit: "cover", objectPosition: "center 20%" }}
+            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 20%" }}
+            priority
           />
           {/* Gradient overlay — dark at bottom so text is readable */}
           <div
@@ -520,7 +681,7 @@ function WeatherSection({ onExpand }) {
               className="text-[16px] font-bold text-white leading-tight"
               style={{ fontFamily: "'Spoqa Han Sans Neo', sans-serif", letterSpacing: "-0.025em" }}
             >
-              오늘의 트렁크룸 추천 코디
+              오늘의 트렁크룸 추천 스타일
             </h3>
           </div>
         </div>
@@ -599,9 +760,169 @@ function WeatherSection({ onExpand }) {
 
           {/* ── Inline closet items (expands when piece is tapped) ── */}
           {selectedPiece && (
-            <ClosetItemsByPiece piece={selectedPiece} />
+            <ClosetItemsByPiece piece={selectedPiece} onItemTap={onItemTap} />
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ─── Community "오늘 이거 입었어요" section ──────────────────────────────────
+// Shows community outfit posts from today / last 7 days.
+// Uses capsule flat-lay images as outfit thumbnails.
+
+const CC = (n) => `/assets/images/capsule_coordi/capsule${n}.jpg`;  // capsule flat-lay
+const CI = (n, r, c) => `/assets/images/capsule_items/cap${n}_r${r}c${c}.jpg`; // individual crop
+
+const COMMUNITY_TODAY_POSTS = [
+  {
+    id: "c1",
+    username: "minj_closet",
+    avatar: "🧥",
+    timeAgo: "방금",
+    image: CC(1),
+    mood: "미니멀",
+    moodColor: "#E8E8E8",
+    moodText: "#444",
+    likes: 24,
+  },
+  {
+    id: "c2",
+    username: "stylegram_y",
+    avatar: "👗",
+    timeAgo: "1시간 전",
+    image: CC(2),
+    mood: "빈티지",
+    moodColor: "#F5ECD7",
+    moodText: "#7A5C2E",
+    likes: 41,
+  },
+  {
+    id: "c3",
+    username: "daily.ootd_j",
+    avatar: "🧣",
+    timeAgo: "3시간 전",
+    image: CC(3),
+    mood: "캐주얼",
+    moodColor: "#E3EEFF",
+    moodText: "#2B5DD4",
+    likes: 17,
+  },
+  {
+    id: "c4",
+    username: "codi_hana",
+    avatar: "👔",
+    timeAgo: "어제",
+    image: CC(4),
+    mood: "오피스",
+    moodColor: "#E8F5E9",
+    moodText: "#2E7D32",
+    likes: 36,
+  },
+  {
+    id: "c5",
+    username: "fitcheck_s",
+    avatar: "🌸",
+    timeAgo: "어제",
+    image: CC(1),
+    mood: "페미닌",
+    moodColor: "#FCE4EC",
+    moodText: "#C2185B",
+    likes: 52,
+  },
+  {
+    id: "c6",
+    username: "wearlog_k",
+    avatar: "🖤",
+    timeAgo: "2일 전",
+    image: CC(3),
+    mood: "시크",
+    moodColor: "#F0F0F0",
+    moodText: "#333",
+    likes: 29,
+  },
+];
+
+function CommunityTodaySection() {
+  const FONT = "'Spoqa Han Sans Neo', sans-serif";
+
+  return (
+    <div className="py-6" style={{ backgroundColor: "#F8F8F8" }}>
+      <SectionHeader en="COMMUNITY" ko="남들은 오늘 이거 입었어요" />
+
+      {/* 2-column grid */}
+      <div className="px-4 grid grid-cols-2 gap-3">
+        {COMMUNITY_TODAY_POSTS.map((post) => (
+          <button
+            key={post.id}
+            className="relative rounded-2xl overflow-hidden text-left active:opacity-90"
+            style={{ aspectRatio: "3 / 4", backgroundColor: "#E8E8E8" }}
+          >
+            {/* Outfit photo */}
+            <img
+              src={post.image}
+              alt={post.username}
+              className="absolute inset-0 w-full h-full"
+              style={{ objectFit: "cover", objectPosition: "center top" }}
+            />
+            {/* Gradient overlay */}
+            <div
+              className="absolute inset-0"
+              style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.10) 55%, transparent 100%)" }}
+            />
+            {/* Top: mood chip */}
+            <div className="absolute top-2.5 left-2.5">
+              <span
+                className="text-[9px] font-bold px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: post.moodColor, color: post.moodText, fontFamily: FONT }}
+              >
+                {post.mood}
+              </span>
+            </div>
+            {/* Top-right: heart + like count */}
+            <div className="absolute top-2.5 right-2.5 flex items-center gap-0.5">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path
+                  d="M5 8.5L1.2 4.8C0.8 4.4 0.8 4 0.8 3.5C0.8 2.4 1.8 1.5 3.1 1.5C3.7 1.5 4.2 1.8 4.6 2.2L5 2.6L5.4 2.2C5.8 1.8 6.3 1.5 6.9 1.5C8.2 1.5 9.2 2.4 9.2 3.5C9.2 4 9.1 4.4 8.8 4.8L5 8.5Z"
+                  fill="rgba(255,255,255,0.75)"
+                />
+              </svg>
+              <span className="text-[9px] font-bold" style={{ color: "rgba(255,255,255,0.85)", fontFamily: FONT }}>{post.likes}</span>
+            </div>
+            {/* Bottom: user info */}
+            <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <div
+                  className="w-5 h-5 rounded-full flex items-center justify-center text-[11px]"
+                  style={{ backgroundColor: "rgba(255,255,255,0.18)", backdropFilter: "blur(4px)" }}
+                >
+                  {post.avatar}
+                </div>
+                <p className="text-[10px] font-bold text-white truncate" style={{ fontFamily: FONT }}>
+                  @{post.username}
+                </p>
+              </div>
+              <p className="text-[9px]" style={{ color: "rgba(255,255,255,0.50)", fontFamily: FONT }}>
+                {post.timeAgo}
+              </p>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* 더보기 button */}
+      <div className="px-4 mt-4">
+        <button
+          className="w-full py-3 rounded-xl flex items-center justify-center gap-2"
+          style={{ backgroundColor: "white", border: "1px solid #E8E8E8" }}
+        >
+          <span className="text-[13px] font-medium" style={{ color: "#444", fontFamily: FONT }}>커뮤니티 코디 더보기</span>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M5 3L9 7L5 11" stroke="#888" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
       </div>
     </div>
   );
@@ -628,150 +949,152 @@ function SectionHeader({ en, ko, onMore }) {
   );
 }
 
-// ─── Product data with real clothing images (Unsplash CDN) ───────────────────
-// These are sample fashion images for prototype use.
-// Replace each `image` URL with your actual product photo URLs when going live.
+// ─── Product data — capsule item crops ────────────────────────────────────────
+// Uses individual crops from the 4 capsule flat-lays.
+// Items shown as "남의 옷장" listings (for sale / hot picks).
 
 const NEW_LISTINGS = [
   {
     id: 1,
     brand: "MUSINSA STANDARD",
-    name: "오버핏 코튼 셔츠",
+    name: "오버핏 화이트 셔츠",
     price: "28,000",
     condition: "S급",
-    image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300&q=75&fit=crop",
-    fallback: "#E8D5C4",
+    image: CI(4,1,1),   // white button-up oversized shirt
+    fallback: "#F5F5F0",
   },
   {
     id: 2,
-    brand: "ZARA",
+    brand: "LEVIS",
     name: "와이드 데님 팬츠",
     price: "45,000",
     condition: "A급",
-    image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=300&q=75&fit=crop",
-    fallback: "#C4D4E8",
+    image: CI(3,1,0),   // wide dark indigo jeans
+    fallback: "#D4DCE8",
   },
   {
     id: 3,
     brand: "COS",
-    name: "리넨 블렌드 재킷",
-    price: "62,000",
+    name: "베이지 트렌치코트",
+    price: "89,000",
     condition: "S급",
-    image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=300&q=75&fit=crop",
-    fallback: "#D4E8C4",
+    image: CI(4,0,3),   // beige/khaki trench coat
+    fallback: "#E8E0D4",
   },
   {
     id: 4,
-    brand: "ALAND",
-    name: "니트 가디건",
-    price: "35,000",
-    condition: "B급",
-    image: "https://images.unsplash.com/photo-1583744946564-b52d5a0ebe68?w=300&q=75&fit=crop",
-    fallback: "#E8C4D4",
+    brand: "ARKET",
+    name: "크림 케이블 가디건",
+    price: "65,000",
+    condition: "A급",
+    image: CI(4,0,0),   // brown wrap cardigan
+    fallback: "#F0EAE0",
   },
   {
     id: 5,
-    brand: "H&M",
-    name: "슬림 트라우저",
-    price: "19,000",
-    condition: "A급",
-    image: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=300&q=75&fit=crop",
-    fallback: "#E8E4C4",
+    brand: "TOTEME",
+    name: "버건디 와이드 팬츠",
+    price: "79,000",
+    condition: "S급",
+    image: CI(1,1,4),   // burgundy wide trousers
+    fallback: "#EDE0E4",
   },
   {
     id: 6,
     brand: "UNIQLO",
-    name: "메리노 울 니트",
+    name: "오버핏 그레이 니트",
     price: "41,000",
     condition: "S급",
-    image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=300&q=75&fit=crop",
-    fallback: "#D4C4E8",
+    image: CI(4,0,2),   // gray oversized turtleneck knit
+    fallback: "#E8E8E8",
   },
 ];
 
 const HOT_LISTINGS = [
   {
     id: 7,
-    brand: "MAJE",
-    name: "플로럴 미디 드레스",
-    price: "89,000",
+    brand: "SANDRO",
+    name: "아이보리 랩 코트",
+    price: "198,000",
     condition: "S급",
-    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300&q=75&fit=crop",
-    fallback: "#F2E0D0",
+    image: CI(1,0,3),   // ivory white wrap coat
+    fallback: "#F5F2EC",
   },
   {
     id: 8,
-    brand: "SANDRO",
-    name: "실크 브이넥 블라우스",
+    brand: "MAJE",
+    name: "화이트 홀터넥 드레스",
     price: "115,000",
     condition: "S급",
-    image: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=300&q=75&fit=crop",
-    fallback: "#E8DCF0",
+    image: CI(3,0,4),   // white halter neck maxi dress
+    fallback: "#F5F5F0",
   },
   {
     id: 9,
     brand: "COS",
-    name: "와이드 리넨 팬츠",
+    name: "버건디 새틴 미디스커트",
     price: "62,000",
     condition: "A급",
-    image: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=300&q=75&fit=crop",
-    fallback: "#D4E0EC",
+    image: CI(3,1,4),   // burgundy satin midi skirt
+    fallback: "#EAD8DC",
   },
   {
     id: 10,
     brand: "& OTHER STORIES",
-    name: "리브드 니트 카디건",
-    price: "74,000",
+    name: "네이비 더블 블레이저",
+    price: "145,000",
     condition: "A급",
-    image: "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=300&q=75&fit=crop",
-    fallback: "#F0E8D4",
+    image: CI(2,1,3),   // navy double-breasted blazer
+    fallback: "#D8DCE8",
   },
   {
     id: 11,
     brand: "ARKET",
-    name: "플리츠 미니스커트",
-    price: "48,000",
+    name: "초콜릿 롱 울코트",
+    price: "248,000",
     condition: "S급",
-    image: "https://images.unsplash.com/photo-1548549557-dbe9946621da?w=300&q=75&fit=crop",
-    fallback: "#E8F0D4",
+    image: CI(4,0,4),   // chocolate brown long coat
+    fallback: "#E0D4CC",
   },
   {
     id: 12,
     brand: "TOTEME",
-    name: "오버핏 트렌치코트",
-    price: "198,000",
+    name: "버건디 스트럭처드 블레이저",
+    price: "178,000",
     condition: "S급",
-    image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=300&q=75&fit=crop",
-    fallback: "#E0D8D0",
+    image: CI(1,0,2),   // burgundy structured blazer
+    fallback: "#EAD8DC",
   },
 ];
 
 // MAIN_CATEGORIES and SUBCATEGORIES are now imported from mockClosetData
 
+// STYLE_BOOKS — capsule coordi flat-lay images
+// outfitId links each book to a real OUTFIT_DATA entry for the detail screen.
 const STYLE_BOOKS = [
   {
     id: 1, title: "City Minimal",  count: 24, color: "#1C1C1E",
-    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=300&q=80&fit=crop",
+    image: CC(1), outfitId: "outfit-002",
     tags: ["미니멀", "모노톤", "데일리"],
   },
   {
     id: 2, title: "Vintage Vibes", count: 18, color: "#6B5040",
-    image: "https://images.unsplash.com/photo-1554412933-514a83d2f3c8?w=300&q=80&fit=crop",
+    image: CC(2), outfitId: "outfit-020",
     tags: ["빈티지", "레트로", "웜톤"],
   },
   {
     id: 3, title: "Street Core",   count: 31, color: "#1A2A3A",
-    image: "https://images.unsplash.com/photo-1556906781-9a412961a28d?w=300&q=80&fit=crop",
+    image: CC(3), outfitId: "outfit-008",
     tags: ["스트릿", "오버핏", "캐주얼"],
   },
   {
     id: 4, title: "Clean Fit",     count: 15, color: "#3A3A3A",
-    image: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=300&q=80&fit=crop",
+    image: CC(4), outfitId: "outfit-015",
     tags: ["클린", "베이직", "오피스"],
   },
   {
     id: 5, title: "Feminine",      count: 22, color: "#7A3040",
-    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300&q=80&fit=crop",
+    image: CC(1), outfitId: "outfit-005",
     tags: ["페미닌", "플로럴", "데이트"],
   },
 ];
@@ -870,11 +1193,12 @@ function ProductCard({ item, wide = false, onSelect }) {
 }
 
 // ─── Small closet item card for horizontal carousel ──────────────────────────
-function ClosetMiniCard({ item, onMore }) {
+function ClosetMiniCard({ item, onSelect }) {
   const [imgErr, setImgErr] = useState(false);
   return (
-    <div
-      className="shrink-0 rounded-xl overflow-hidden bg-white"
+    <button
+      onClick={() => onSelect?.(item)}
+      className="shrink-0 rounded-xl overflow-hidden bg-white text-left active:opacity-75"
       style={{ width: 110, marginRight: 10, scrollSnapAlign: "start", border: "1px solid #F0F0F0" }}
     >
       <div className="relative overflow-hidden" style={{ height: 130, backgroundColor: "#F5F5F5" }}>
@@ -900,12 +1224,12 @@ function ClosetMiniCard({ item, onMore }) {
         <p className="text-[11px] font-medium mt-0.5 truncate" style={{ color: "#1a1a1a", fontFamily: "'Spoqa Han Sans Neo', sans-serif", lineHeight: 1.3 }}>{item.name}</p>
         <p className="text-[10px] mt-0.5 truncate" style={{ color: "#BBBBBB", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{item.color}</p>
       </div>
-    </div>
+    </button>
   );
 }
 
 // ─── Categories component ─────────────────────────────────────────────────────
-function Categories({ onMorePress }) {
+function Categories({ onMorePress, onItemSelect }) {
   const [selected,  setSelected]  = useState(null);
   const [activeSub, setActiveSub] = useState(null);
 
@@ -1005,7 +1329,7 @@ function Categories({ onMorePress }) {
                       style={{ scrollbarWidth: "none", msOverflowStyle: "none", scrollSnapType: "x mandatory" }}
                     >
                       {subItems.map((item) => (
-                        <ClosetMiniCard key={item.id} item={item} />
+                        <ClosetMiniCard key={item.id} item={item} onSelect={onItemSelect} />
                       ))}
                       <div className="shrink-0 w-2" />
                     </div>
@@ -1035,16 +1359,17 @@ function Categories({ onMorePress }) {
   );
 }
 
-function StyleBook({ onFilterOpen }) {
+function StyleBook({ onFilterOpen, onOutfitTap }) {
   return (
     <div className="py-6" style={{ backgroundColor: "#F5F5F5" }}>
-      <SectionHeader en="STYLE BOOK" ko="인기 스타일 속 아이템" onMore={onFilterOpen} />
+      <SectionHeader en="STYLE BOOK" ko="남의 옷장 인기 스타일" onMore={onFilterOpen} />
       <HorizontalScroll>
         {STYLE_BOOKS.map((book) => (
-          <div
+          <button
             key={book.id}
-            className="shrink-0 rounded-2xl overflow-hidden mr-3 relative"
+            className="shrink-0 rounded-2xl overflow-hidden mr-3 relative active:opacity-85 transition-opacity"
             style={{ width: 150, height: 210, backgroundColor: book.color, scrollSnapAlign: "start" }}
+            onClick={() => onOutfitTap?.(book.outfitId)}
           >
             {/* Outfit photo */}
             <img
@@ -1091,7 +1416,7 @@ function StyleBook({ onFilterOpen }) {
                 </p>
               </div>
             </div>
-          </div>
+          </button>
         ))}
       </HorizontalScroll>
     </div>
@@ -1112,10 +1437,10 @@ function Footer({ onLegalOpen }) {
   ];
 
   return (
-    <div className="px-5 pt-5 pb-6" style={{ backgroundColor: "#222" }}>
+    <div className="px-5 pt-4 pb-5" style={{ backgroundColor: "#222" }}>
 
       {/* Brand row: logo + tagline */}
-      <div className="flex items-center gap-2.5 mb-3">
+      <div className="flex items-center gap-2.5 mb-2.5">
         <img
           src="/officiallogo.png"
           alt="트렁크룸"
@@ -1152,10 +1477,12 @@ function Footer({ onLegalOpen }) {
         </button>
       </div>
 
-      {/* Company legal — compact two lines */}
-      <p className="text-[10px] leading-relaxed" style={{ color: FDIM, fontFamily: FNT }}>
-        {COMPANY_NAME} · 대표이사 {COMPANY_CEO} · 사업자등록번호 {BUSINESS_NUMBER}<br />
-        통신사업자등록번호 {TELECOM_REG_NUMBER} · {SUPPORT_HOURS}
+      {/* Company legal — compact three lines, smaller font */}
+      <p className="text-[9px] leading-relaxed" style={{ color: FDIM, fontFamily: FNT }}>
+        {COMPANY_NAME} · 대표이사 {COMPANY_CEO}<br />
+        사업자등록번호 {BUSINESS_NUMBER}<br />
+        통신사업자등록번호 {TELECOM_REG_NUMBER}<br />
+        {SUPPORT_HOURS}
       </p>
     </div>
   );
@@ -1163,20 +1490,26 @@ function Footer({ onLegalOpen }) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
-export default function HomePage({ onProductSelect, onLegalOpen }) {
+export default function HomePage({ onProductSelect, onLegalOpen, onGoToRecord }) {
   const [activeDetail,    setActiveDetail]    = useState(null);
-  const [filterSheet,     setFilterSheet]     = useState(null); // null | "stylebook"
   const [weatherOpen,     setWeatherOpen]     = useState(false);
   const [fullList,        setFullList]        = useState(null); // { title, items }
   const [searchOpen,        setSearchOpen]        = useState(false);
   const [favoritesOpen,     setFavoritesOpen]     = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [selectedOutfit,    setSelectedOutfit]    = useState(null);
+
+  function handleOutfitTap(outfitId) {
+    const outfit = OUTFIT_DATA.find((o) => o.id === outfitId);
+    if (outfit) setSelectedOutfit(outfit);
+  }
   const { weather } = useWeather();
 
-  function handleSearchResults(results) {
+  function handleSearchResults(results, scope = "my") {
     setSearchOpen(false);
+    const scopeLabel = scope === "public" ? "공개 옷장" : "내 옷장";
     setFullList({
-      title: `검색 결과 (${results.length}개)`,
+      title: `${scopeLabel} 검색 결과 (${results.length}개)`,
       items: results,
     });
   }
@@ -1262,6 +1595,11 @@ export default function HomePage({ onProductSelect, onLegalOpen }) {
 
   return (
     <div className="relative flex flex-col h-full bg-white overflow-hidden">
+      {/* Outfit detail overlay (style book taps) */}
+      {selectedOutfit && (
+        <OutfitDetailScreen outfit={selectedOutfit} onBack={() => setSelectedOutfit(null)} />
+      )}
+
       {/* Detail screen overlay (banner taps) */}
       {activeDetail && (
         <DetailScreen detailKey={activeDetail} onBack={() => setActiveDetail(null)} />
@@ -1278,6 +1616,7 @@ export default function HomePage({ onProductSelect, onLegalOpen }) {
           title={fullList.title}
           items={fullList.items}
           onBack={() => setFullList(null)}
+          onItemSelect={onProductSelect}
         />
       )}
 
@@ -1302,10 +1641,6 @@ export default function HomePage({ onProductSelect, onLegalOpen }) {
         />
       )}
 
-      {/* Style book filter overlay */}
-      {filterSheet === "stylebook" && (
-        <StyleBookFilterSheet onClose={() => setFilterSheet(null)} onApply={() => {}} />
-      )}
 
       <TopBar
         notificationCount={4}
@@ -1316,29 +1651,30 @@ export default function HomePage({ onProductSelect, onLegalOpen }) {
 
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
 
-        {/* Carousel — 2 banners */}
+        {/* ① Brand editorial banners — first impression */}
         <BannerCarousel onBannerTap={(key) => setActiveDetail(key)} />
 
-        {/* Weather + Outfit */}
-        <WeatherSection onExpand={() => setWeatherOpen(true)} />
+        {/* ② Today's outfit record — square card, no weather */}
+        <TodayRecordCard onRecordToday={onGoToRecord} />
 
-        {/* Categories — 내 옷장 속 카테고리 */}
-        <Categories onMorePress={(data) => setFullList(data)} />
+        {/* ③ Weather + outfit recommendation (tap pieces to find closet items) */}
+        <WeatherSection
+          onExpand={() => setWeatherOpen(true)}
+          onItemTap={onProductSelect}
+        />
 
-        {/* NEW LISTINGS */}
+        {/* ④ My closet by category */}
+        <Categories
+          onMorePress={(data) => setFullList(data)}
+          onItemSelect={onProductSelect}
+        />
+
+        {/* ⑤ Community — what others wore today / this week */}
+        <CommunityTodaySection />
+
+        {/* ⑥ Trending items from others' closets */}
         <div className="py-6 bg-white">
-          <SectionHeader en="NEW LISTINGS" ko="새로 등록된 아이템" onMore={() => {}} />
-          <HorizontalScroll>
-            {NEW_LISTINGS.map((item) => <ProductCard key={item.id} item={item} onSelect={onProductSelect} />)}
-          </HorizontalScroll>
-        </div>
-
-        {/* Style Book */}
-        <StyleBook onFilterOpen={() => setFilterSheet("stylebook")} />
-
-        {/* HOT LISTINGS */}
-        <div className="py-6 bg-white">
-          <SectionHeader en="HOT LISTINGS" ko="가장 인기 있는 아이템" onMore={() => {}} />
+          <SectionHeader en="HOT LISTINGS" ko="남의 옷장 가장 인기있는 아이템" onMore={() => {}} />
           <HorizontalScroll>
             {HOT_LISTINGS.map((item) => <ProductCard key={item.id} item={item} wide onSelect={onProductSelect} />)}
           </HorizontalScroll>

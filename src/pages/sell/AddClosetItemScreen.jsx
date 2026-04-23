@@ -10,6 +10,7 @@ import AutoDetectLoadingState from "../../components/AutoDetectLoadingState.jsx"
 import AutoDetectedBadge      from "../../components/AutoDetectedBadge.jsx";
 import { runUploadPipeline }  from "../../lib/uploadClothing.js";
 import { addClosetItem }      from "../../lib/closetStore.js";
+import { validateImageFile, compressImage } from "../../lib/imageUtils.js";
 
 const DARK   = "#1a1a1a";
 const YELLOW = "#F5C200";
@@ -303,8 +304,30 @@ export default function AddClosetItemScreen({ onClose, onSave }) {
     if (!file) return;
     e.target.value = "";   // allow re-selecting same file
 
+    // Validate file type and size
+    const { valid, error: fileError } = validateImageFile(file);
+    if (!valid) {
+      setPipelineError(fileError);
+      setPipelineState("error");
+      setTimeout(() => setPipelineState(null), 2500);
+      return;
+    }
+
+    // Compress large files before uploading (>2MB gets compressed)
+    let uploadFile = file;
+    if (file.size > 2 * 1024 * 1024) {
+      try {
+        const { dataUrl, mimeType } = await compressImage(file, { maxDim: 1200, quality: 0.88 });
+        const blob = await fetch(dataUrl).then((r) => r.blob());
+        uploadFile = new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: mimeType });
+      } catch {
+        // Compression failed — use original
+        uploadFile = file;
+      }
+    }
+
     try {
-      await runUploadPipeline(file, {
+      await runUploadPipeline(uploadFile, {
         onBgStart:      () => setPipelineState("removing_bg"),
         onAnalyzeStart: () => setPipelineState("analyzing"),
         onDone: (result) => {

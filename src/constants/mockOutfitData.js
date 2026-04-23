@@ -1,8 +1,11 @@
 /**
  * mockOutfitData.js
  *
- * Outfit / coordination records used across 코디 screen, 옷장 > 코디북,
+ * Outfit / coordination records used across 스타일 screen, 옷장 > 스타일북,
  * and the weather-item → outfit recommendation flow.
+ * previewImage values now use the local processed image library instead of Unsplash.
+ *
+ * previewImage sources: /assets/images/coordi/ (processed local library)
  *
  * Each outfit record:
  *   id             – stable identifier
@@ -21,6 +24,9 @@
  *   Swap this array with a backend API call — the schema stays the same.
  */
 
+import { zoneCoordiImg } from "../lib/localImages";
+const coordiImg = (n) => zoneCoordiImg("outfits", n); // zone outfits = coordi[0-24]
+
 export const OUTFIT_DATA = [
   // ─── 미니멀 ────────────────────────────────────────────────────────────────
   {
@@ -28,7 +34,7 @@ export const OUTFIT_DATA = [
     title: "클린 미니멀 데일리",
     style: "미니멀",
     season: ["봄", "가을"],
-    previewImage: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&q=80&fit=crop",
+    previewImage: coordiImg(0),
     itemIds: ["item-11", "item-43", "item-113"],
     anchorItemIds: ["item-11", "item-43"],
     shortDesc: "오버핏 셔츠 + 와이드 슬랙스로 완성하는 미니멀 룩",
@@ -41,7 +47,7 @@ export const OUTFIT_DATA = [
     title: "모노톤 오피스 미니멀",
     style: "미니멀",
     season: ["봄", "가을"],
-    previewImage: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=80&fit=crop",
+    previewImage: coordiImg(1),
     itemIds: ["item-7", "item-44", "item-82"],
     anchorItemIds: ["item-82", "item-44"],
     shortDesc: "블레이저 + 슬랙스로 완성하는 군더더기 없는 미니멀",
@@ -56,7 +62,7 @@ export const OUTFIT_DATA = [
     title: "위켄드 캐주얼",
     style: "캐주얼",
     season: ["봄", "여름"],
-    previewImage: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&q=80&fit=crop",
+    previewImage: coordiImg(2),
     itemIds: ["item-1", "item-38", "item-108"],
     anchorItemIds: ["item-1", "item-38"],
     shortDesc: "화이트 반팔 + 스트레이트 데님으로 완성하는 주말 룩",
@@ -69,7 +75,7 @@ export const OUTFIT_DATA = [
     title: "편안한 캐주얼 레이어드",
     style: "캐주얼",
     season: ["봄", "가을"],
-    previewImage: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=80&fit=crop",
+    previewImage: coordiImg(3),
     itemIds: ["item-27", "item-38", "item-33"],
     anchorItemIds: ["item-27", "item-33"],
     shortDesc: "맨투맨 위에 가디건 레이어드로 완성하는 캐주얼 룩",
@@ -84,7 +90,7 @@ export const OUTFIT_DATA = [
     title: "봄 플로럴 페미닌",
     style: "페미닌",
     season: ["봄", "여름"],
-    previewImage: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=80&fit=crop",
+    previewImage: coordiImg(4),
     itemIds: ["item-15", "item-55", "item-113"],
     anchorItemIds: ["item-15", "item-55"],
     shortDesc: "블라우스 + 미디스커트로 완성하는 사랑스러운 봄 룩",
@@ -97,7 +103,7 @@ export const OUTFIT_DATA = [
     title: "로맨틱 미니 드레스",
     style: "페미닌",
     season: ["봄", "여름"],
-    previewImage: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&q=80&fit=crop",
+    previewImage: coordiImg(5),
     itemIds: ["item-95", "item-113", "item-122"],
     anchorItemIds: ["item-95"],
     shortDesc: "플로럴 미니 원피스 하나로 완성하는 페미닌 데이룩",
@@ -112,7 +118,7 @@ export const OUTFIT_DATA = [
     title: "빈티지 스트릿 레이어드",
     style: "스트릿",
     season: ["가을"],
-    previewImage: "https://images.unsplash.com/photo-1554412933-514a83d2f3c8?w=400&q=80&fit=crop",
+    previewImage: coordiImg(6),
     itemIds: ["item-29", "item-38", "item-89"],
     anchorItemIds: ["item-89", "item-29"],
     shortDesc: "레더재킷 + 맨투맨으로 완성하는 스트릿 레이어드",
@@ -125,7 +131,7 @@ export const OUTFIT_DATA = [
     title: "카고 스트릿 핏",
     style: "스트릿",
     season: ["봄", "가을"],
-    previewImage: "https://images.unsplash.com/photo-1556906781-9a412961a28d?w=400&q=80&fit=crop",
+    previewImage: coordiImg(7),
     itemIds: ["item-2", "item-66", "item-86"],
     anchorItemIds: ["item-2", "item-66"],
     shortDesc: "오버핏 반팔 + 조거팬츠로 완성하는 스트릿 캐주얼",
@@ -140,7 +146,7 @@ export const OUTFIT_DATA = [
     title: "우아한 봄 하객룩",
     style: "하객룩",
     season: ["봄"],
-    previewImage: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=400&q=80&fit=crop",
+    previewImage: coordiImg(8),
     itemIds: ["item-98", "item-113", "item-117"],
     anchorItemIds: ["item-98"],
     shortDesc: "미디 드레스로 완성하는 격식 있는 하객 룩",
@@ -153,7 +159,7 @@ export const OUTFIT_DATA = [
     title: "가을 하객 세미포멀",
     style: "하객룩",
     season: ["가을"],
-    previewImage: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=80&fit=crop",
+    previewImage: coordiImg(9),
     itemIds: ["item-84", "item-55", "item-114"],
     anchorItemIds: ["item-84", "item-55"],
     shortDesc: "블레이저 + 미디스커트로 완성하는 가을 하객룩",
@@ -168,7 +174,7 @@ export const OUTFIT_DATA = [
     title: "설레는 봄 데이트룩",
     style: "데이트룩",
     season: ["봄", "여름"],
-    previewImage: "https://images.unsplash.com/photo-1548549557-dbe9946621da?w=400&q=80&fit=crop",
+    previewImage: coordiImg(10),
     itemIds: ["item-16", "item-51", "item-113"],
     anchorItemIds: ["item-16", "item-51"],
     shortDesc: "플로럴 블라우스 + 플리츠 스커트로 완성하는 데이트 룩",
@@ -181,7 +187,7 @@ export const OUTFIT_DATA = [
     title: "심플 데이트 나이트",
     style: "데이트룩",
     season: ["봄", "가을"],
-    previewImage: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=80&fit=crop",
+    previewImage: coordiImg(11),
     itemIds: ["item-99", "item-113", "item-122"],
     anchorItemIds: ["item-99"],
     shortDesc: "사틴 미디 드레스로 완성하는 시크한 데이트 나이트",
@@ -196,7 +202,7 @@ export const OUTFIT_DATA = [
     title: "파워 오피스 룩",
     style: "오피스룩",
     season: ["봄", "가을"],
-    previewImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80&fit=crop",
+    previewImage: coordiImg(12),
     itemIds: ["item-82", "item-43", "item-113"],
     anchorItemIds: ["item-82", "item-43"],
     shortDesc: "테일러드 블레이저 + 와이드 슬랙스로 완성하는 오피스 룩",
@@ -209,7 +215,7 @@ export const OUTFIT_DATA = [
     title: "소프트 오피스 페미닌",
     style: "오피스룩",
     season: ["봄"],
-    previewImage: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=400&q=80&fit=crop",
+    previewImage: coordiImg(13),
     itemIds: ["item-15", "item-45", "item-84"],
     anchorItemIds: ["item-15", "item-45"],
     shortDesc: "블라우스 + 슬랙스로 완성하는 여성스러운 오피스 룩",
@@ -221,10 +227,10 @@ export const OUTFIT_DATA = [
   // ─── 출근룩 ────────────────────────────────────────────────────────────────
   {
     id: "outfit-015",
-    title: "클래식 출근 코디",
+    title: "클래식 출근 스타일",
     style: "출근룩",
     season: ["봄", "가을"],
-    previewImage: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400&q=80&fit=crop",
+    previewImage: coordiImg(14),
     itemIds: ["item-14", "item-44", "item-113"],
     anchorItemIds: ["item-14", "item-44"],
     shortDesc: "옥스포드 셔츠 + 테이퍼드 슬랙스로 완성하는 스마트 출근 룩",
@@ -239,7 +245,7 @@ export const OUTFIT_DATA = [
     title: "여유로운 주말 브런치",
     style: "주말룩",
     season: ["봄", "여름"],
-    previewImage: "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=400&q=80&fit=crop",
+    previewImage: coordiImg(15),
     itemIds: ["item-33", "item-58", "item-109"],
     anchorItemIds: ["item-33", "item-58"],
     shortDesc: "오버핏 가디건 + 와이드 린넨 팬츠로 완성하는 편안한 주말 룩",
@@ -254,7 +260,7 @@ export const OUTFIT_DATA = [
     title: "에어포트 여행 패션",
     style: "여행룩",
     season: ["봄", "가을"],
-    previewImage: "https://images.unsplash.com/photo-1583744946564-b52d5a0ebe68?w=400&q=80&fit=crop",
+    previewImage: coordiImg(16),
     itemIds: ["item-19", "item-58", "item-109"],
     anchorItemIds: ["item-19", "item-58"],
     shortDesc: "니트 + 와이드 팬츠 + 스니커즈로 완성하는 편안한 여행 룩",
@@ -269,7 +275,7 @@ export const OUTFIT_DATA = [
     title: "서머 리조트 룩",
     style: "리조트룩",
     season: ["여름"],
-    previewImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80&fit=crop",
+    previewImage: coordiImg(17),
     itemIds: ["item-100", "item-115", "item-124"],
     anchorItemIds: ["item-100"],
     shortDesc: "맥시 원피스 + 샌들로 완성하는 여름 리조트 룩",
@@ -284,7 +290,7 @@ export const OUTFIT_DATA = [
     title: "스포티 애슬레저",
     style: "스포티",
     season: ["봄", "가을"],
-    previewImage: "https://images.unsplash.com/photo-1584735422531-6a56c5e8a5ee?w=400&q=80&fit=crop",
+    previewImage: coordiImg(18),
     itemIds: ["item-127", "item-128", "item-130"],
     anchorItemIds: ["item-127", "item-128"],
     shortDesc: "스포츠 레깅스 + 스포츠 브라 + 트랙 재킷으로 완성하는 애슬레저",
@@ -296,10 +302,10 @@ export const OUTFIT_DATA = [
   // ─── 빈티지 ────────────────────────────────────────────────────────────────
   {
     id: "outfit-020",
-    title: "레트로 빈티지 코디",
+    title: "레트로 빈티지 스타일",
     style: "빈티지",
     season: ["봄", "가을"],
-    previewImage: "https://images.unsplash.com/photo-1512036666432-2181c1f26420?w=400&q=80&fit=crop",
+    previewImage: coordiImg(19),
     itemIds: ["item-86", "item-39", "item-109"],
     anchorItemIds: ["item-86", "item-39"],
     shortDesc: "데님 재킷 + 와이드 데님으로 완성하는 복고풍 빈티지 룩",
@@ -312,7 +318,7 @@ export const OUTFIT_DATA = [
     title: "70s 빈티지 무드",
     style: "빈티지",
     season: ["가을"],
-    previewImage: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=400&q=80&fit=crop",
+    previewImage: coordiImg(20),
     itemIds: ["item-89", "item-59", "item-109"],
     anchorItemIds: ["item-89"],
     shortDesc: "레더재킷 + 미디스커트로 완성하는 70s 빈티지 무드",
@@ -327,7 +333,7 @@ export const OUTFIT_DATA = [
     title: "가을 모던시크",
     style: "모던시크",
     season: ["가을", "겨울"],
-    previewImage: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=400&q=80&fit=crop",
+    previewImage: coordiImg(21),
     itemIds: ["item-71", "item-43", "item-117"],
     anchorItemIds: ["item-71", "item-43"],
     shortDesc: "오버핏 트렌치 + 와이드 슬랙스로 완성하는 모던시크 룩",
@@ -340,7 +346,7 @@ export const OUTFIT_DATA = [
     title: "겨울 블랙 시크",
     style: "모던시크",
     season: ["겨울"],
-    previewImage: "https://images.unsplash.com/photo-1512036666432-2181c1f26420?w=400&q=80&fit=crop",
+    previewImage: coordiImg(22),
     itemIds: ["item-93", "item-44", "item-109"],
     anchorItemIds: ["item-93"],
     shortDesc: "오버핏 코트 + 블랙 슬랙스로 완성하는 겨울 시크 룩",
@@ -352,10 +358,10 @@ export const OUTFIT_DATA = [
   // ─── Y2K ──────────────────────────────────────────────────────────────────
   {
     id: "outfit-024",
-    title: "Y2K 크롭 코디",
+    title: "Y2K 크롭 스타일",
     style: "Y2K",
     season: ["봄", "여름"],
-    previewImage: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&q=80&fit=crop",
+    previewImage: coordiImg(23),
     itemIds: ["item-36", "item-51", "item-108"],
     anchorItemIds: ["item-36", "item-51"],
     shortDesc: "크롭탑 + 미니스커트로 완성하는 Y2K 감성 룩",
@@ -365,10 +371,10 @@ export const OUTFIT_DATA = [
   },
   {
     id: "outfit-025",
-    title: "Y2K 팝 색감 코디",
+    title: "Y2K 팝 색감 스타일",
     style: "Y2K",
     season: ["여름"],
-    previewImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80&fit=crop",
+    previewImage: coordiImg(24),
     itemIds: ["item-37", "item-52", "item-108"],
     anchorItemIds: ["item-37", "item-52"],
     shortDesc: "탱크탑 + 플로럴 미니스커트로 완성하는 발랄한 Y2K 룩",

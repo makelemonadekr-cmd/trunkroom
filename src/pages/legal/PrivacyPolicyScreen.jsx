@@ -115,7 +115,7 @@ export default function PrivacyPolicyScreen({ onBack }) {
         <ul className="mb-3 ml-2">
           <Li>프로필 이미지, 닉네임</Li>
           <Li>의류 사진 및 등록 정보 (카테고리, 색상, 사이즈, 가격 등)</Li>
-          <Li>스타일 선호도 및 코디 취향 정보</Li>
+          <Li>스타일 선호도 및 스타일 취향 정보</Li>
         </ul>
         <P style={{ fontWeight: 600 }}>③ 서비스 이용 중 자동 수집 항목</P>
         <ul className="mb-3 ml-2">
@@ -124,7 +124,7 @@ export default function PrivacyPolicyScreen({ onBack }) {
 
         <H2>제2조 개인정보 수집 및 이용 목적</H2>
         <ul className="mb-3 ml-2">
-          <Li>서비스 제공: 회원 가입·관리, 옷장 등록·관리, 코디 추천</Li>
+          <Li>서비스 제공: 회원 가입·관리, 옷장 등록·관리, 스타일 추천</Li>
           <Li>고객 지원: 문의 응답, 불만 처리, 공지사항 전달</Li>
           <Li>서비스 개선: 이용 통계 분석, 신규 기능 개발, AI 추천 정확도 향상</Li>
           <Li>보안·인증: 부정 이용 방지, 계정 보안 강화</Li>

@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import TrunkRoomOnboarding from "./pages/onboarding/TrunkRoomOnboarding";
+import { TOAST_EVENT } from "./lib/toastUtils";
 import HomePage from "./pages/home/HomePage";
 import ClosetPage from "./pages/closet/ClosetPage";
-import CodiPage from "./pages/codi/CodiPage";
-import SellPage from "./pages/sell/SellPage";
-import AddClosetItemScreen from "./pages/sell/AddClosetItemScreen";
-import CleanoutServiceScreen from "./pages/sell/CleanoutServiceScreen";
+import DiscoveryPage from "./pages/discover/DiscoveryPage";
+import RecordPage from "./pages/record/RecordPage";
 import ProductDetailPage from "./pages/product/ProductDetailPage";
 import MenuPage from "./pages/menu/MenuPage";
 import PrivacyPolicyScreen from "./pages/legal/PrivacyPolicyScreen";
@@ -35,27 +34,32 @@ export default function App() {
   const [currentProduct, setCurrentProduct] = useState(null);
   const [legalScreen,    setLegalScreen]    = useState(null); // null | "privacy" | "terms"
 
-  // ── Sell flow overlay state ──────────────────────────────────────────────────
-  // null | "quicksell" | "cleanout"
-  // "closet" routes via tab switch — no overlay needed
-  const [sellScreen, setSellScreen] = useState(null);
+  // ── Global toast ─────────────────────────────────────────────────────────────
+  const [toast,     setToast]     = useState(null);  // { message, type }
+  const toastTimer                = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      const { message, type, duration = 3000 } = e.detail;
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+      setToast({ message, type });
+      toastTimer.current = setTimeout(() => setToast(null), duration);
+    };
+    window.addEventListener(TOAST_EVENT, handler);
+    return () => {
+      window.removeEventListener(TOAST_EVENT, handler);
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
+  }, []);
 
   const handleOnboardingComplete = () => {
     localStorage.setItem(ONBOARDING_KEY, "1");
     setPhase("app");
   };
 
-  // When switching tabs, clear any sell overlays
   function handleTabChange(tab) {
-    setSellScreen(null);
     setCurrentProduct(null);
     setActiveTab(tab);
-  }
-
-  // "내 옷장 속 아이템 판매" → go to closet tab directly
-  function handleSellFromCloset() {
-    setSellScreen(null);
-    setActiveTab("closet");
   }
 
   if (phase === "onboarding") {
@@ -122,31 +126,15 @@ export default function App() {
             <HomePage
               onProductSelect={setCurrentProduct}
               onLegalOpen={(type) => setLegalScreen(type)}
+              onGoToRecord={() => handleTabChange("record")}
             />
           )}
-          {activeTab === "sell"   && (
-            <SellPage
-              onQuickSell={() => setSellScreen("quicksell")}
-              onSellFromCloset={handleSellFromCloset}
-              onCleanout={() => setSellScreen("cleanout")}
-            />
+          {activeTab === "record" && (
+            <RecordPage onItemSelect={setCurrentProduct} />
           )}
-          {activeTab === "closet" && <ClosetPage />}
-          {activeTab === "codi"   && <CodiPage />}
+          {activeTab === "closet" && <ClosetPage onProductSelect={setCurrentProduct} />}
+          {activeTab === "discover" && <DiscoveryPage />}
           {activeTab === "menu"   && <MenuPage />}
-
-          {/* ── Sell flow overlays — sit above the active tab page ── */}
-          {sellScreen === "quicksell" && activeTab === "sell" && (
-            <AddClosetItemScreen
-              onClose={() => setSellScreen(null)}
-              onSave={() => setSellScreen(null)}
-            />
-          )}
-          {sellScreen === "cleanout" && activeTab === "sell" && (
-            <CleanoutServiceScreen
-              onBack={() => setSellScreen(null)}
-            />
-          )}
 
           {/* Product detail overlay — absolute, covers full page area */}
           {currentProduct && (
@@ -178,6 +166,51 @@ export default function App() {
             style={{ width: 134, height: 5, backgroundColor: "rgba(0,0,0,0.18)" }}
           />
         </div>
+
+        {/* ── Global toast overlay ────────────────────────────────── */}
+        {toast && (
+          <div
+            className="absolute left-4 right-4 z-[999] pointer-events-none flex justify-center"
+            style={{ bottom: 90 }}
+          >
+            <div
+              className="flex items-center gap-2 px-4 py-3 rounded-2xl shadow-lg"
+              style={{
+                backgroundColor:
+                  toast.type === "error"   ? "#E84040" :
+                  toast.type === "success" ? "#1a1a1a" :
+                  toast.type === "warning" ? "#B8920A" :
+                                             "#1a1a1a",
+                maxWidth: "100%",
+              }}
+            >
+              {toast.type === "error" && (
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                  <path d="M7.5 5V8M7.5 10.5V11" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                  <circle cx="7.5" cy="7.5" r="6" stroke="white" strokeWidth="1.5"/>
+                </svg>
+              )}
+              {(toast.type === "success" || !toast.type || toast.type === "info") && (
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                  <path d="M2.5 7.5L5.5 10.5L12.5 3.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+              {toast.type === "warning" && (
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                  <path d="M7.5 1L14 13H1L7.5 1Z" stroke="white" strokeWidth="1.5" strokeLinejoin="round"/>
+                  <path d="M7.5 5.5V9" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
+                  <circle cx="7.5" cy="11" r="0.8" fill="white"/>
+                </svg>
+              )}
+              <span
+                className="text-[13px] font-bold text-white"
+                style={{ fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+              >
+                {toast.message}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

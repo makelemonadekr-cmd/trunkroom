@@ -3,6 +3,9 @@ import { STYLE_FILTER_OPTIONS } from "../../constants/styleCategories";
 import { SEASON_FILTER_OPTIONS } from "../../constants/seasonFilters";
 import { OUTFIT_DATA, getOutfitsByStyleAndSeason } from "../../constants/mockOutfitData";
 import OutfitDetailScreen from "../../components/OutfitDetailScreen";
+import CoordiEditorPage from "./CoordiEditorPage";
+import LazyImage from "../../components/LazyImage";
+import { isLiked, getLikeCount, toggleLike } from "../../lib/likesStore";
 
 const DARK   = "#1a1a1a";
 const YELLOW = "#F5C200";
@@ -10,13 +13,15 @@ const YELLOW = "#F5C200";
 // ─── Outfit card ──────────────────────────────────────────────────────────────
 
 function OutfitCard({ board, onTap }) {
-  const [liked, setLiked] = useState(false);
-  const [likes, setLikes] = useState(board.likes);
+  // Initialise from persisted store so state survives page switches / remounts
+  const [liked, setLiked] = useState(() => isLiked(board.id));
+  const [likes, setLikes] = useState(() => getLikeCount(board.id, board.likes));
 
   function handleLike(e) {
     e.stopPropagation();
-    setLiked((v) => !v);
-    setLikes((n) => (liked ? n - 1 : n + 1));
+    const result = toggleLike(board.id, board.likes);
+    setLiked(result.liked);
+    setLikes(result.count);
   }
 
   return (
@@ -26,11 +31,10 @@ function OutfitCard({ board, onTap }) {
       onClick={() => onTap?.(board)}
     >
       {/* Image */}
-      <img
+      <LazyImage
         src={board.previewImage}
         alt={board.title}
-        className="absolute inset-0 w-full h-full"
-        style={{ objectFit: "cover", objectPosition: "center top" }}
+        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
       />
       {/* Gradient */}
       <div
@@ -140,11 +144,22 @@ export default function CodiPage() {
   const [styleFilter,    setStyleFilter]    = useState("전체");
   const [seasonFilter,   setSeasonFilter]   = useState("전체");
   const [selectedOutfit, setSelectedOutfit] = useState(null);
+  const [editorOpen,     setEditorOpen]     = useState(false);
+  const [editingCoordi,  setEditingCoordi]  = useState(null);
 
   const filtered = getOutfitsByStyleAndSeason(styleFilter, seasonFilter);
 
   return (
     <div className="relative flex flex-col h-full bg-white overflow-hidden">
+
+      {/* Coordi editor overlay */}
+      {editorOpen && (
+        <CoordiEditorPage
+          coordi={editingCoordi}
+          onClose={() => { setEditorOpen(false); setEditingCoordi(null); }}
+          onSaved={() => { setEditorOpen(false); setEditingCoordi(null); }}
+        />
+      )}
 
       {/* Outfit detail overlay */}
       {selectedOutfit && (
@@ -174,7 +189,8 @@ export default function CodiPage() {
           </h1>
         </div>
         <button
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-full"
+          onClick={() => { setEditingCoordi(null); setEditorOpen(true); }}
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-full active:opacity-70"
           style={{ backgroundColor: DARK }}
         >
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none">

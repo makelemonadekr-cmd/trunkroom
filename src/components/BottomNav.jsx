@@ -16,25 +16,33 @@ function HomeIcon({ active }) {
   );
 }
 
-function SellIcon({ active }) {
+function RecordIcon({ active }) {
   const c = active ? YELLOW : BLACK;
   return (
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <path
-        d="M13 2H6C4.9 2 4 2.9 4 4V18C4 19.1 4.9 20 6 20H16C17.1 20 18 19.1 18 18V7L13 2Z"
+      {/* Calendar body */}
+      <rect
+        x="3" y="5" width="16" height="14"
+        rx="2.5"
         stroke={c}
-        fill={active ? "rgba(245,194,0,0.18)" : "none"}
         strokeWidth="1.6"
-        strokeLinejoin="round"
+        fill={active ? "rgba(245,194,0,0.18)" : "none"}
       />
-      <path d="M13 2V7H18" stroke={c} strokeWidth="1.6" strokeLinejoin="round" />
-      <path d="M8 12H14" stroke={c} strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M8 15.5H11" stroke={c} strokeWidth="1.5" strokeLinecap="round" />
+      {/* Calendar top pins */}
+      <path d="M8 2V5M14 2V5" stroke={c} strokeWidth="1.6" strokeLinecap="round" />
+      {/* Header line */}
+      <path d="M3 9H19" stroke={c} strokeWidth="1.3" />
+      {/* Dot grid */}
+      <circle cx="7.5"  cy="13" r="1" fill={c} />
+      <circle cx="11"   cy="13" r="1" fill={c} />
+      <circle cx="14.5" cy="13" r="1" fill={c} />
+      <circle cx="7.5"  cy="16.5" r="1" fill={c} />
+      <circle cx="11"   cy="16.5" r="1" fill={c} />
     </svg>
   );
 }
 
-function CodiIcon({ active }) {
+function DiscoverIcon({ active }) {
   const c = active ? YELLOW : BLACK;
   return (
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
@@ -79,7 +87,7 @@ function ClosetLogoTab({ active, onClick }) {
       onClick={onClick}
       className="flex flex-col items-center flex-1 relative"
       style={{ minWidth: 0, paddingTop: 6 }}
-      aria-label="옷장"
+      aria-label="내 옷장"
     >
       {/* Elevated circle bg */}
       <div
@@ -112,18 +120,18 @@ function ClosetLogoTab({ active, onClick }) {
           fontWeight: active ? 700 : 400,
         }}
       >
-        옷장
+        내 옷장
       </span>
     </button>
   );
 }
 
 const SIDE_TABS = [
-  { id: "home",  label: "홈",   Icon: HomeIcon  },
-  { id: "sell",  label: "판매", Icon: SellIcon  },
-  // center is handled separately
-  { id: "codi",  label: "코디", Icon: CodiIcon  },
-  { id: "menu",  label: "메뉴", Icon: MenuIcon  },
+  { id: "home",     label: "홈",  Icon: HomeIcon     },
+  { id: "record",   label: "기록", Icon: RecordIcon   },
+  // center tab ("내 옷장") is handled separately below
+  { id: "discover", label: "발견", Icon: DiscoverIcon },
+  { id: "menu",     label: "메뉴", Icon: MenuIcon     },
 ];
 
 export default function BottomNav({ active, onTabChange }) {

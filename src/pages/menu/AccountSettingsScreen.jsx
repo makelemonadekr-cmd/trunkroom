@@ -9,6 +9,10 @@
 import { useState } from "react";
 import PrivacyPolicyScreen from "../legal/PrivacyPolicyScreen";
 import TermsOfServiceScreen from "../legal/TermsOfServiceScreen";
+import EditProfilePage from "../account/EditProfilePage";
+import ManageUserInfoPage from "../account/ManageUserInfoPage";
+import LoginInfoPage from "../account/LoginInfoPage";
+import { clearUser } from "../../lib/userStore";
 
 const FONT    = "'Spoqa Han Sans Neo', sans-serif";
 const DARK    = "#1a1a1a";
@@ -145,9 +149,24 @@ export default function AccountSettingsScreen({ onBack }) {
   const [legalScreen,    setLegalScreen]    = useState(null);   // null | "privacy" | "terms"
   const [showLogout,     setShowLogout]     = useState(false);
   const [loggedOut,      setLoggedOut]      = useState(false);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [manageInfoOpen,  setManageInfoOpen]  = useState(false);
+  const [loginInfoOpen,   setLoginInfoOpen]   = useState(false);
+  const [toast,           setToast]           = useState(null);
+
+  function showToast(msg) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 1800);
+  }
 
   function handleLogoutConfirm() {
     setShowLogout(false);
+    setLoggedOut(true);
+  }
+
+  function handleDeleteAccount() {
+    clearUser();
+    setLoginInfoOpen(false);
     setLoggedOut(true);
   }
 
@@ -159,6 +178,15 @@ export default function AccountSettingsScreen({ onBack }) {
       {/* Sub-screens */}
       {legalScreen === "privacy" && <PrivacyPolicyScreen onBack={() => setLegalScreen(null)} />}
       {legalScreen === "terms"   && <TermsOfServiceScreen onBack={() => setLegalScreen(null)} />}
+      {editProfileOpen && <EditProfilePage onBack={() => setEditProfileOpen(false)} />}
+      {manageInfoOpen  && <ManageUserInfoPage onBack={() => setManageInfoOpen(false)} />}
+      {loginInfoOpen   && (
+        <LoginInfoPage
+          onBack={() => setLoginInfoOpen(false)}
+          onLogout={() => { setLoginInfoOpen(false); setLoggedOut(true); }}
+          onDeleteAccount={handleDeleteAccount}
+        />
+      )}
 
       {/* Logout sheet */}
       {showLogout && (
@@ -220,22 +248,22 @@ export default function AccountSettingsScreen({ onBack }) {
         {/* ── 계정 정보 ── */}
         <SectionLabel>계정 정보</SectionLabel>
         <RowGroup>
-          <Row label="프로필 수정"  icon={<EditIcon />}   subValue="이름, 프로필 사진 변경" onPress={() => {}} />
-          <Row label="내 정보 관리" icon={<PersonIcon />} subValue="연락처, 주소 등" onPress={() => {}} />
-          <Row label="로그인 정보"  icon={<KeyIcon />}    subValue="이메일 · 소셜 계정" onPress={() => {}} last />
+          <Row label="프로필 수정"  icon={<EditIcon />}   subValue="이름, 프로필 사진 변경" onPress={() => setEditProfileOpen(true)} />
+          <Row label="내 정보 관리" icon={<PersonIcon />} subValue="연락처, 주소 등" onPress={() => setManageInfoOpen(true)} />
+          <Row label="로그인 정보"  icon={<KeyIcon />}    subValue="이메일 · 소셜 계정" onPress={() => setLoginInfoOpen(true)} last />
         </RowGroup>
 
         {/* ── 보안 ── */}
         <SectionLabel>보안</SectionLabel>
         <RowGroup>
-          <Row label="비밀번호 변경" icon={<LockIcon />} onPress={() => {}} />
-          <Row label="계정 연동"     icon={<LinkIcon />} subValue="카카오, 애플 등 소셜 로그인" onPress={() => {}} last />
+          <Row label="비밀번호 변경" icon={<LockIcon />} onPress={() => setLoginInfoOpen(true)} />
+          <Row label="계정 연동"     icon={<LinkIcon />} subValue="카카오, 애플 등 소셜 로그인" onPress={() => showToast("소셜 계정 연동은 앱에서 이용 가능해요")} last />
         </RowGroup>
 
         {/* ── 알림 ── */}
         <SectionLabel>알림</SectionLabel>
         <RowGroup>
-          <Row label="알림 설정" icon={<BellIcon />} subValue="푸시 알림 및 마케팅 수신 설정" onPress={() => {}} last />
+          <Row label="알림 설정" icon={<BellIcon />} subValue="푸시 알림 및 마케팅 수신 설정" onPress={() => setManageInfoOpen(true)} last />
         </RowGroup>
 
         {/* ── 약관 및 정책 ── */}
@@ -249,10 +277,19 @@ export default function AccountSettingsScreen({ onBack }) {
         <SectionLabel>기타</SectionLabel>
         <RowGroup>
           <Row label="로그아웃" icon={<LogoutIcon />} danger onPress={() => setShowLogout(true)} />
-          <Row label="탈퇴하기" icon={<TrashIcon />}  danger subValue="계정 및 데이터가 영구 삭제돼요" onPress={() => {}} last />
+          <Row label="탈퇴하기" icon={<TrashIcon />}  danger subValue="계정 및 데이터가 영구 삭제돼요" onPress={() => setLoginInfoOpen(true)} last />
         </RowGroup>
 
       </div>
+
+      {/* Toast */}
+      {toast && (
+        <div className="absolute bottom-10 left-0 right-0 flex justify-center z-50 pointer-events-none">
+          <div className="px-4 py-2.5 rounded-full" style={{ backgroundColor: DARK }}>
+            <p className="text-white text-[13px] font-medium" style={{ fontFamily: FONT }}>{toast}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

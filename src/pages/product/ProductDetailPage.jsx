@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
+import { zoneItemImg } from "../../lib/localImages";
 
 const YELLOW = "#F5C200";
 
-// ─── Mock similar items ───────────────────────────────────────────────────────
+// ─── Mock similar items — local processed image library ───────────────────────
 const SIMILAR_ITEMS = [
   {
     id: 101,
@@ -10,7 +11,7 @@ const SIMILAR_ITEMS = [
     name: "리넨 오버셔츠",
     price: "34,000",
     condition: "S급",
-    image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=300&q=75&fit=crop",
+    image: zoneItemImg("similar", "tops", 0),   // tops[76]
   },
   {
     id: 102,
@@ -18,7 +19,7 @@ const SIMILAR_ITEMS = [
     name: "루즈핏 셔츠",
     price: "22,000",
     condition: "A급",
-    image: "https://images.unsplash.com/photo-1512353087810-25dfcd100962?w=300&q=75&fit=crop",
+    image: zoneItemImg("similar", "tops", 1),   // tops[77]
   },
   {
     id: 103,
@@ -26,7 +27,7 @@ const SIMILAR_ITEMS = [
     name: "옥스포드 셔츠",
     price: "18,000",
     condition: "A급",
-    image: "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=300&q=75&fit=crop",
+    image: zoneItemImg("similar", "tops", 2),   // tops[78]
   },
   {
     id: 104,
@@ -34,7 +35,7 @@ const SIMILAR_ITEMS = [
     name: "베이직 셔츠",
     price: "15,000",
     condition: "B급",
-    image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300&q=75&fit=crop",
+    image: zoneItemImg("similar", "tops", 3),   // tops[79]
   },
 ];
 

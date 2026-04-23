@@ -5,13 +5,14 @@ const DARK = "#1a1a1a";
 
 // ─── Single item card ─────────────────────────────────────────────────────────
 
-function ClosetItemCard({ item }) {
+function ClosetItemCard({ item, onSelect }) {
   const [imgErr, setImgErr] = useState(false);
 
   return (
     <div
       className="rounded-xl overflow-hidden bg-white"
-      style={{ border: "1px solid #F0F0F0" }}
+      style={{ border: "1px solid #F0F0F0", cursor: onSelect ? "pointer" : "default" }}
+      onClick={() => onSelect?.(item)}
     >
       {/* Image */}
       <div
@@ -123,7 +124,7 @@ function ClosetItemCard({ item }) {
  *   allSubcats  : string[]|null  — if provided, shows sub-filter chips
  *   onBack      : () => void
  */
-export default function FullListScreen({ title, items = [], allSubcats = null, onBack }) {
+export default function FullListScreen({ title, items = [], allSubcats = null, onBack, onItemSelect }) {
   const [subFilter, setSubFilter] = useState("전체");
 
   const filterOptions = allSubcats ? ["전체", ...allSubcats] : null;
@@ -199,7 +200,7 @@ export default function FullListScreen({ title, items = [], allSubcats = null, o
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {visible.map((item) => (
-              <ClosetItemCard key={item.id} item={item} />
+              <ClosetItemCard key={item.id} item={item} onSelect={onItemSelect} />
             ))}
           </div>
         )}

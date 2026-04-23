@@ -160,6 +160,8 @@ function Section({ children }) {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function SearchFilterScreen({ onClose, onSearch }) {
+  // ── Search scope: "my" = 내 옷장, "public" = 공개 옷장 ─────────────────────
+  const [scope,         setScope]         = useState("my");
   const [keyword,       setKeyword]       = useState("");
   const [categories,    setCategories]    = useState([]);
   const [brands,        setBrands]        = useState([]);
@@ -170,17 +172,19 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
   const [priceOption,   setPriceOption]   = useState("all");
   const [hasBox,        setHasBox]        = useState(false);
 
-  // Active filter count (for badge)
+  const isMyCloset = scope === "my";
+
+  // Active filter count (for badge) — scope-aware
   const activeCount = [
     keyword.trim() ? 1 : 0,
     categories.length,
     brands.length,
     sizes.length,
     conditions.length,
-    wearOption ? 1 : 0,
-    notWornInYear ? 1 : 0,
-    priceOption !== "all" ? 1 : 0,
-    hasBox ? 1 : 0,
+    isMyCloset && wearOption    ? 1 : 0,
+    isMyCloset && notWornInYear ? 1 : 0,
+    priceOption !== "all"       ? 1 : 0,
+    isMyCloset && hasBox        ? 1 : 0,
   ].reduce((a, b) => a + b, 0);
 
   function reset() {
@@ -189,12 +193,26 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
     setPriceOption("all"); setHasBox(false);
   }
 
+  function handleScopeChange(newScope) {
+    setScope(newScope);
+    // Reset my-closet-only filters when switching to public
+    if (newScope === "public") {
+      setWearOption(null);
+      setNotWornInYear(false);
+      setHasBox(false);
+    }
+  }
+
   function handleSearch() {
     const results = filterItemsBySearch({
       keyword, categories, brands, sizes, conditions,
-      wearOption, notWornInYear, priceOption, hasBox,
+      wearOption:    isMyCloset ? wearOption    : null,
+      notWornInYear: isMyCloset ? notWornInYear : false,
+      priceOption,
+      hasBox:        isMyCloset ? hasBox        : false,
     });
-    onSearch(results);
+    // Label results by scope
+    onSearch(results, scope);
   }
 
   return (
@@ -230,6 +248,59 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
             <path d="M2 2L12 12M12 2L2 12" stroke={DARK} strokeWidth="1.8" strokeLinecap="round" />
           </svg>
         </button>
+      </div>
+
+      {/* ── Scope selector ── */}
+      <div
+        className="shrink-0 px-5 py-3"
+        style={{ borderBottom: `1px solid ${DIVIDER}`, backgroundColor: "#FAFAFA" }}
+      >
+        <p
+          className="text-[10px] font-bold uppercase tracking-[0.10em] mb-2.5"
+          style={{ color: "#AAAAAA", fontFamily: FONT }}
+        >
+          검색 범위
+        </p>
+        <div className="flex gap-2">
+          {[
+            { id: "my",     label: "내 옷장",   emoji: "👗", desc: "내가 등록한 아이템에서 검색" },
+            { id: "public", label: "공개 옷장",  emoji: "🌐", desc: "다른 사람의 공개 아이템 검색" },
+          ].map((opt) => {
+            const isActive = scope === opt.id;
+            return (
+              <button
+                key={opt.id}
+                onClick={() => handleScopeChange(opt.id)}
+                className="flex-1 rounded-xl px-3 py-2.5 text-left transition-all"
+                style={{
+                  backgroundColor: isActive ? DARK   : LIGHT,
+                  border:          isActive ? `1.5px solid ${DARK}` : "1.5px solid transparent",
+                }}
+              >
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span style={{ fontSize: 14 }}>{opt.emoji}</span>
+                  <span
+                    className="text-[13px] font-bold"
+                    style={{ color: isActive ? "white" : DARK, fontFamily: FONT }}
+                  >
+                    {opt.label}
+                  </span>
+                  {isActive && (
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="ml-auto">
+                      <path d="M2 6L5 9L10 3" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </div>
+                <p
+                  className="text-[10px]"
+                  style={{ color: isActive ? "rgba(255,255,255,0.6)" : "#AAAAAA", fontFamily: FONT }}
+                >
+                  {opt.desc}
+                </p>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* ── Scrollable sections ── */}
@@ -338,32 +409,36 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
           </div>
         </Section>
 
-        {/* ⑥ 착용횟수 */}
-        <Section>
-          <SectionTitle>착용횟수</SectionTitle>
-          <div className="flex flex-wrap gap-2">
-            {WEAR_OPTIONS.map((opt) => (
-              <RadioChip
-                key={opt.value}
-                label={opt.label}
-                selected={wearOption === opt.value}
-                onSelect={() =>
-                  setWearOption(wearOption === opt.value ? null : opt.value)
-                }
-              />
-            ))}
-          </div>
-        </Section>
+        {/* ⑥ 착용횟수 — 내 옷장 only */}
+        {isMyCloset && (
+          <Section>
+            <SectionTitle>착용횟수</SectionTitle>
+            <div className="flex flex-wrap gap-2">
+              {WEAR_OPTIONS.map((opt) => (
+                <RadioChip
+                  key={opt.value}
+                  label={opt.label}
+                  selected={wearOption === opt.value}
+                  onSelect={() =>
+                    setWearOption(wearOption === opt.value ? null : opt.value)
+                  }
+                />
+              ))}
+            </div>
+          </Section>
+        )}
 
-        {/* ⑦ 1년 안입은 옷 */}
-        <Section>
-          <ToggleRow
-            label="1년 동안 안 입은 옷"
-            desc="최근 1년간 착용 기록이 없는 아이템만 표시"
-            value={notWornInYear}
-            onChange={setNotWornInYear}
-          />
-        </Section>
+        {/* ⑦ 1년 안입은 옷 — 내 옷장 only */}
+        {isMyCloset && (
+          <Section>
+            <ToggleRow
+              label="1년 동안 안 입은 옷"
+              desc="최근 1년간 착용 기록이 없는 아이템만 표시"
+              value={notWornInYear}
+              onChange={setNotWornInYear}
+            />
+          </Section>
+        )}
 
         {/* ⑧ 가격범위 */}
         <Section>
@@ -380,15 +455,17 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
           </div>
         </Section>
 
-        {/* ⑨ 박스여부 */}
-        <Section>
-          <ToggleRow
-            label="박스 있는 아이템만"
-            desc="정품 박스 또는 쇼핑백이 보관된 아이템"
-            value={hasBox}
-            onChange={setHasBox}
-          />
-        </Section>
+        {/* ⑨ 박스여부 — 내 옷장 only */}
+        {isMyCloset && (
+          <Section>
+            <ToggleRow
+              label="박스 있는 아이템만"
+              desc="정품 박스 또는 쇼핑백이 보관된 아이템"
+              value={hasBox}
+              onChange={setHasBox}
+            />
+          </Section>
+        )}
 
         <div style={{ height: 8 }} />
       </div>
@@ -431,7 +508,9 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
             <circle cx="6.5" cy="6.5" r="4.5" stroke="white" strokeWidth="1.5" />
             <path d="M10 10L13.5 13.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
-          <span className="text-[14px] font-bold text-white">검색하기</span>
+          <span className="text-[14px] font-bold text-white">
+            {isMyCloset ? "내 옷장 검색" : "공개 옷장 검색"}
+          </span>
         </button>
       </div>
     </div>

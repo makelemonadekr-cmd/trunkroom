@@ -4,7 +4,7 @@
  * Full-screen detail view for a single outfit / coordination card.
  * Shows:
  *   1. Hero outfit image with metadata overlay
- *   2. "이 코디에 사용된 아이템" — item list resolved from outfit.itemIds
+ *   2. "이 스타일에 사용된 아이템" — item list resolved from outfit.itemIds
  *
  * Props:
  *   outfit  : outfit record from OUTFIT_DATA
@@ -13,6 +13,7 @@
 
 import { useState } from "react";
 import { CLOSET_ITEMS } from "../constants/mockClosetData";
+import LazyImage from "./LazyImage";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
@@ -20,7 +21,7 @@ const YELLOW = "#F5C200";
 
 // ─── Single item row ──────────────────────────────────────────────────────────
 function ItemRow({ item, last = false }) {
-  const [imgErr, setImgErr] = useState(false);
+  const src = item.image;
 
   return (
     <div
@@ -30,24 +31,14 @@ function ItemRow({ item, last = false }) {
       {/* Thumbnail */}
       <div
         className="rounded-xl overflow-hidden shrink-0"
-        style={{ width: 56, height: 56, backgroundColor: "#F5F5F5" }}
+        style={{ width: 56, height: 56 }}
       >
-        {!imgErr ? (
-          <img
-            src={item.image}
-            alt={item.name}
-            className="w-full h-full"
-            style={{ objectFit: "cover", objectPosition: "center top" }}
-            onError={() => setImgErr(true)}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <rect x="2" y="4" width="16" height="12" rx="2" stroke="#CCC" strokeWidth="1.3" />
-              <circle cx="10" cy="10" r="3" stroke="#CCC" strokeWidth="1.3" />
-            </svg>
-          </div>
-        )}
+        <LazyImage
+          src={src}
+          alt={item.displayName ?? item.name}
+          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
+          crossOrigin="anonymous"
+        />
       </div>
 
       {/* Info */}
@@ -110,11 +101,12 @@ export default function OutfitDetailScreen({ outfit, onBack }) {
 
       {/* ── Hero image ── */}
       <div className="relative shrink-0" style={{ height: 320 }}>
-        <img
+        <LazyImage
           src={outfit.previewImage}
           alt={outfit.title}
-          className="absolute inset-0 w-full h-full"
-          style={{ objectFit: "cover", objectPosition: "center top" }}
+          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
+          priority
+          crossOrigin="anonymous"
         />
         <div
           className="absolute inset-0"
@@ -246,7 +238,7 @@ export default function OutfitDetailScreen({ outfit, onBack }) {
               className="text-[15px] font-bold"
               style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}
             >
-              이 코디에 사용된 아이템
+              이 스타일에 사용된 아이템
             </h3>
             <span
               className="px-2.5 py-0.5 rounded-full text-[11px] font-bold"
@@ -259,7 +251,7 @@ export default function OutfitDetailScreen({ outfit, onBack }) {
             className="text-[11px] mt-0.5"
             style={{ color: "#AAAAAA", fontFamily: FONT }}
           >
-            매칭된 아이템으로 완성한 코디예요
+            매칭된 아이템으로 완성한 스타일이에요
           </p>
         </div>
 

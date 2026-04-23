@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { zoneItemImg } from "../../lib/localImages";
 
-// ─── Sold item mock data ──────────────────────────────────────────────────────
+// Zone "sell" owns: tops[60-75], bottoms[52-65], outerwear[40-49], dress[2-5]
+// → no overlap with homeListings, closet items, subcategory thumbs, or similar items
 const SELLING_ITEMS = [
   {
     id: 1,
@@ -9,7 +11,7 @@ const SELLING_ITEMS = [
     price: "89,000",
     status: "판매중",
     views: 42,
-    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300&q=75&fit=crop",
+    image: zoneItemImg("sell", "dress", 0),     // dress[2]
     fallback: "#F2E0D0",
   },
   {
@@ -19,7 +21,7 @@ const SELLING_ITEMS = [
     price: "62,000",
     status: "판매중",
     views: 18,
-    image: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=300&q=75&fit=crop",
+    image: zoneItemImg("sell", "bottoms", 0),   // bottoms[52]
     fallback: "#D4E0EC",
   },
   {
@@ -29,7 +31,7 @@ const SELLING_ITEMS = [
     price: "198,000",
     status: "예약중",
     views: 91,
-    image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=300&q=75&fit=crop",
+    image: zoneItemImg("sell", "outerwear", 0), // outerwear[40]
     fallback: "#E0D8D0",
   },
 ];
@@ -130,7 +132,7 @@ function PromoBanner({ onPress }) {
     >
       {/* Background image */}
       <img
-        src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=700&q=80&fit=crop"
+        src={zoneItemImg("sell", "tops", 0)}
         alt="클린아웃백"
         className="absolute inset-0 w-full h-full"
         style={{ objectFit: "cover", objectPosition: "center" }}

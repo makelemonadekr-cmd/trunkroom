@@ -1,3 +1,5 @@
+import { zoneCoordiImg } from "../../lib/localImages";
+
 // ─── External URLs ────────────────────────────────────────────────────────────
 // Replace these with the real app store / website URLs when available
 export const CLEANOUT_LINKS = {
@@ -19,7 +21,7 @@ const SERVICES = [
     nameEn: "CHARAN",
     desc: "안 입는 옷을 간편하게 판매하고 정리할 수 있는 리세일 서비스",
     cta: "앱 다운로드하러 가기",
-    image: "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=600&q=80&fit=crop",
+    image: zoneCoordiImg("cleanout", 0), // coordi[45]
     accent: "#E8D5C4",
     linkKey: "charan",
   },
@@ -29,7 +31,7 @@ const SERVICES = [
     nameEn: "NEW OFF",
     desc: "패션 리커머스 기반으로 옷장 정리에 도움을 주는 서비스",
     cta: "앱 다운로드하러 가기",
-    image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=600&q=80&fit=crop",
+    image: zoneCoordiImg("cleanout", 1), // coordi[46]
     accent: "#D4E0EC",
     linkKey: "newoff",
   },
@@ -39,7 +41,7 @@ const SERVICES = [
     nameEn: "RECLO",
     desc: "중고 의류를 보다 쉽게 순환시키는 패션 리세일 플랫폼",
     cta: "더 알아보기",
-    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&q=80&fit=crop",
+    image: zoneCoordiImg("cleanout", 2), // coordi[47]
     accent: "#D4ECD8",
     linkKey: "reclo",
   },
@@ -49,7 +51,7 @@ const SERVICES = [
     nameEn: "CORNER MARKET",
     desc: "옷과 라이프스타일 아이템을 거래할 수 있는 마켓 서비스",
     cta: "더 알아보기",
-    image: "https://images.unsplash.com/photo-1554412933-514a83d2f3c8?w=600&q=80&fit=crop",
+    image: zoneCoordiImg("cleanout", 3), // coordi[48]
     accent: "#E8D4EC",
     linkKey: "cornermarket",
   },

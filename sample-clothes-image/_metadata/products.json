@@ -1,0 +1,5408 @@
+{
+  "source_page_url": "https://www.musinsa.com/main/musinsa/ranking?gf=A&storeCode=musinsa&sectionId=1827&contentsId=&categoryCode=109000&ageBand=AGE_BAND_ALL&subPan=product",
+  "source_api_url": "https://api.musinsa.com/api2/hm/web/v5/pans/ranking?storeCode=musinsa&gf=A&sectionId=1827&categoryCode=109000&ageBand=AGE_BAND_ALL&subPan=product",
+  "fetched_at": "2026-04-22T22:49:52+0900",
+  "count": 300,
+  "products": [
+    {
+      "rank": 1,
+      "product_id": "5944401",
+      "product_name": "후드 티셔츠 M",
+      "brand_name": "반스",
+      "brand_id": "vans",
+      "product_url": "https://www.musinsa.com/products/5944401",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260127/5944401/5944401_17695030270732_500.jpg",
+      "final_price": 43200,
+      "original_price": 48000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/001_5944401_500.jpg"
+    },
+    {
+      "rank": 2,
+      "product_id": "5883260",
+      "product_name": "롱스커트 1",
+      "brand_name": "오호스",
+      "brand_id": "emptyojos",
+      "product_url": "https://www.musinsa.com/products/5883260",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260109/5883260/5883260_17679464626443_500.jpg",
+      "final_price": 73000,
+      "original_price": 73000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/002_5883260_500.jpg"
+    },
+    {
+      "rank": 3,
+      "product_id": "5910173",
+      "product_name": "긴소매 티셔츠 11/12",
+      "brand_name": "자라",
+      "brand_id": "zara_used",
+      "product_url": "https://www.musinsa.com/products/5910173",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260119/5910173/5910173_17688069245793_500.jpg",
+      "final_price": 14000,
+      "original_price": 20000,
+      "discount_ratio": 30,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/003_5910173_500.jpg"
+    },
+    {
+      "rank": 4,
+      "product_id": "6056141",
+      "product_name": "코튼 팬츠 30",
+      "brand_name": "무신사 스탠다드",
+      "brand_id": "musinsastandard",
+      "product_url": "https://www.musinsa.com/products/6056141",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260225/6056141/6056141_17725135733749_500.jpg",
+      "final_price": 17600,
+      "original_price": 22000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/004_6056141_500.jpg"
+    },
+    {
+      "rank": 5,
+      "product_id": "5670026",
+      "product_name": "숏 패딩/숏 헤비 아우터 F",
+      "brand_name": "페일제이드",
+      "brand_id": "palejade",
+      "product_url": "https://www.musinsa.com/products/5670026",
+      "image_url": "https://image.msscdn.net/images/goods_img/20251031/5670026/5670026_17732170325408_500.jpg",
+      "final_price": 95000,
+      "original_price": 95000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/005_5670026_500.jpg"
+    },
+    {
+      "rank": 6,
+      "product_id": "5912590",
+      "product_name": "스타디움 재킷 S",
+      "brand_name": "렉토",
+      "brand_id": "recto_used",
+      "product_url": "https://www.musinsa.com/products/5912590",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260120/5912590/5912590_17688737690295_500.jpg",
+      "final_price": 368000,
+      "original_price": 460000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/006_5912590_500.jpg"
+    },
+    {
+      "rank": 7,
+      "product_id": "5769083",
+      "product_name": "청/데님 팬츠 L",
+      "brand_name": "세터",
+      "brand_id": "satur",
+      "product_url": "https://www.musinsa.com/products/5769083",
+      "image_url": "https://image.msscdn.net/images/goods_img/20251124/5769083/5769083_17639725729426_500.jpg",
+      "final_price": 105000,
+      "original_price": 150000,
+      "discount_ratio": 30,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/007_5769083_500.jpg"
+    },
+    {
+      "rank": 8,
+      "product_id": "5639359",
+      "product_name": "항공 점퍼/블루종/MA-1 M",
+      "brand_name": "알파 인더스트리",
+      "brand_id": "alphaindustries",
+      "product_url": "https://www.musinsa.com/products/5639359",
+      "image_url": "https://image.msscdn.net/images/goods_img/20251024/5639359/5639359_17612740053709_500.jpg",
+      "final_price": 140000,
+      "original_price": 140000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/008_5639359_500.jpg"
+    },
+    {
+      "rank": 9,
+      "product_id": "5862775",
+      "product_name": "롱 패딩/롱 헤비 아우터 M",
+      "brand_name": "언어펙티드",
+      "brand_id": "unaffected",
+      "product_url": "https://www.musinsa.com/products/5862775",
+      "image_url": "https://image.msscdn.net/images/goods_img/20251231/5862775/5862775_17671103767313_500.jpg",
+      "final_price": 109500,
+      "original_price": 219000,
+      "discount_ratio": 50,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/009_5862775_500.jpg"
+    },
+    {
+      "rank": 10,
+      "product_id": "6039170",
+      "product_name": "사파리/헌팅 재킷 L",
+      "brand_name": "엔지니어드가먼츠",
+      "brand_id": "engineeredgarments",
+      "product_url": "https://www.musinsa.com/products/6039170",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260223/6039170/6039170_17719920647639_500.jpg",
+      "final_price": 210000,
+      "original_price": 300000,
+      "discount_ratio": 30,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/010_6039170_500.jpg"
+    },
+    {
+      "rank": 11,
+      "product_id": "6105389",
+      "product_name": "사파리/헌팅 재킷 L",
+      "brand_name": "바버",
+      "brand_id": "barbour",
+      "product_url": "https://www.musinsa.com/products/6105389",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260310/6105389/6105389_17731110806617_500.jpg",
+      "final_price": 292800,
+      "original_price": 366000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/011_6105389_500.jpg"
+    },
+    {
+      "rank": 12,
+      "product_id": "6212443",
+      "product_name": "네이처 러플 롱원피스 S",
+      "brand_name": "신스덴",
+      "brand_id": "sincethen",
+      "product_url": "https://www.musinsa.com/products/6212443",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260327/6212443/6212443_17745959336719_500.jpg",
+      "final_price": 83430,
+      "original_price": 159000,
+      "discount_ratio": 48,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/012_6212443_500.jpg"
+    },
+    {
+      "rank": 13,
+      "product_id": "6163563",
+      "product_name": "기타 점퍼/재킷 XL",
+      "brand_name": "디키즈",
+      "brand_id": "dickies",
+      "product_url": "https://www.musinsa.com/products/6163563",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260319/6163563/6163563_17739096120656_500.jpg",
+      "final_price": 126000,
+      "original_price": 140000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/013_6163563_500.jpg"
+    },
+    {
+      "rank": 14,
+      "product_id": "6048102",
+      "product_name": "슈트 팬츠/슬랙스 M",
+      "brand_name": "스컬프터",
+      "brand_id": "sculptor",
+      "product_url": "https://www.musinsa.com/products/6048102",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260224/6048102/6048102_17719116428294_500.jpg",
+      "final_price": 46400,
+      "original_price": 58000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/014_6048102_500.jpg"
+    },
+    {
+      "rank": 15,
+      "product_id": "6039144",
+      "product_name": "블라우스 S",
+      "brand_name": "스컬프터",
+      "brand_id": "sculptor",
+      "product_url": "https://www.musinsa.com/products/6039144",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260223/6039144/6039144_17719922757632_500.jpg",
+      "final_price": 110000,
+      "original_price": 110000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/015_6039144_500.jpg"
+    },
+    {
+      "rank": 16,
+      "product_id": "5995170",
+      "product_name": "사파리/헌팅 재킷 M",
+      "brand_name": "파르티멘토",
+      "brand_id": "partimento",
+      "product_url": "https://www.musinsa.com/products/5995170",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260209/5995170/5995170_17707751683803_500.jpg",
+      "final_price": 31500,
+      "original_price": 45000,
+      "discount_ratio": 30,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/016_5995170_500.jpg"
+    },
+    {
+      "rank": 17,
+      "product_id": "6084877",
+      "product_name": "맨투맨/스웨트셔츠 M",
+      "brand_name": "와이프로젝트 x 장 폴 고티에",
+      "brand_id": "yprojectxjeanpaulgaultier",
+      "product_url": "https://www.musinsa.com/products/6084877",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260305/6084877/6084877_17726870945444_500.jpg",
+      "final_price": 400000,
+      "original_price": 500000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/017_6084877_500.jpg"
+    },
+    {
+      "rank": 18,
+      "product_id": "6190170",
+      "product_name": "기타 바지 S",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6190170",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260325/6190170/6190170_17744003100544_500.jpg",
+      "final_price": 22500,
+      "original_price": 25000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/018_6190170_500.jpg"
+    },
+    {
+      "rank": 19,
+      "product_id": "6160043",
+      "product_name": "니트/스웨터 L",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6160043",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260319/6160043/6160043_17738895452571_500.jpg",
+      "final_price": 17100,
+      "original_price": 19000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/019_6160043_500.jpg"
+    },
+    {
+      "rank": 20,
+      "product_id": "6293321",
+      "product_name": "기타 바지 M",
+      "brand_name": "그라미치",
+      "brand_id": "gramicci",
+      "product_url": "https://www.musinsa.com/products/6293321",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260410/6293321/6293321_17758044942265_500.jpg",
+      "final_price": 72000,
+      "original_price": 80000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/020_6293321_500.jpg"
+    },
+    {
+      "rank": 21,
+      "product_id": "6197183",
+      "product_name": "피케/카라 티셔츠 S",
+      "brand_name": "쿠어",
+      "brand_id": "coor",
+      "product_url": "https://www.musinsa.com/products/6197183",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260325/6197183/6197183_17744386356077_500.jpg",
+      "final_price": 26550,
+      "original_price": 29500,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/021_6197183_500.jpg"
+    },
+    {
+      "rank": 22,
+      "product_id": "6190103",
+      "product_name": "청/데님 팬츠 S",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6190103",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260325/6190103/6190103_17743999453533_500.jpg",
+      "final_price": 19800,
+      "original_price": 22000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/022_6190103_500.jpg"
+    },
+    {
+      "rank": 23,
+      "product_id": "6290886",
+      "product_name": "봄 가을 코트 XL",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6290886",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260410/6290886/6290886_17757911702063_500.jpg",
+      "final_price": 62500,
+      "original_price": 62500,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/023_6290886_500.jpg"
+    },
+    {
+      "rank": 24,
+      "product_id": "6290808",
+      "product_name": "나일론/코치 재킷 XL",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6290808",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260410/6290808/6290808_17757906549583_500.jpg",
+      "final_price": 40400,
+      "original_price": 40400,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/024_6290808_500.jpg"
+    },
+    {
+      "rank": 25,
+      "product_id": "6197176",
+      "product_name": "피케/카라 티셔츠 S",
+      "brand_name": "쿠어",
+      "brand_id": "coor",
+      "product_url": "https://www.musinsa.com/products/6197176",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260325/6197176/6197176_17744385580527_500.jpg",
+      "final_price": 26550,
+      "original_price": 29500,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/025_6197176_500.jpg"
+    },
+    {
+      "rank": 26,
+      "product_id": "6138530",
+      "product_name": "카디건 S",
+      "brand_name": "그란데라인",
+      "brand_id": "grandeline",
+      "product_url": "https://www.musinsa.com/products/6138530",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260316/6138530/6138530_17736429343753_500.jpg",
+      "final_price": 9000,
+      "original_price": 9900,
+      "discount_ratio": 9,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/026_6138530_500.jpg"
+    },
+    {
+      "rank": 27,
+      "product_id": "6190296",
+      "product_name": "청/데님 팬츠 29",
+      "brand_name": "지오다노",
+      "brand_id": "giordano",
+      "product_url": "https://www.musinsa.com/products/6190296",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260325/6190296/6190296_17744009223115_500.jpg",
+      "final_price": 15300,
+      "original_price": 17000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/027_6190296_500.jpg"
+    },
+    {
+      "rank": 28,
+      "product_id": "6210405",
+      "product_name": "패딩 베스트 XL",
+      "brand_name": "컬럼비아",
+      "brand_id": "columbia",
+      "product_url": "https://www.musinsa.com/products/6210405",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260327/6210405/6210405_17745867709276_500.jpg",
+      "final_price": 36000,
+      "original_price": 40000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/028_6210405_500.jpg"
+    },
+    {
+      "rank": 29,
+      "product_id": "6172989",
+      "product_name": "후드 집업 S",
+      "brand_name": "스투시",
+      "brand_id": "stussy",
+      "product_url": "https://www.musinsa.com/products/6172989",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260323/6172989/6172989_17742253718519_500.jpg",
+      "final_price": 225000,
+      "original_price": 250000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/029_6172989_500.jpg"
+    },
+    {
+      "rank": 30,
+      "product_id": "6191371",
+      "product_name": "기타 상의 S",
+      "brand_name": "쓰리타임즈",
+      "brand_id": "threetimes",
+      "product_url": "https://www.musinsa.com/products/6191371",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260325/6191371/6191371_17744053512662_500.jpg",
+      "final_price": 44100,
+      "original_price": 49000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/030_6191371_500.jpg"
+    },
+    {
+      "rank": 31,
+      "product_id": "6191543",
+      "product_name": "씨빅 RDS 후드 숏 푸퍼 Brown M",
+      "brand_name": "커버낫",
+      "brand_id": "covernat",
+      "product_url": "https://www.musinsa.com/products/6191543",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260325/6191543/6191543_17744062440678_500.jpg",
+      "final_price": 22500,
+      "original_price": 249000,
+      "discount_ratio": 91,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/031_6191543_500.jpg"
+    },
+    {
+      "rank": 32,
+      "product_id": "6160535",
+      "product_name": "레깅스 L",
+      "brand_name": "젝시믹스",
+      "brand_id": "xexymix",
+      "product_url": "https://www.musinsa.com/products/6160535",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260319/6160535/6160535_17738954196627_500.jpg",
+      "final_price": 45000,
+      "original_price": 50000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/032_6160535_500.jpg"
+    },
+    {
+      "rank": 33,
+      "product_id": "6290711",
+      "product_name": "봄 가을 코트 L",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6290711",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260410/6290711/6290711_17757901314201_500.jpg",
+      "final_price": 62500,
+      "original_price": 62500,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/033_6290711_500.jpg"
+    },
+    {
+      "rank": 34,
+      "product_id": "6194014",
+      "product_name": "니트/스웨터 95",
+      "brand_name": "코데즈컴바인",
+      "brand_id": "codescombine",
+      "product_url": "https://www.musinsa.com/products/6194014",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260325/6194014/6194014_17744206740214_500.jpg",
+      "final_price": 20700,
+      "original_price": 23000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/034_6194014_500.jpg"
+    },
+    {
+      "rank": 35,
+      "product_id": "6085759",
+      "product_name": "릴렉스 핏 크루 넥 티셔츠 [핫 핑크] L",
+      "brand_name": "무신사 스탠다드",
+      "brand_id": "musinsastandard",
+      "product_url": "https://www.musinsa.com/products/6085759",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260305/6085759/6085759_17726915820706_500.jpg",
+      "final_price": 9000,
+      "original_price": 15900,
+      "discount_ratio": 43,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/035_6085759_500.jpg"
+    },
+    {
+      "rank": 36,
+      "product_id": "5877228",
+      "product_name": "슈트/블레이저 재킷 FREE",
+      "brand_name": "폴앤앨리스",
+      "brand_id": "pa",
+      "product_url": "https://www.musinsa.com/products/5877228",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260108/5877228/5877228_17679476803010_500.jpg",
+      "final_price": 31500,
+      "original_price": 45000,
+      "discount_ratio": 30,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/036_5877228_500.jpg"
+    },
+    {
+      "rank": 37,
+      "product_id": "6106801",
+      "product_name": "슈트 팬츠/슬랙스 S",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6106801",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260310/6106801/6106801_17731174152768_500.jpg",
+      "final_price": 12000,
+      "original_price": 15000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/037_6106801_500.jpg"
+    },
+    {
+      "rank": 38,
+      "product_id": "6306383",
+      "product_name": "코튼 팬츠 M",
+      "brand_name": "비바스튜디오",
+      "brand_id": "vivastudio",
+      "product_url": "https://www.musinsa.com/products/6306383",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6306383/6306383_17761417913915_500.jpg",
+      "final_price": 25000,
+      "original_price": 25000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/038_6306383_500.jpg"
+    },
+    {
+      "rank": 39,
+      "product_id": "6104072",
+      "product_name": "슈트 팬츠/슬랙스 A2",
+      "brand_name": "아더에러",
+      "brand_id": "adererror_used",
+      "product_url": "https://www.musinsa.com/products/6104072",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260310/6104072/6104072_17731041881156_500.jpg",
+      "final_price": 122400,
+      "original_price": 153000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/039_6104072_500.jpg"
+    },
+    {
+      "rank": 40,
+      "product_id": "6193106",
+      "product_name": "니트/스웨터 95",
+      "brand_name": "코데즈컴바인",
+      "brand_id": "codescombine",
+      "product_url": "https://www.musinsa.com/products/6193106",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260325/6193106/6193106_17744158720129_500.jpg",
+      "final_price": 20700,
+      "original_price": 23000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/040_6193106_500.jpg"
+    },
+    {
+      "rank": 41,
+      "product_id": "6195499",
+      "product_name": "코튼 팬츠 L",
+      "brand_name": "커버낫",
+      "brand_id": "covernat",
+      "product_url": "https://www.musinsa.com/products/6195499",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260325/6195499/6195499_17744257070355_500.jpg",
+      "final_price": 31500,
+      "original_price": 35000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/041_6195499_500.jpg"
+    },
+    {
+      "rank": 42,
+      "product_id": "6060298",
+      "product_name": "기타 점퍼/재킷 100",
+      "brand_name": "시스템",
+      "brand_id": "system_used",
+      "product_url": "https://www.musinsa.com/products/6060298",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260226/6060298/6060298_17720866396810_500.jpg",
+      "final_price": 96000,
+      "original_price": 120000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/042_6060298_500.jpg"
+    },
+    {
+      "rank": 43,
+      "product_id": "6190131",
+      "product_name": "카디건 95",
+      "brand_name": "테이트",
+      "brand_id": "tate",
+      "product_url": "https://www.musinsa.com/products/6190131",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260325/6190131/6190131_17744000889152_500.jpg",
+      "final_price": 15300,
+      "original_price": 17000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/043_6190131_500.jpg"
+    },
+    {
+      "rank": 44,
+      "product_id": "6203807",
+      "product_name": "트레이닝 재킷 S",
+      "brand_name": "아디다스",
+      "brand_id": "adidas",
+      "product_url": "https://www.musinsa.com/products/6203807",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260326/6203807/6203807_17745121731446_500.jpg",
+      "final_price": 45000,
+      "original_price": 50000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/044_6203807_500.jpg"
+    },
+    {
+      "rank": 45,
+      "product_id": "6196735",
+      "product_name": "맨투맨/스웨트셔츠 S",
+      "brand_name": "인사일런스",
+      "brand_id": "insilence",
+      "product_url": "https://www.musinsa.com/products/6196735",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260325/6196735/6196735_17744347523180_500.jpg",
+      "final_price": 28800,
+      "original_price": 32000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/045_6196735_500.jpg"
+    },
+    {
+      "rank": 46,
+      "product_id": "6061995",
+      "product_name": "항공 점퍼/블루종/MA-1",
+      "brand_name": "쿠어",
+      "brand_id": "coor",
+      "product_url": "https://www.musinsa.com/products/6061995",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260226/6061995/6061995_17720945000403_500.jpg",
+      "final_price": 236000,
+      "original_price": 295000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/046_6061995_500.jpg"
+    },
+    {
+      "rank": 47,
+      "product_id": "5848368",
+      "product_name": "긴소매 티셔츠",
+      "brand_name": "칙스",
+      "brand_id": "chicks",
+      "product_url": "https://www.musinsa.com/products/5848368",
+      "image_url": "https://image.msscdn.net/images/goods_img/20251223/5848368/5848368_17767609411377_500.jpg",
+      "final_price": 30000,
+      "original_price": 30000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/047_5848368_500.jpg"
+    },
+    {
+      "rank": 48,
+      "product_id": "5892636",
+      "product_name": "스트레이트 데님 팬츠 [블랙] 29",
+      "brand_name": "무신사 스탠다드",
+      "brand_id": "musinsastandard",
+      "product_url": "https://www.musinsa.com/products/5892636",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260114/5892636/5892636_17687980043541_500.jpg",
+      "final_price": 11650,
+      "original_price": 49900,
+      "discount_ratio": 77,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/048_5892636_500.jpg"
+    },
+    {
+      "rank": 49,
+      "product_id": "6228477",
+      "product_name": "기타 점퍼/재킷 S",
+      "brand_name": "자라",
+      "brand_id": "zara_used",
+      "product_url": "https://www.musinsa.com/products/6228477",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260331/6228477/6228477_17749405080026_500.jpg",
+      "final_price": 36450,
+      "original_price": 40500,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/049_6228477_500.jpg"
+    },
+    {
+      "rank": 50,
+      "product_id": "6136589",
+      "product_name": "반소매 티셔츠 XL",
+      "brand_name": "아크테릭스",
+      "brand_id": "arcteryx",
+      "product_url": "https://www.musinsa.com/products/6136589",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260316/6136589/6136589_17736315989587_500.jpg",
+      "final_price": 88000,
+      "original_price": 110000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/050_6136589_500.jpg"
+    },
+    {
+      "rank": 51,
+      "product_id": "6143745",
+      "product_name": "베스트 FREE",
+      "brand_name": "비키",
+      "brand_id": "viki",
+      "product_url": "https://www.musinsa.com/products/6143745",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260317/6143745/6143745_17737166015482_500.jpg",
+      "final_price": 30600,
+      "original_price": 34000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/051_6143745_500.jpg"
+    },
+    {
+      "rank": 52,
+      "product_id": "6193828",
+      "product_name": "기타 점퍼/재킷 M",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6193828",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260325/6193828/6193828_17744192989891_500.jpg",
+      "final_price": 36360,
+      "original_price": 40400,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/052_6193828_500.jpg"
+    },
+    {
+      "rank": 53,
+      "product_id": "5953038",
+      "product_name": "긴소매 티셔츠 FREE",
+      "brand_name": "제이제이 지고트",
+      "brand_id": "jjjigott",
+      "product_url": "https://www.musinsa.com/products/5953038",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260129/5953038/5953038_17696511189567_500.jpg",
+      "final_price": 10200,
+      "original_price": 17000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/053_5953038_500.jpg"
+    },
+    {
+      "rank": 54,
+      "product_id": "6087477",
+      "product_name": "미디스커트 40",
+      "brand_name": "메종 마르지엘라",
+      "brand_id": "maisonmargiela",
+      "product_url": "https://www.musinsa.com/products/6087477",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260305/6087477/6087477_17726967657396_500.jpg",
+      "final_price": 424000,
+      "original_price": 530000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/054_6087477_500.jpg"
+    },
+    {
+      "rank": 55,
+      "product_id": "6197284",
+      "product_name": "데님/트러커 재킷 L",
+      "brand_name": "위캔더스",
+      "brand_id": "wkndrs",
+      "product_url": "https://www.musinsa.com/products/6197284",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260325/6197284/6197284_17744394603355_500.jpg",
+      "final_price": 40500,
+      "original_price": 45000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/055_6197284_500.jpg"
+    },
+    {
+      "rank": 56,
+      "product_id": "6214670",
+      "product_name": "트레이닝 팬츠 S",
+      "brand_name": "아디다스",
+      "brand_id": "adidas",
+      "product_url": "https://www.musinsa.com/products/6214670",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260327/6214670/6214670_17746121980574_500.jpg",
+      "final_price": 22500,
+      "original_price": 25000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/056_6214670_500.jpg"
+    },
+    {
+      "rank": 57,
+      "product_id": "6148264",
+      "product_name": "반소매 티셔츠 L",
+      "brand_name": "비비안 웨스트우드",
+      "brand_id": "viviennewestwood",
+      "product_url": "https://www.musinsa.com/products/6148264",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260317/6148264/6148264_17737362887274_500.jpg",
+      "final_price": 89100,
+      "original_price": 99000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/057_6148264_500.jpg"
+    },
+    {
+      "rank": 58,
+      "product_id": "6285733",
+      "product_name": "미니 원피스 2",
+      "brand_name": "이자벨마랑 x 에이치엔엠",
+      "brand_id": "isabelmarantxhm",
+      "product_url": "https://www.musinsa.com/products/6285733",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260409/6285733/6285733_17757222239051_500.jpg",
+      "final_price": 20700,
+      "original_price": 23000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/058_6285733_500.jpg"
+    },
+    {
+      "rank": 59,
+      "product_id": "6287971",
+      "product_name": "기타 상의 32",
+      "brand_name": "앤아더스토리즈",
+      "brand_id": "otherstories",
+      "product_url": "https://www.musinsa.com/products/6287971",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260410/6287971/6287971_17757816212685_500.jpg",
+      "final_price": 39900,
+      "original_price": 39900,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/059_6287971_500.jpg"
+    },
+    {
+      "rank": 60,
+      "product_id": "6224744",
+      "product_name": "집 앤드 버튼 블루종 점퍼 (다크그레이시그린) M",
+      "brand_name": "쿠어",
+      "brand_id": "coor",
+      "product_url": "https://www.musinsa.com/products/6224744",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260331/6224744/6224744_17749209071427_500.jpg",
+      "final_price": 55800,
+      "original_price": 220000,
+      "discount_ratio": 75,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/060_6224744_500.jpg"
+    },
+    {
+      "rank": 61,
+      "product_id": "5981210",
+      "product_name": "파이어버드 트랙탑 - 블랙 / IL8764 S",
+      "brand_name": "아디다스",
+      "brand_id": "adidas",
+      "product_url": "https://www.musinsa.com/products/5981210",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260204/5981210/5981210_17701884190899_500.jpg",
+      "final_price": 59400,
+      "original_price": 99000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/061_5981210_500.jpg"
+    },
+    {
+      "rank": 62,
+      "product_id": "5829259",
+      "product_name": "롱스커트 M",
+      "brand_name": "아워코모스",
+      "brand_id": "ourcomos",
+      "product_url": "https://www.musinsa.com/products/5829259",
+      "image_url": "https://image.msscdn.net/images/goods_img/20251215/5829259/5829259_17657771409464_500.jpg",
+      "final_price": 30000,
+      "original_price": 60000,
+      "discount_ratio": 50,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/062_5829259_500.jpg"
+    },
+    {
+      "rank": 63,
+      "product_id": "6054113",
+      "product_name": "항공 점퍼/블루종/MA-1 M",
+      "brand_name": "032씨",
+      "brand_id": "032c",
+      "product_url": "https://www.musinsa.com/products/6054113",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260225/6054113/6054113_17719983365845_500.jpg",
+      "final_price": 368000,
+      "original_price": 460000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/063_6054113_500.jpg"
+    },
+    {
+      "rank": 64,
+      "product_id": "6170322",
+      "product_name": "캐주얼 셔츠 XL",
+      "brand_name": "휴먼메이드",
+      "brand_id": "humanmade_used",
+      "product_url": "https://www.musinsa.com/products/6170322",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260320/6170322/6170322_17739926256596_500.jpg",
+      "final_price": 158000,
+      "original_price": 158000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/064_6170322_500.jpg"
+    },
+    {
+      "rank": 65,
+      "product_id": "6225962",
+      "product_name": "슈트 팬츠/슬랙스 32",
+      "brand_name": "무신사 스탠다드",
+      "brand_id": "musinsastandard",
+      "product_url": "https://www.musinsa.com/products/6225962",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260331/6225962/6225962_17749265511109_500.jpg",
+      "final_price": 17100,
+      "original_price": 19000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/065_6225962_500.jpg"
+    },
+    {
+      "rank": 66,
+      "product_id": "5925140",
+      "product_name": "VSW Check Denim Pants Indigo Blue L",
+      "brand_name": "비전스트릿웨어",
+      "brand_id": "visionstreetwear",
+      "product_url": "https://www.musinsa.com/products/5925140",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260122/5925140/5925140_17690513470179_500.jpg",
+      "final_price": 13740,
+      "original_price": 109000,
+      "discount_ratio": 87,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/066_5925140_500.jpg"
+    },
+    {
+      "rank": 67,
+      "product_id": "6310711",
+      "product_name": "기타 바지 M",
+      "brand_name": "에이지오디",
+      "brand_id": "againstallodds",
+      "product_url": "https://www.musinsa.com/products/6310711",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6310711/6310711_17761737874026_500.jpg",
+      "final_price": 20000,
+      "original_price": 20000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/067_6310711_500.jpg"
+    },
+    {
+      "rank": 68,
+      "product_id": "6314362",
+      "product_name": "겨울 기타 코트",
+      "brand_name": "썸플레이스",
+      "brand_id": "someplace",
+      "product_url": "https://www.musinsa.com/products/6314362",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260415/6314362/6314362_17762308960760_500.jpg",
+      "final_price": 34000,
+      "original_price": 34000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/068_6314362_500.jpg"
+    },
+    {
+      "rank": 69,
+      "product_id": "6310685",
+      "product_name": "슈트 팬츠/슬랙스 M",
+      "brand_name": "어반드레스",
+      "brand_id": "avan",
+      "product_url": "https://www.musinsa.com/products/6310685",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6310685/6310685_17761733924866_500.jpg",
+      "final_price": 19000,
+      "original_price": 19000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/069_6310685_500.jpg"
+    },
+    {
+      "rank": 70,
+      "product_id": "6253119",
+      "product_name": "기타 상의 FREE",
+      "brand_name": "골라",
+      "brand_id": "gola",
+      "product_url": "https://www.musinsa.com/products/6253119",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260403/6253119/6253119_17751952214326_500.jpg",
+      "final_price": 17100,
+      "original_price": 19000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/070_6253119_500.jpg"
+    },
+    {
+      "rank": 71,
+      "product_id": "6112579",
+      "product_name": "후드 티셔츠 S M",
+      "brand_name": "자라 x 아더에러",
+      "brand_id": "zaraxadererror",
+      "product_url": "https://www.musinsa.com/products/6112579",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260311/6112579/6112579_17731958437531_500.jpg",
+      "final_price": 79000,
+      "original_price": 79000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/071_6112579_500.jpg"
+    },
+    {
+      "rank": 72,
+      "product_id": "6307165",
+      "product_name": "후드 티셔츠 XL",
+      "brand_name": "무신사 스탠다드",
+      "brand_id": "musinsastandard",
+      "product_url": "https://www.musinsa.com/products/6307165",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6307165/6307165_17763899767206_500.jpg",
+      "final_price": 15000,
+      "original_price": 15000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/072_6307165_500.jpg"
+    },
+    {
+      "rank": 73,
+      "product_id": "5974903",
+      "product_name": "SPEED RACING JACKET IN BLACK S",
+      "brand_name": "마뗑킴",
+      "brand_id": "matinkim",
+      "product_url": "https://www.musinsa.com/products/5974903",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260203/5974903/5974903_17703604514470_500.jpg",
+      "final_price": 59220,
+      "original_price": 238000,
+      "discount_ratio": 75,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/073_5974903_500.jpg"
+    },
+    {
+      "rank": 74,
+      "product_id": "6266845",
+      "product_name": "반소매 티셔츠 XL",
+      "brand_name": "슈프림",
+      "brand_id": "supreme",
+      "product_url": "https://www.musinsa.com/products/6266845",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260407/6266845/6266845_17755286726697_500.jpg",
+      "final_price": 89100,
+      "original_price": 99000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/074_6266845_500.jpg"
+    },
+    {
+      "rank": 75,
+      "product_id": "6208966",
+      "product_name": "바네사 오프숄더 플레어 원피스 [RED] FREE",
+      "brand_name": "제로플래닛",
+      "brand_id": "zeroplanet",
+      "product_url": "https://www.musinsa.com/products/6208966",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260327/6208966/6208966_17745782211100_500.jpg",
+      "final_price": 17100,
+      "original_price": 83000,
+      "discount_ratio": 79,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/075_6208966_500.jpg"
+    },
+    {
+      "rank": 76,
+      "product_id": "6255032",
+      "product_name": "반소매 티셔츠 S",
+      "brand_name": "스투시",
+      "brand_id": "stussy",
+      "product_url": "https://www.musinsa.com/products/6255032",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260403/6255032/6255032_17752040240294_500.jpg",
+      "final_price": 52650,
+      "original_price": 58500,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/076_6255032_500.jpg"
+    },
+    {
+      "rank": 77,
+      "product_id": "5974770",
+      "product_name": "반소매 티셔츠 L",
+      "brand_name": "비비안 웨스트우드",
+      "brand_id": "viviennewestwood",
+      "product_url": "https://www.musinsa.com/products/5974770",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260203/5974770/5974770_17701003007745_500.jpg",
+      "final_price": 71700,
+      "original_price": 119500,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/077_5974770_500.jpg"
+    },
+    {
+      "rank": 78,
+      "product_id": "6281675",
+      "product_name": "반소매 티셔츠 XXL",
+      "brand_name": "휴먼메이드",
+      "brand_id": "humanmade_used",
+      "product_url": "https://www.musinsa.com/products/6281675",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260409/6281675/6281675_17756979835259_500.jpg",
+      "final_price": 190000,
+      "original_price": 190000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/078_6281675_500.jpg"
+    },
+    {
+      "rank": 79,
+      "product_id": "6118485",
+      "product_name": "LC BACK POCKET NYLON JACKET_WHITE_LC242_JP01WH S",
+      "brand_name": "로우클래식",
+      "brand_id": "lowclassic",
+      "product_url": "https://www.musinsa.com/products/6118485",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260311/6118485/6118485_17732224981258_500.jpg",
+      "final_price": 63200,
+      "original_price": 238000,
+      "discount_ratio": 73,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/079_6118485_500.jpg"
+    },
+    {
+      "rank": 80,
+      "product_id": "6115307",
+      "product_name": "반소매 티셔츠 S",
+      "brand_name": "베이프",
+      "brand_id": "bape",
+      "product_url": "https://www.musinsa.com/products/6115307",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260311/6115307/6115307_17732082800797_500.jpg",
+      "final_price": 68000,
+      "original_price": 85000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/080_6115307_500.jpg"
+    },
+    {
+      "rank": 81,
+      "product_id": "5893609",
+      "product_name": "기모 후디드 스웨트셔츠 [미디엄 그레이] L",
+      "brand_name": "무신사 스탠다드",
+      "brand_id": "musinsastandard",
+      "product_url": "https://www.musinsa.com/products/5893609",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260114/5893609/5893609_17688026835552_500.jpg",
+      "final_price": 9000,
+      "original_price": 42900,
+      "discount_ratio": 79,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/081_5893609_500.jpg"
+    },
+    {
+      "rank": 82,
+      "product_id": "6307110",
+      "product_name": "겨울 싱글 코트 100",
+      "brand_name": "마인드브릿지",
+      "brand_id": "mindbridge",
+      "product_url": "https://www.musinsa.com/products/6307110",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6307110/6307110_17761457284166_500.jpg",
+      "final_price": 36000,
+      "original_price": 36000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/082_6307110_500.jpg"
+    },
+    {
+      "rank": 83,
+      "product_id": "6173901",
+      "product_name": "더플 패딩_올리브 M",
+      "brand_name": "코드그라피",
+      "brand_id": "codegraphy",
+      "product_url": "https://www.musinsa.com/products/6173901",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260323/6173901/6173901_17742323944248_500.jpg",
+      "final_price": 22500,
+      "original_price": 169000,
+      "discount_ratio": 87,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/083_6173901_500.jpg"
+    },
+    {
+      "rank": 84,
+      "product_id": "6213681",
+      "product_name": "미디 원피스 FREE",
+      "brand_name": "아틀리에 나인",
+      "brand_id": "nain",
+      "product_url": "https://www.musinsa.com/products/6213681",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260327/6213681/6213681_17746008860229_500.jpg",
+      "final_price": 22500,
+      "original_price": 25000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/084_6213681_500.jpg"
+    },
+    {
+      "rank": 85,
+      "product_id": "5954186",
+      "product_name": "SEMI BOOTS CUT DAMAGE DENIM PANTS IN LIGHT BLUE S",
+      "brand_name": "마뗑킴",
+      "brand_id": "matinkim",
+      "product_url": "https://www.musinsa.com/products/5954186",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260129/5954186/5954186_17696616580396_500.jpg",
+      "final_price": 44280,
+      "original_price": 178000,
+      "discount_ratio": 75,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/085_5954186_500.jpg"
+    },
+    {
+      "rank": 86,
+      "product_id": "5888603",
+      "product_name": "반소매 티셔츠 M",
+      "brand_name": "던스트",
+      "brand_id": "dunstforwomen",
+      "product_url": "https://www.musinsa.com/products/5888603",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260113/5888603/5888603_17682728388818_500.jpg",
+      "final_price": 25000,
+      "original_price": 50000,
+      "discount_ratio": 50,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/086_5888603_500.jpg"
+    },
+    {
+      "rank": 87,
+      "product_id": "6223609",
+      "product_name": "후드 집업 S",
+      "brand_name": "칼하트",
+      "brand_id": "carhartt",
+      "product_url": "https://www.musinsa.com/products/6223609",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260331/6223609/6223609_17748860278452_500.jpg",
+      "final_price": 49500,
+      "original_price": 55000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/087_6223609_500.jpg"
+    },
+    {
+      "rank": 88,
+      "product_id": "6304852",
+      "product_name": "니트/스웨터 S",
+      "brand_name": "에이치앤엠",
+      "brand_id": "hm_used",
+      "product_url": "https://www.musinsa.com/products/6304852",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6304852/6304852_17761313276262_500.jpg",
+      "final_price": 10000,
+      "original_price": 10000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/088_6304852_500.jpg"
+    },
+    {
+      "rank": 89,
+      "product_id": "6272784",
+      "product_name": "피케/카라 티셔츠 M",
+      "brand_name": "슈프림",
+      "brand_id": "supreme",
+      "product_url": "https://www.musinsa.com/products/6272784",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260407/6272784/6272784_17755621634756_500.jpg",
+      "final_price": 108000,
+      "original_price": 120000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/089_6272784_500.jpg"
+    },
+    {
+      "rank": 90,
+      "product_id": "6097121",
+      "product_name": "COTTON LAYERED BANDING WIDE PANTS BLACK FREE",
+      "brand_name": "유희",
+      "brand_id": "youhee",
+      "product_url": "https://www.musinsa.com/products/6097121",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260309/6097121/6097121_17730185932602_500.jpg",
+      "final_price": 60160,
+      "original_price": 129000,
+      "discount_ratio": 53,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/090_6097121_500.jpg"
+    },
+    {
+      "rank": 91,
+      "product_id": "5907415",
+      "product_name": "반소매 티셔츠 S",
+      "brand_name": "오클리",
+      "brand_id": "oakley",
+      "product_url": "https://www.musinsa.com/products/5907415",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260119/5907415/5907415_17687894469592_500.jpg",
+      "final_price": 37000,
+      "original_price": 37000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/091_5907415_500.jpg"
+    },
+    {
+      "rank": 92,
+      "product_id": "6131852",
+      "product_name": "반소매 티셔츠 FREE",
+      "brand_name": "론론",
+      "brand_id": "ronron",
+      "product_url": "https://www.musinsa.com/products/6131852",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260313/6131852/6131852_17733863232348_500.jpg",
+      "final_price": 31200,
+      "original_price": 39000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/092_6131852_500.jpg"
+    },
+    {
+      "rank": 93,
+      "product_id": "6325157",
+      "product_name": "반소매 티셔츠 M",
+      "brand_name": "자바나스",
+      "brand_id": "zavanas",
+      "product_url": "https://www.musinsa.com/products/6325157",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260416/6325157/6325157_17763276085014_500.jpg",
+      "final_price": 12000,
+      "original_price": 12000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/093_6325157_500.jpg"
+    },
+    {
+      "rank": 94,
+      "product_id": "6210678",
+      "product_name": "기타 상의 ONE SIZE",
+      "brand_name": "유즈",
+      "brand_id": "yuse",
+      "product_url": "https://www.musinsa.com/products/6210678",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260327/6210678/6210678_17745880869015_500.jpg",
+      "final_price": 13500,
+      "original_price": 15000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/094_6210678_500.jpg"
+    },
+    {
+      "rank": 95,
+      "product_id": "6299804",
+      "product_name": "반소매 티셔츠 S",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6299804",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260413/6299804/6299804_17760597479363_500.jpg",
+      "final_price": 15000,
+      "original_price": 15000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/095_6299804_500.jpg"
+    },
+    {
+      "rank": 96,
+      "product_id": "6118811",
+      "product_name": "반소매 티셔츠 L",
+      "brand_name": "아이앱 스튜디오",
+      "brand_id": "iabstudio",
+      "product_url": "https://www.musinsa.com/products/6118811",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260311/6118811/6118811_17732252095767_500.jpg",
+      "final_price": 104000,
+      "original_price": 130000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/096_6118811_500.jpg"
+    },
+    {
+      "rank": 97,
+      "product_id": "6084729",
+      "product_name": "트레이닝 재킷 S",
+      "brand_name": "아디다스",
+      "brand_id": "adidas",
+      "product_url": "https://www.musinsa.com/products/6084729",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260305/6084729/6084729_17726865409031_500.jpg",
+      "final_price": 36000,
+      "original_price": 36000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/097_6084729_500.jpg"
+    },
+    {
+      "rank": 98,
+      "product_id": "5915656",
+      "product_name": "SHEER WINDBREAKER [GREY] OS",
+      "brand_name": "로우타이드",
+      "brand_id": "lowtide",
+      "product_url": "https://www.musinsa.com/products/5915656",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260120/5915656/5915656_17688955155428_500.jpg",
+      "final_price": 48480,
+      "original_price": 198000,
+      "discount_ratio": 76,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/098_5915656_500.jpg"
+    },
+    {
+      "rank": 99,
+      "product_id": "6253184",
+      "product_name": "캐주얼 셔츠 4",
+      "brand_name": "포터리",
+      "brand_id": "pottery",
+      "product_url": "https://www.musinsa.com/products/6253184",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260403/6253184/6253184_17751953497408_500.jpg",
+      "final_price": 75150,
+      "original_price": 83500,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/099_6253184_500.jpg"
+    },
+    {
+      "rank": 100,
+      "product_id": "5947667",
+      "product_name": "레귤러 핏 데님 팬츠 [라이트 인디고] 29",
+      "brand_name": "무신사 스탠다드",
+      "brand_id": "musinsastandard",
+      "product_url": "https://www.musinsa.com/products/5947667",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260128/5947667/5947667_17695705040021_500.jpg",
+      "final_price": 13980,
+      "original_price": 49900,
+      "discount_ratio": 72,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/100_5947667_500.jpg"
+    },
+    {
+      "rank": 101,
+      "product_id": "6297835",
+      "product_name": "반소매 티셔츠 48",
+      "brand_name": "제너럴 아이디어",
+      "brand_id": "generalidea",
+      "product_url": "https://www.musinsa.com/products/6297835",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260413/6297835/6297835_17760481616615_500.jpg",
+      "final_price": 13000,
+      "original_price": 13000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "S등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/101_6297835_500.jpg"
+    },
+    {
+      "rank": 102,
+      "product_id": "6224009",
+      "product_name": "울 더플 코트 차콜 WS",
+      "brand_name": "커버낫",
+      "brand_id": "covernat",
+      "product_url": "https://www.musinsa.com/products/6224009",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260331/6224009/6224009_17749167996045_500.jpg",
+      "final_price": 19110,
+      "original_price": 299000,
+      "discount_ratio": 94,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/102_6224009_500.jpg"
+    },
+    {
+      "rank": 103,
+      "product_id": "6258411",
+      "product_name": "캐주얼 셔츠 XL",
+      "brand_name": "유니클로 x JW 앤더슨",
+      "brand_id": "uniqloxjwanderson",
+      "product_url": "https://www.musinsa.com/products/6258411",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260406/6258411/6258411_17754424798515_500.jpg",
+      "final_price": 18000,
+      "original_price": 20000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/103_6258411_500.jpg"
+    },
+    {
+      "rank": 104,
+      "product_id": "6251251",
+      "product_name": "조거 팬츠 S",
+      "brand_name": "필루미네이트",
+      "brand_id": "filluminate",
+      "product_url": "https://www.musinsa.com/products/6251251",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260403/6251251/6251251_17751840178607_500.jpg",
+      "final_price": 17100,
+      "original_price": 19000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/104_6251251_500.jpg"
+    },
+    {
+      "rank": 105,
+      "product_id": "6078927",
+      "product_name": "긴소매 티셔츠 XXL",
+      "brand_name": "휴먼메이드",
+      "brand_id": "humanmade_used",
+      "product_url": "https://www.musinsa.com/products/6078927",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260304/6078927/6078927_17726038955792_500.jpg",
+      "final_price": 115200,
+      "original_price": 144000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/105_6078927_500.jpg"
+    },
+    {
+      "rank": 106,
+      "product_id": "6152151",
+      "product_name": "반소매 티셔츠 L",
+      "brand_name": "아웃스탠딩",
+      "brand_id": "outstanding",
+      "product_url": "https://www.musinsa.com/products/6152151",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260318/6152151/6152151_17738035150281_500.jpg",
+      "final_price": 13600,
+      "original_price": 17000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/106_6152151_500.jpg"
+    },
+    {
+      "rank": 107,
+      "product_id": "6178351",
+      "product_name": "캐주얼 셔츠 M",
+      "brand_name": "꼼데가르송 플레이",
+      "brand_id": "commedesgarconsplay",
+      "product_url": "https://www.musinsa.com/products/6178351",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260323/6178351/6178351_17742544486861_500.jpg",
+      "final_price": 138000,
+      "original_price": 138000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/107_6178351_500.jpg"
+    },
+    {
+      "rank": 108,
+      "product_id": "5909868",
+      "product_name": "3S 긴팔 티 - 블랙 / IA4877 L",
+      "brand_name": "아디다스",
+      "brand_id": "adidas",
+      "product_url": "https://www.musinsa.com/products/5909868",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260119/5909868/5909868_17688059753935_500.jpg",
+      "final_price": 39000,
+      "original_price": 65000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/108_5909868_500.jpg"
+    },
+    {
+      "rank": 109,
+      "product_id": "5943416",
+      "product_name": "반소매 티셔츠 M",
+      "brand_name": "아디다스",
+      "brand_id": "adidas",
+      "product_url": "https://www.musinsa.com/products/5943416",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260127/5943416/5943416_17694985068100_500.jpg",
+      "final_price": 31800,
+      "original_price": 53000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/109_5943416_500.jpg"
+    },
+    {
+      "rank": 110,
+      "product_id": "6305580",
+      "product_name": "슈트 팬츠/슬랙스 S",
+      "brand_name": "시그니처9",
+      "brand_id": "signature9",
+      "product_url": "https://www.musinsa.com/products/6305580",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6305580/6305580_17761348568214_500.jpg",
+      "final_price": 19000,
+      "original_price": 19000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/110_6305580_500.jpg"
+    },
+    {
+      "rank": 111,
+      "product_id": "5974211",
+      "product_name": "트레이닝 재킷 90",
+      "brand_name": "아디다스",
+      "brand_id": "adidas",
+      "product_url": "https://www.musinsa.com/products/5974211",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260203/5974211/5974211_17703439796200_500.jpg",
+      "final_price": 23400,
+      "original_price": 39000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/111_5974211_500.jpg"
+    },
+    {
+      "rank": 112,
+      "product_id": "5895440",
+      "product_name": "청/데님 팬츠 L",
+      "brand_name": "트래블",
+      "brand_id": "travel",
+      "product_url": "https://www.musinsa.com/products/5895440",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260114/5895440/5895440_17683789405441_500.jpg",
+      "final_price": 15000,
+      "original_price": 30000,
+      "discount_ratio": 50,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/112_5895440_500.jpg"
+    },
+    {
+      "rank": 113,
+      "product_id": "6168056",
+      "product_name": "남성 T 저스트 G1 반소매 티셔츠 - 다크 그레이 / A085320CJAA900 S",
+      "brand_name": "디젤",
+      "brand_id": "diesel",
+      "product_url": "https://www.musinsa.com/products/6168056",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260320/6168056/6168056_17739829572565_500.jpg",
+      "final_price": 81000,
+      "original_price": 180000,
+      "discount_ratio": 55,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/113_6168056_500.jpg"
+    },
+    {
+      "rank": 114,
+      "product_id": "5985621",
+      "product_name": "청/데님 팬츠 48",
+      "brand_name": "헤더헬렌",
+      "brand_id": "hederhelen",
+      "product_url": "https://www.musinsa.com/products/5985621",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260205/5985621/5985621_17702695777704_500.jpg",
+      "final_price": 20400,
+      "original_price": 34000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/114_5985621_500.jpg"
+    },
+    {
+      "rank": 115,
+      "product_id": "6304552",
+      "product_name": "니트/스웨터 L",
+      "brand_name": "트릴리온",
+      "brand_id": "trillion",
+      "product_url": "https://www.musinsa.com/products/6304552",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6304552/6304552_17761298388731_500.jpg",
+      "final_price": 19000,
+      "original_price": 19000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/115_6304552_500.jpg"
+    },
+    {
+      "rank": 116,
+      "product_id": "5985451",
+      "product_name": "캐주얼 셔츠 L",
+      "brand_name": "컬럼비아",
+      "brand_id": "columbia",
+      "product_url": "https://www.musinsa.com/products/5985451",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260205/5985451/5985451_17702686893129_500.jpg",
+      "final_price": 17100,
+      "original_price": 28500,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/116_5985451_500.jpg"
+    },
+    {
+      "rank": 117,
+      "product_id": "6304734",
+      "product_name": "캐주얼 셔츠 L",
+      "brand_name": "무신사 스탠다드",
+      "brand_id": "musinsastandard",
+      "product_url": "https://www.musinsa.com/products/6304734",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6304734/6304734_17761307274406_500.jpg",
+      "final_price": 15000,
+      "original_price": 15000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/117_6304734_500.jpg"
+    },
+    {
+      "rank": 118,
+      "product_id": "5985539",
+      "product_name": "조거 팬츠 M",
+      "brand_name": "아디다스",
+      "brand_id": "adidas",
+      "product_url": "https://www.musinsa.com/products/5985539",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260205/5985539/5985539_17706042236595_500.jpg",
+      "final_price": 27000,
+      "original_price": 45000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "S등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/118_5985539_500.jpg"
+    },
+    {
+      "rank": 119,
+      "product_id": "6171857",
+      "product_name": "캐주얼 셔츠 M",
+      "brand_name": "꼼데가르송 플레이",
+      "brand_id": "commedesgarconsplay",
+      "product_url": "https://www.musinsa.com/products/6171857",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260320/6171857/6171857_17740105347785_500.jpg",
+      "final_price": 138000,
+      "original_price": 138000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/119_6171857_500.jpg"
+    },
+    {
+      "rank": 120,
+      "product_id": "6252329",
+      "product_name": "반소매 티셔츠",
+      "brand_name": "노컨텐츠",
+      "brand_id": "nocontent",
+      "product_url": "https://www.musinsa.com/products/6252329",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260403/6252329/6252329_17751917029295_500.jpg",
+      "final_price": 27000,
+      "original_price": 30000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/120_6252329_500.jpg"
+    },
+    {
+      "rank": 121,
+      "product_id": "5908367",
+      "product_name": "스트레이트 데님 팬츠 [라이트 인디고] 40",
+      "brand_name": "무신사 스탠다드",
+      "brand_id": "musinsastandard",
+      "product_url": "https://www.musinsa.com/products/5908367",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260119/5908367/5908367_17690646276600_500.jpg",
+      "final_price": 13980,
+      "original_price": 49900,
+      "discount_ratio": 72,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/121_5908367_500.jpg"
+    },
+    {
+      "rank": 122,
+      "product_id": "5983810",
+      "product_name": "조거 팬츠 1",
+      "brand_name": "와이이이엘",
+      "brand_id": "leey",
+      "product_url": "https://www.musinsa.com/products/5983810",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260205/5983810/5983810_17706055108846_500.jpg",
+      "final_price": 48000,
+      "original_price": 80000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/122_5983810_500.jpg"
+    },
+    {
+      "rank": 123,
+      "product_id": "6306553",
+      "product_name": "청/데님 팬츠 50",
+      "brand_name": "메종미네드",
+      "brand_id": "maisonmined",
+      "product_url": "https://www.musinsa.com/products/6306553",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6306553/6306553_17761424758501_500.jpg",
+      "final_price": 35000,
+      "original_price": 35000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/123_6306553_500.jpg"
+    },
+    {
+      "rank": 124,
+      "product_id": "5985739",
+      "product_name": "숏팬츠 S",
+      "brand_name": "미나브",
+      "brand_id": "minav",
+      "product_url": "https://www.musinsa.com/products/5985739",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260205/5985739/5985739_17702703289225_500.jpg",
+      "final_price": 10200,
+      "original_price": 17000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/124_5985739_500.jpg"
+    },
+    {
+      "rank": 125,
+      "product_id": "5985129",
+      "product_name": "청/데님 팬츠 76/92",
+      "brand_name": "리바이스",
+      "brand_id": "levis",
+      "product_url": "https://www.musinsa.com/products/5985129",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260205/5985129/5985129_17702667686494_500.jpg",
+      "final_price": 48000,
+      "original_price": 80000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "S등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/125_5985129_500.jpg"
+    },
+    {
+      "rank": 126,
+      "product_id": "5981928",
+      "product_name": "트레이닝 재킷 L",
+      "brand_name": "엔디와이",
+      "brand_id": "nerdy",
+      "product_url": "https://www.musinsa.com/products/5981928",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260204/5981928/5981928_17701918813145_500.jpg",
+      "final_price": 22200,
+      "original_price": 37000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/126_5981928_500.jpg"
+    },
+    {
+      "rank": 127,
+      "product_id": "6253445",
+      "product_name": "베스트 XL",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6253445",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260403/6253445/6253445_17751968567324_500.jpg",
+      "final_price": 18000,
+      "original_price": 20000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/127_6253445_500.jpg"
+    },
+    {
+      "rank": 128,
+      "product_id": "5983920",
+      "product_name": "청/데님 팬츠 M",
+      "brand_name": "알에스씨",
+      "brand_id": "rsc",
+      "product_url": "https://www.musinsa.com/products/5983920",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260205/5983920/5983920_17702555034351_500.jpg",
+      "final_price": 14400,
+      "original_price": 24000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/128_5983920_500.jpg"
+    },
+    {
+      "rank": 129,
+      "product_id": "6128180",
+      "product_name": "반소매 티셔츠 S",
+      "brand_name": "베이프",
+      "brand_id": "bape",
+      "product_url": "https://www.musinsa.com/products/6128180",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260313/6128180/6128180_17733691143663_500.jpg",
+      "final_price": 64000,
+      "original_price": 80000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/129_6128180_500.jpg"
+    },
+    {
+      "rank": 130,
+      "product_id": "6033385",
+      "product_name": "윈드브레이커 - 블랙 / HR3322 M",
+      "brand_name": "아디다스",
+      "brand_id": "adidas",
+      "product_url": "https://www.musinsa.com/products/6033385",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260220/6033385/6033385_17715506843517_500.jpg",
+      "final_price": 45430,
+      "original_price": 139000,
+      "discount_ratio": 67,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/130_6033385_500.jpg"
+    },
+    {
+      "rank": 131,
+      "product_id": "5898235",
+      "product_name": "캐주얼 셔츠 S",
+      "brand_name": "아웃스탠딩",
+      "brand_id": "outstanding",
+      "product_url": "https://www.musinsa.com/products/5898235",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260115/5898235/5898235_17684524863103_500.jpg",
+      "final_price": 20000,
+      "original_price": 40000,
+      "discount_ratio": 50,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/131_5898235_500.jpg"
+    },
+    {
+      "rank": 132,
+      "product_id": "6085393",
+      "product_name": "반소매 티셔츠 L",
+      "brand_name": "스톤아일랜드",
+      "brand_id": "stoneisland",
+      "product_url": "https://www.musinsa.com/products/6085393",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260305/6085393/6085393_17726895089265_500.jpg",
+      "final_price": 87600,
+      "original_price": 109500,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/132_6085393_500.jpg"
+    },
+    {
+      "rank": 133,
+      "product_id": "5946159",
+      "product_name": "(U) 테일러드 플랩 포켓 셔츠 블랙 TAILORED FLAP POCKET SHIRT BLACK XL",
+      "brand_name": "032씨",
+      "brand_id": "032c",
+      "product_url": "https://www.musinsa.com/products/5946159",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260128/5946159/5946159_17695625513142_500.jpg",
+      "final_price": 275400,
+      "original_price": 910000,
+      "discount_ratio": 70,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/133_5946159_500.jpg"
+    },
+    {
+      "rank": 134,
+      "product_id": "5980478",
+      "product_name": "캐주얼 셔츠 M",
+      "brand_name": "위캔더스",
+      "brand_id": "wkndrs",
+      "product_url": "https://www.musinsa.com/products/5980478",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260204/5980478/5980478_17701843812125_500.jpg",
+      "final_price": 12000,
+      "original_price": 20000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/134_5980478_500.jpg"
+    },
+    {
+      "rank": 135,
+      "product_id": "6080743",
+      "product_name": "기타 상의 S",
+      "brand_name": "쓰리타임즈",
+      "brand_id": "threetimes",
+      "product_url": "https://www.musinsa.com/products/6080743",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260304/6080743/6080743_17726122178716_500.jpg",
+      "final_price": 31200,
+      "original_price": 39000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/135_6080743_500.jpg"
+    },
+    {
+      "rank": 136,
+      "product_id": "5975873",
+      "product_name": "캐주얼 셔츠 2",
+      "brand_name": "칸코",
+      "brand_id": "kanco",
+      "product_url": "https://www.musinsa.com/products/5975873",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260203/5975873/5975873_17701053179507_500.jpg",
+      "final_price": 12000,
+      "original_price": 20000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/136_5975873_500.jpg"
+    },
+    {
+      "rank": 137,
+      "product_id": "6191885",
+      "product_name": "반소매 티셔츠 S",
+      "brand_name": "쓰리타임즈",
+      "brand_id": "threetimes",
+      "product_url": "https://www.musinsa.com/products/6191885",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260325/6191885/6191885_17744074796468_500.jpg",
+      "final_price": 44100,
+      "original_price": 49000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/137_6191885_500.jpg"
+    },
+    {
+      "rank": 138,
+      "product_id": "6314334",
+      "product_name": "청/데님 팬츠 XL",
+      "brand_name": "토피",
+      "brand_id": "toffee",
+      "product_url": "https://www.musinsa.com/products/6314334",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260415/6314334/6314334_17762307862454_500.jpg",
+      "final_price": 12000,
+      "original_price": 12000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/138_6314334_500.jpg"
+    },
+    {
+      "rank": 139,
+      "product_id": "6168268",
+      "product_name": "후드 티셔츠 XL",
+      "brand_name": "아이앱 스튜디오",
+      "brand_id": "iabstudio",
+      "product_url": "https://www.musinsa.com/products/6168268",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260320/6168268/6168268_17739838666354_500.jpg",
+      "final_price": 161100,
+      "original_price": 179000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/139_6168268_500.jpg"
+    },
+    {
+      "rank": 140,
+      "product_id": "6310314",
+      "product_name": "청/데님 팬츠 81",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6310314",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6310314/6310314_17761654910178_500.jpg",
+      "final_price": 10000,
+      "original_price": 10000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/140_6310314_500.jpg"
+    },
+    {
+      "rank": 141,
+      "product_id": "6306917",
+      "product_name": "캐주얼 셔츠 M",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6306917",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6306917/6306917_17761447658134_500.jpg",
+      "final_price": 30000,
+      "original_price": 30000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/141_6306917_500.jpg"
+    },
+    {
+      "rank": 142,
+      "product_id": "6283738",
+      "product_name": "반소매 티셔츠 M",
+      "brand_name": "자바나스",
+      "brand_id": "zavanas",
+      "product_url": "https://www.musinsa.com/products/6283738",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260409/6283738/6283738_17757122441505_500.jpg",
+      "final_price": 14000,
+      "original_price": 14000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/142_6283738_500.jpg"
+    },
+    {
+      "rank": 143,
+      "product_id": "6061179",
+      "product_name": "디스트로이드 데님 팬츠 - 블랙 2",
+      "brand_name": "인스턴트펑크",
+      "brand_id": "instantfunk",
+      "product_url": "https://www.musinsa.com/products/6061179",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260226/6061179/6061179_17720907146420_500.jpg",
+      "final_price": 30880,
+      "original_price": 138000,
+      "discount_ratio": 78,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/143_6061179_500.jpg"
+    },
+    {
+      "rank": 144,
+      "product_id": "6298764",
+      "product_name": "코튼 팬츠 88",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6298764",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260413/6298764/6298764_17760551295499_500.jpg",
+      "final_price": 25000,
+      "original_price": 25000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/144_6298764_500.jpg"
+    },
+    {
+      "rank": 145,
+      "product_id": "5880286",
+      "product_name": "블라우스 40",
+      "brand_name": "메종 마르지엘라",
+      "brand_id": "maisonmargiela",
+      "product_url": "https://www.musinsa.com/products/5880286",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260109/5880286/5880286_17679234763812_500.jpg",
+      "final_price": 90000,
+      "original_price": 180000,
+      "discount_ratio": 50,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/145_5880286_500.jpg"
+    },
+    {
+      "rank": 146,
+      "product_id": "6264492",
+      "product_name": "트레이닝 재킷 S",
+      "brand_name": "아디다스",
+      "brand_id": "adidas",
+      "product_url": "https://www.musinsa.com/products/6264492",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260406/6264492/6264492_17754800449457_500.jpg",
+      "final_price": 28800,
+      "original_price": 32000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/146_6264492_500.jpg"
+    },
+    {
+      "rank": 147,
+      "product_id": "6264362",
+      "product_name": "반소매 티셔츠 XS",
+      "brand_name": "게스",
+      "brand_id": "guess",
+      "product_url": "https://www.musinsa.com/products/6264362",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260406/6264362/6264362_17754771679717_500.jpg",
+      "final_price": 13500,
+      "original_price": 15000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/147_6264362_500.jpg"
+    },
+    {
+      "rank": 148,
+      "product_id": "6304538",
+      "product_name": "카디건 L",
+      "brand_name": "블론드나인",
+      "brand_id": "blond9",
+      "product_url": "https://www.musinsa.com/products/6304538",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6304538/6304538_17761297463338_500.jpg",
+      "final_price": 17800,
+      "original_price": 17800,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/148_6304538_500.jpg"
+    },
+    {
+      "rank": 149,
+      "product_id": "6098094",
+      "product_name": "맨투맨/스웨트셔츠 A2",
+      "brand_name": "아더에러",
+      "brand_id": "adererror_used",
+      "product_url": "https://www.musinsa.com/products/6098094",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260309/6098094/6098094_17730244952533_500.jpg",
+      "final_price": 116000,
+      "original_price": 145000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/149_6098094_500.jpg"
+    },
+    {
+      "rank": 150,
+      "product_id": "5985116",
+      "product_name": "카디건",
+      "brand_name": "포에토",
+      "brand_id": "foeto",
+      "product_url": "https://www.musinsa.com/products/5985116",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260205/5985116/5985116_17702666410230_500.jpg",
+      "final_price": 60000,
+      "original_price": 100000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/150_5985116_500.jpg"
+    },
+    {
+      "rank": 151,
+      "product_id": "6074752",
+      "product_name": "블라우스 M",
+      "brand_name": "아이토브 서울",
+      "brand_id": "itov",
+      "product_url": "https://www.musinsa.com/products/6074752",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260303/6074752/6074752_17727601950324_500.jpg",
+      "final_price": 40000,
+      "original_price": 40000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/151_6074752_500.jpg"
+    },
+    {
+      "rank": 152,
+      "product_id": "6306414",
+      "product_name": "코튼 팬츠 M",
+      "brand_name": "더블유브이프로젝트",
+      "brand_id": "wvproject",
+      "product_url": "https://www.musinsa.com/products/6306414",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6306414/6306414_17761419032009_500.jpg",
+      "final_price": 19000,
+      "original_price": 19000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/152_6306414_500.jpg"
+    },
+    {
+      "rank": 153,
+      "product_id": "6314323",
+      "product_name": "청/데님 팬츠 XL",
+      "brand_name": "넌블랭크",
+      "brand_id": "nonblank",
+      "product_url": "https://www.musinsa.com/products/6314323",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260415/6314323/6314323_17762307297030_500.jpg",
+      "final_price": 28000,
+      "original_price": 28000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/153_6314323_500.jpg"
+    },
+    {
+      "rank": 154,
+      "product_id": "6299054",
+      "product_name": "맨투맨/스웨트셔츠 XXL",
+      "brand_name": "자바나스",
+      "brand_id": "zavanas",
+      "product_url": "https://www.musinsa.com/products/6299054",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260413/6299054/6299054_17760565532501_500.jpg",
+      "final_price": 15000,
+      "original_price": 15000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "S등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/154_6299054_500.jpg"
+    },
+    {
+      "rank": 155,
+      "product_id": "6242225",
+      "product_name": "반소매 티셔츠 XL",
+      "brand_name": "엔비에이",
+      "brand_id": "nba",
+      "product_url": "https://www.musinsa.com/products/6242225",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260402/6242225/6242225_17750965903953_500.jpg",
+      "final_price": 24210,
+      "original_price": 26900,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/155_6242225_500.jpg"
+    },
+    {
+      "rank": 156,
+      "product_id": "6304293",
+      "product_name": "맨투맨/스웨트셔츠 M",
+      "brand_name": "엔디와이",
+      "brand_id": "nerdy",
+      "product_url": "https://www.musinsa.com/products/6304293",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6304293/6304293_17761283791310_500.jpg",
+      "final_price": 20000,
+      "original_price": 20000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/156_6304293_500.jpg"
+    },
+    {
+      "rank": 157,
+      "product_id": "5881128",
+      "product_name": "베스트 XL",
+      "brand_name": "디스이즈네버댓",
+      "brand_id": "thisisneverthat",
+      "product_url": "https://www.musinsa.com/products/5881128",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260109/5881128/5881128_17683830026656_500.jpg",
+      "final_price": 18700,
+      "original_price": 37400,
+      "discount_ratio": 50,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/157_5881128_500.jpg"
+    },
+    {
+      "rank": 158,
+      "product_id": "6278770",
+      "product_name": "숏팬츠 29",
+      "brand_name": "칼하트WIP",
+      "brand_id": "carharttwip",
+      "product_url": "https://www.musinsa.com/products/6278770",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260408/6278770/6278770_17756372929193_500.jpg",
+      "final_price": 26900,
+      "original_price": 26900,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/158_6278770_500.jpg"
+    },
+    {
+      "rank": 159,
+      "product_id": "6141936",
+      "product_name": "반소매 티셔츠 M",
+      "brand_name": "캘빈클라인 진",
+      "brand_id": "calvinkleinjeans",
+      "product_url": "https://www.musinsa.com/products/6141936",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260317/6141936/6141936_17737075628036_500.jpg",
+      "final_price": 10800,
+      "original_price": 12000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/159_6141936_500.jpg"
+    },
+    {
+      "rank": 160,
+      "product_id": "6297980",
+      "product_name": "맨투맨/스웨트셔츠 XXL",
+      "brand_name": "자바나스",
+      "brand_id": "zavanas",
+      "product_url": "https://www.musinsa.com/products/6297980",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260413/6297980/6297980_17760487014970_500.jpg",
+      "final_price": 14000,
+      "original_price": 14000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/160_6297980_500.jpg"
+    },
+    {
+      "rank": 161,
+      "product_id": "6311025",
+      "product_name": "반소매 티셔츠 M",
+      "brand_name": "자바나스",
+      "brand_id": "zavanas",
+      "product_url": "https://www.musinsa.com/products/6311025",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260415/6311025/6311025_17761812153388_500.jpg",
+      "final_price": 25000,
+      "original_price": 25000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/161_6311025_500.jpg"
+    },
+    {
+      "rank": 162,
+      "product_id": "6242140",
+      "product_name": "트레이닝 재킷 L",
+      "brand_name": "아디다스",
+      "brand_id": "adidas",
+      "product_url": "https://www.musinsa.com/products/6242140",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260402/6242140/6242140_17750961115653_500.jpg",
+      "final_price": 22500,
+      "original_price": 25000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/162_6242140_500.jpg"
+    },
+    {
+      "rank": 163,
+      "product_id": "6314100",
+      "product_name": "청/데님 팬츠 34",
+      "brand_name": "브랜디드",
+      "brand_id": "branded",
+      "product_url": "https://www.musinsa.com/products/6314100",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260415/6314100/6314100_17762298409127_500.jpg",
+      "final_price": 30000,
+      "original_price": 30000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/163_6314100_500.jpg"
+    },
+    {
+      "rank": 164,
+      "product_id": "6240604",
+      "product_name": "항공 점퍼/블루종/MA-1 L",
+      "brand_name": "커버낫",
+      "brand_id": "covernat",
+      "product_url": "https://www.musinsa.com/products/6240604",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260401/6240604/6240604_17750523210138_500.jpg",
+      "final_price": 22500,
+      "original_price": 25000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/164_6240604_500.jpg"
+    },
+    {
+      "rank": 165,
+      "product_id": "6278860",
+      "product_name": "캐주얼 셔츠 M",
+      "brand_name": "타미힐피거",
+      "brand_id": "tommyhilfiger",
+      "product_url": "https://www.musinsa.com/products/6278860",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260408/6278860/6278860_17756378130843_500.jpg",
+      "final_price": 35900,
+      "original_price": 35900,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/165_6278860_500.jpg"
+    },
+    {
+      "rank": 166,
+      "product_id": "6279988",
+      "product_name": "반소매 티셔츠 90",
+      "brand_name": "산산기어",
+      "brand_id": "sansangear",
+      "product_url": "https://www.musinsa.com/products/6279988",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260408/6279988/6279988_17756522509190_500.jpg",
+      "final_price": 35000,
+      "original_price": 35000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/166_6279988_500.jpg"
+    },
+    {
+      "rank": 167,
+      "product_id": "6314144",
+      "product_name": "슈트/블레이저 재킷 XL",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6314144",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260415/6314144/6314144_17762300513709_500.jpg",
+      "final_price": 25000,
+      "original_price": 25000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/167_6314144_500.jpg"
+    },
+    {
+      "rank": 168,
+      "product_id": "6268745",
+      "product_name": "반소매 티셔츠 XL",
+      "brand_name": "아이앱 스튜디오",
+      "brand_id": "iabstudio",
+      "product_url": "https://www.musinsa.com/products/6268745",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260407/6268745/6268745_17755382352125_500.jpg",
+      "final_price": 50000,
+      "original_price": 50000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/168_6268745_500.jpg"
+    },
+    {
+      "rank": 169,
+      "product_id": "6083009",
+      "product_name": "캐주얼 셔츠 M",
+      "brand_name": "코스",
+      "brand_id": "cos_used",
+      "product_url": "https://www.musinsa.com/products/6083009",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260305/6083009/6083009_17726748569584_500.jpg",
+      "final_price": 40000,
+      "original_price": 50000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/169_6083009_500.jpg"
+    },
+    {
+      "rank": 170,
+      "product_id": "5823315",
+      "product_name": "청/데님 팬츠 34",
+      "brand_name": "칼하트",
+      "brand_id": "carhartt",
+      "product_url": "https://www.musinsa.com/products/5823315",
+      "image_url": "https://image.msscdn.net/images/goods_img/20251211/5823315/5823315_17746005026392_500.jpg",
+      "final_price": 70000,
+      "original_price": 100000,
+      "discount_ratio": 30,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/170_5823315_500.jpg"
+    },
+    {
+      "rank": 171,
+      "product_id": "6260275",
+      "product_name": "카디건",
+      "brand_name": "노컨텐츠",
+      "brand_id": "nocontent",
+      "product_url": "https://www.musinsa.com/products/6260275",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260406/6260275/6260275_17754544341390_500.jpg",
+      "final_price": 36000,
+      "original_price": 40000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/171_6260275_500.jpg"
+    },
+    {
+      "rank": 172,
+      "product_id": "6313384",
+      "product_name": "맨투맨/스웨트셔츠 S",
+      "brand_name": "겐조",
+      "brand_id": "kenzo",
+      "product_url": "https://www.musinsa.com/products/6313384",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260415/6313384/6313384_17762233570160_500.jpg",
+      "final_price": 50000,
+      "original_price": 50000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/172_6313384_500.jpg"
+    },
+    {
+      "rank": 173,
+      "product_id": "6264588",
+      "product_name": "반소매 티셔츠 M",
+      "brand_name": "예스아이씨",
+      "brand_id": "yeseyesee",
+      "product_url": "https://www.musinsa.com/products/6264588",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260406/6264588/6264588_17754829083253_500.jpg",
+      "final_price": 29700,
+      "original_price": 33000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/173_6264588_500.jpg"
+    },
+    {
+      "rank": 174,
+      "product_id": "6283709",
+      "product_name": "반소매 티셔츠 M",
+      "brand_name": "자바나스",
+      "brand_id": "zavanas",
+      "product_url": "https://www.musinsa.com/products/6283709",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260409/6283709/6283709_17757120727862_500.jpg",
+      "final_price": 14000,
+      "original_price": 14000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/174_6283709_500.jpg"
+    },
+    {
+      "rank": 175,
+      "product_id": "6252913",
+      "product_name": "캐주얼 셔츠 FREE",
+      "brand_name": "시엔느",
+      "brand_id": "sienne",
+      "product_url": "https://www.musinsa.com/products/6252913",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260403/6252913/6252913_17751944385606_500.jpg",
+      "final_price": 45000,
+      "original_price": 50000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/175_6252913_500.jpg"
+    },
+    {
+      "rank": 176,
+      "product_id": "6311021",
+      "product_name": "반소매 티셔츠 M",
+      "brand_name": "자바나스",
+      "brand_id": "zavanas",
+      "product_url": "https://www.musinsa.com/products/6311021",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260415/6311021/6311021_17761811236262_500.jpg",
+      "final_price": 15000,
+      "original_price": 15000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "S등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/176_6311021_500.jpg"
+    },
+    {
+      "rank": 177,
+      "product_id": "6258773",
+      "product_name": "반소매 티셔츠 L",
+      "brand_name": "유니클로 x JW 앤더슨",
+      "brand_id": "uniqloxjwanderson",
+      "product_url": "https://www.musinsa.com/products/6258773",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260406/6258773/6258773_17754452291395_500.jpg",
+      "final_price": 24000,
+      "original_price": 24000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/177_6258773_500.jpg"
+    },
+    {
+      "rank": 178,
+      "product_id": "6302385",
+      "product_name": "후드 티셔츠 XS",
+      "brand_name": "메종 키츠네",
+      "brand_id": "maisonkitsune",
+      "product_url": "https://www.musinsa.com/products/6302385",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260413/6302385/6302385_17760739688551_500.jpg",
+      "final_price": 99000,
+      "original_price": 99000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/178_6302385_500.jpg"
+    },
+    {
+      "rank": 179,
+      "product_id": "6313924",
+      "product_name": "조거 팬츠 XL",
+      "brand_name": "토피",
+      "brand_id": "toffee",
+      "product_url": "https://www.musinsa.com/products/6313924",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260415/6313924/6313924_17762288392099_500.jpg",
+      "final_price": 14000,
+      "original_price": 14000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/179_6313924_500.jpg"
+    },
+    {
+      "rank": 180,
+      "product_id": "6302799",
+      "product_name": "반소매 티셔츠 L",
+      "brand_name": "로어즈",
+      "brand_id": "lores",
+      "product_url": "https://www.musinsa.com/products/6302799",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260413/6302799/6302799_17760804936994_500.jpg",
+      "final_price": 14000,
+      "original_price": 14000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/180_6302799_500.jpg"
+    },
+    {
+      "rank": 181,
+      "product_id": "6258764",
+      "product_name": "헨리넥골지티셔츠 J1TS020M 85",
+      "brand_name": "쥬시쥬디",
+      "brand_id": "jucyjudy",
+      "product_url": "https://www.musinsa.com/products/6258764",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260406/6258764/6258764_17754451495543_500.jpg",
+      "final_price": 10800,
+      "original_price": 79000,
+      "discount_ratio": 86,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/181_6258764_500.jpg"
+    },
+    {
+      "rank": 182,
+      "product_id": "6262000",
+      "product_name": "카디건 160/170",
+      "brand_name": "마가린핑거스",
+      "brand_id": "margarinfingers",
+      "product_url": "https://www.musinsa.com/products/6262000",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260406/6262000/6262000_17754614871347_500.jpg",
+      "final_price": 38250,
+      "original_price": 42500,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/182_6262000_500.jpg"
+    },
+    {
+      "rank": 183,
+      "product_id": "5846604",
+      "product_name": "RIBBON DETAIL TOP_TT2S202IV FF",
+      "brand_name": "더티스",
+      "brand_id": "thetis",
+      "product_url": "https://www.musinsa.com/products/5846604",
+      "image_url": "https://image.msscdn.net/images/goods_img/20251222/5846604/5846604_17664038413301_500.jpg",
+      "final_price": 61320,
+      "original_price": 219000,
+      "discount_ratio": 72,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/183_5846604_500.jpg"
+    },
+    {
+      "rank": 184,
+      "product_id": "5985671",
+      "product_name": "반소매 티셔츠 L",
+      "brand_name": "스컬프터",
+      "brand_id": "sculptor",
+      "product_url": "https://www.musinsa.com/products/5985671",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260205/5985671/5985671_17702698908780_500.jpg",
+      "final_price": 12000,
+      "original_price": 20000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/184_5985671_500.jpg"
+    },
+    {
+      "rank": 185,
+      "product_id": "6261328",
+      "product_name": "반소매 티셔츠 FREE",
+      "brand_name": "디어스토커",
+      "brand_id": "dearstalker",
+      "product_url": "https://www.musinsa.com/products/6261328",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260406/6261328/6261328_17754588912437_500.jpg",
+      "final_price": 15300,
+      "original_price": 17000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/185_6261328_500.jpg"
+    },
+    {
+      "rank": 186,
+      "product_id": "6114592",
+      "product_name": "블라우스 FREE",
+      "brand_name": "아틀리에 나인",
+      "brand_id": "nain",
+      "product_url": "https://www.musinsa.com/products/6114592",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260311/6114592/6114592_17732056904275_500.jpg",
+      "final_price": 15200,
+      "original_price": 19000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/186_6114592_500.jpg"
+    },
+    {
+      "rank": 187,
+      "product_id": "5884416",
+      "product_name": "청/데님 팬츠 29",
+      "brand_name": "캘빈클라인 진",
+      "brand_id": "calvinkleinjeans",
+      "product_url": "https://www.musinsa.com/products/5884416",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260112/5884416/5884416_17684420294159_500.jpg",
+      "final_price": 25200,
+      "original_price": 28000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/187_5884416_500.jpg"
+    },
+    {
+      "rank": 188,
+      "product_id": "6264986",
+      "product_name": "긴소매 티셔츠 L",
+      "brand_name": "에잇세컨즈",
+      "brand_id": "8seconds",
+      "product_url": "https://www.musinsa.com/products/6264986",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260407/6264986/6264986_17754926767207_500.jpg",
+      "final_price": 10800,
+      "original_price": 12000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/188_6264986_500.jpg"
+    },
+    {
+      "rank": 189,
+      "product_id": "6261349",
+      "product_name": "긴소매 티셔츠 M",
+      "brand_name": "라코스테",
+      "brand_id": "lacoste1",
+      "product_url": "https://www.musinsa.com/products/6261349",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260406/6261349/6261349_17754590290090_500.jpg",
+      "final_price": 27000,
+      "original_price": 30000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/189_6261349_500.jpg"
+    },
+    {
+      "rank": 190,
+      "product_id": "6255922",
+      "product_name": "반소매 티셔츠 M",
+      "brand_name": "스컬프터",
+      "brand_id": "sculptor",
+      "product_url": "https://www.musinsa.com/products/6255922",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260403/6255922/6255922_17752148394956_500.jpg",
+      "final_price": 21600,
+      "original_price": 24000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/190_6255922_500.jpg"
+    },
+    {
+      "rank": 191,
+      "product_id": "6278626",
+      "product_name": "베스트 105",
+      "brand_name": "라코스테",
+      "brand_id": "lacoste1",
+      "product_url": "https://www.musinsa.com/products/6278626",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260408/6278626/6278626_17756366126186_500.jpg",
+      "final_price": 44900,
+      "original_price": 44900,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/191_6278626_500.jpg"
+    },
+    {
+      "rank": 192,
+      "product_id": "6248767",
+      "product_name": "반소매 티셔츠 M",
+      "brand_name": "아이앱 스튜디오",
+      "brand_id": "iabstudio",
+      "product_url": "https://www.musinsa.com/products/6248767",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260402/6248767/6248767_17751415199665_500.jpg",
+      "final_price": 117000,
+      "original_price": 130000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/192_6248767_500.jpg"
+    },
+    {
+      "rank": 193,
+      "product_id": "6094924",
+      "product_name": "슈트/블레이저 재킷 50",
+      "brand_name": "캘빈클라인",
+      "brand_id": "calvinklein",
+      "product_url": "https://www.musinsa.com/products/6094924",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260306/6094924/6094924_17727842595764_500.jpg",
+      "final_price": 53900,
+      "original_price": 53900,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/193_6094924_500.jpg"
+    },
+    {
+      "rank": 194,
+      "product_id": "6257769",
+      "product_name": "반소매 티셔츠",
+      "brand_name": "론론",
+      "brand_id": "ronron",
+      "product_url": "https://www.musinsa.com/products/6257769",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260406/6257769/6257769_17754375987664_500.jpg",
+      "final_price": 10800,
+      "original_price": 12000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/194_6257769_500.jpg"
+    },
+    {
+      "rank": 195,
+      "product_id": "6090515",
+      "product_name": "블라우스 36",
+      "brand_name": "럭키슈에뜨",
+      "brand_id": "luckychouette",
+      "product_url": "https://www.musinsa.com/products/6090515",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260306/6090515/6090515_17727601757249_500.jpg",
+      "final_price": 35900,
+      "original_price": 35900,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/195_6090515_500.jpg"
+    },
+    {
+      "rank": 196,
+      "product_id": "5851337",
+      "product_name": "기타 바지 L",
+      "brand_name": "아디다스",
+      "brand_id": "adidas",
+      "product_url": "https://www.musinsa.com/products/5851337",
+      "image_url": "https://image.msscdn.net/images/goods_img/20251224/5851337/5851337_17665055298403_500.jpg",
+      "final_price": 75000,
+      "original_price": 75000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/196_5851337_500.jpg"
+    },
+    {
+      "rank": 197,
+      "product_id": "6252962",
+      "product_name": "캐주얼 셔츠 M",
+      "brand_name": "오픈 와이와이",
+      "brand_id": "openyy",
+      "product_url": "https://www.musinsa.com/products/6252962",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260403/6252962/6252962_17751946280885_500.jpg",
+      "final_price": 72000,
+      "original_price": 80000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/197_6252962_500.jpg"
+    },
+    {
+      "rank": 198,
+      "product_id": "6228240",
+      "product_name": "반소매 티셔츠",
+      "brand_name": "오데스",
+      "brand_id": "ordes",
+      "product_url": "https://www.musinsa.com/products/6228240",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260331/6228240/6228240_17749397375314_500.jpg",
+      "final_price": 12600,
+      "original_price": 14000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/198_6228240_500.jpg"
+    },
+    {
+      "rank": 199,
+      "product_id": "5887578",
+      "product_name": "청/데님 팬츠 27",
+      "brand_name": "플랙",
+      "brand_id": "plac",
+      "product_url": "https://www.musinsa.com/products/5887578",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260113/5887578/5887578_17685467333923_500.jpg",
+      "final_price": 9000,
+      "original_price": 16000,
+      "discount_ratio": 44,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/199_5887578_500.jpg"
+    },
+    {
+      "rank": 200,
+      "product_id": "6298302",
+      "product_name": "니트/스웨터 M",
+      "brand_name": "자바나스",
+      "brand_id": "zavanas",
+      "product_url": "https://www.musinsa.com/products/6298302",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260413/6298302/6298302_17760499767987_500.jpg",
+      "final_price": 14000,
+      "original_price": 14000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/200_6298302_500.jpg"
+    },
+    {
+      "rank": 201,
+      "product_id": "6197990",
+      "product_name": "청/데님 팬츠 32",
+      "brand_name": "브랜디드",
+      "brand_id": "branded",
+      "product_url": "https://www.musinsa.com/products/6197990",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260326/6197990/6197990_17744577802869_500.jpg",
+      "final_price": 30000,
+      "original_price": 30000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/201_6197990_500.jpg"
+    },
+    {
+      "rank": 202,
+      "product_id": "5873760",
+      "product_name": "숏팬츠 2",
+      "brand_name": "오도어",
+      "brand_id": "odor",
+      "product_url": "https://www.musinsa.com/products/5873760",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260107/5873760/5873760_17677547837711_500.jpg",
+      "final_price": 37000,
+      "original_price": 37000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/202_5873760_500.jpg"
+    },
+    {
+      "rank": 203,
+      "product_id": "6090480",
+      "product_name": "블라우스",
+      "brand_name": "마인",
+      "brand_id": "mine_used",
+      "product_url": "https://www.musinsa.com/products/6090480",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260306/6090480/6090480_17727599925002_500.jpg",
+      "final_price": 44900,
+      "original_price": 44900,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/203_6090480_500.jpg"
+    },
+    {
+      "rank": 204,
+      "product_id": "6297962",
+      "product_name": "맨투맨/스웨트셔츠 XXL",
+      "brand_name": "자바나스",
+      "brand_id": "zavanas",
+      "product_url": "https://www.musinsa.com/products/6297962",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260413/6297962/6297962_17760486271876_500.jpg",
+      "final_price": 12000,
+      "original_price": 12000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/204_6297962_500.jpg"
+    },
+    {
+      "rank": 205,
+      "product_id": "5974201",
+      "product_name": "트레이닝 재킷 85",
+      "brand_name": "아디다스",
+      "brand_id": "adidas",
+      "product_url": "https://www.musinsa.com/products/5974201",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260203/5974201/5974201_17700977534321_500.jpg",
+      "final_price": 21000,
+      "original_price": 35000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/205_5974201_500.jpg"
+    },
+    {
+      "rank": 206,
+      "product_id": "6308305",
+      "product_name": "기타 바지 S",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6308305",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6308305/6308305_17761512041463_500.jpg",
+      "final_price": 10900,
+      "original_price": 10900,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/206_6308305_500.jpg"
+    },
+    {
+      "rank": 207,
+      "product_id": "6301784",
+      "product_name": "맨투맨/스웨트셔츠 M",
+      "brand_name": "메종 키츠네",
+      "brand_id": "maisonkitsune",
+      "product_url": "https://www.musinsa.com/products/6301784",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260413/6301784/6301784_17760684104286_500.jpg",
+      "final_price": 62500,
+      "original_price": 62500,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/207_6301784_500.jpg"
+    },
+    {
+      "rank": 208,
+      "product_id": "6136061",
+      "product_name": "카디건 S",
+      "brand_name": "위크엔드 막스마라",
+      "brand_id": "weekendmaxmara",
+      "product_url": "https://www.musinsa.com/products/6136061",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260316/6136061/6136061_17736290104791_500.jpg",
+      "final_price": 67200,
+      "original_price": 84000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/208_6136061_500.jpg"
+    },
+    {
+      "rank": 209,
+      "product_id": "6104503",
+      "product_name": "후드 티셔츠 L",
+      "brand_name": "슈프림",
+      "brand_id": "supreme",
+      "product_url": "https://www.musinsa.com/products/6104503",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260310/6104503/6104503_17731064937137_500.jpg",
+      "final_price": 200000,
+      "original_price": 250000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/209_6104503_500.jpg"
+    },
+    {
+      "rank": 210,
+      "product_id": "6097474",
+      "product_name": "긴소매 티셔츠",
+      "brand_name": "세릭",
+      "brand_id": "cerric",
+      "product_url": "https://www.musinsa.com/products/6097474",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260309/6097474/6097474_17730210669722_500.jpg",
+      "final_price": 13600,
+      "original_price": 17000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/210_6097474_500.jpg"
+    },
+    {
+      "rank": 211,
+      "product_id": "5903646",
+      "product_name": "미니스커트 S",
+      "brand_name": "팬시클럽",
+      "brand_id": "nastyfancyclub",
+      "product_url": "https://www.musinsa.com/products/5903646",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260116/5903646/5903646_17685417886627_500.jpg",
+      "final_price": 15000,
+      "original_price": 30000,
+      "discount_ratio": 50,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/211_5903646_500.jpg"
+    },
+    {
+      "rank": 212,
+      "product_id": "5895728",
+      "product_name": "청/데님 팬츠 S",
+      "brand_name": "판도라핏",
+      "brand_id": "pandorafit",
+      "product_url": "https://www.musinsa.com/products/5895728",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260114/5895728/5895728_17683805212746_500.jpg",
+      "final_price": 9500,
+      "original_price": 19000,
+      "discount_ratio": 50,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/212_5895728_500.jpg"
+    },
+    {
+      "rank": 213,
+      "product_id": "6262413",
+      "product_name": "블라우스 00",
+      "brand_name": "루에브르",
+      "brand_id": "loeuvre",
+      "product_url": "https://www.musinsa.com/products/6262413",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260406/6262413/6262413_17754628699414_500.jpg",
+      "final_price": 27000,
+      "original_price": 30000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/213_6262413_500.jpg"
+    },
+    {
+      "rank": 214,
+      "product_id": "6254365",
+      "product_name": "반소매 티셔츠 XS",
+      "brand_name": "마조네",
+      "brand_id": "majournee",
+      "product_url": "https://www.musinsa.com/products/6254365",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260403/6254365/6254365_17752011894915_500.jpg",
+      "final_price": 27000,
+      "original_price": 30000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/214_6254365_500.jpg"
+    },
+    {
+      "rank": 215,
+      "product_id": "6224622",
+      "product_name": "블라우스 S",
+      "brand_name": "시에",
+      "brand_id": "sie",
+      "product_url": "https://www.musinsa.com/products/6224622",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260331/6224622/6224622_17749204062316_500.jpg",
+      "final_price": 35100,
+      "original_price": 39000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/215_6224622_500.jpg"
+    },
+    {
+      "rank": 216,
+      "product_id": "6181093",
+      "product_name": "Line pocket cargo pants CHARCOAL 3",
+      "brand_name": "미세키서울",
+      "brand_id": "misekiseoul",
+      "product_url": "https://www.musinsa.com/products/6181093",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260324/6181093/6181093_17743120155359_500.jpg",
+      "final_price": 70560,
+      "original_price": 168000,
+      "discount_ratio": 58,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/216_6181093_500.jpg"
+    },
+    {
+      "rank": 217,
+      "product_id": "5896794",
+      "product_name": "맥시 원피스 FREE",
+      "brand_name": "미미카위",
+      "brand_id": "mimicawe",
+      "product_url": "https://www.musinsa.com/products/5896794",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260115/5896794/5896794_17684378464167_500.jpg",
+      "final_price": 14000,
+      "original_price": 28000,
+      "discount_ratio": 50,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/217_5896794_500.jpg"
+    },
+    {
+      "rank": 218,
+      "product_id": "6237314",
+      "product_name": "미니스커트",
+      "brand_name": "칙스",
+      "brand_id": "chicks",
+      "product_url": "https://www.musinsa.com/products/6237314",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260401/6237314/6237314_17750269077987_500.jpg",
+      "final_price": 9000,
+      "original_price": 10000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/218_6237314_500.jpg"
+    },
+    {
+      "rank": 219,
+      "product_id": "6144922",
+      "product_name": "숏팬츠 S",
+      "brand_name": "아베크롬비앤피치",
+      "brand_id": "abercrombieandfitch",
+      "product_url": "https://www.musinsa.com/products/6144922",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260317/6144922/6144922_17737232064183_500.jpg",
+      "final_price": 9000,
+      "original_price": 10000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/219_6144922_500.jpg"
+    },
+    {
+      "rank": 220,
+      "product_id": "6084749",
+      "product_name": "기타 상의",
+      "brand_name": "블루 블루 재팬",
+      "brand_id": "bluebluejapan",
+      "product_url": "https://www.musinsa.com/products/6084749",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260305/6084749/6084749_17726866041853_500.jpg",
+      "final_price": 48000,
+      "original_price": 60000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/220_6084749_500.jpg"
+    },
+    {
+      "rank": 221,
+      "product_id": "6302817",
+      "product_name": "니트/스웨터 L",
+      "brand_name": "디스이즈네버댓",
+      "brand_id": "thisisneverthat",
+      "product_url": "https://www.musinsa.com/products/6302817",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260413/6302817/6302817_17760809321923_500.jpg",
+      "final_price": 40000,
+      "original_price": 40000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/221_6302817_500.jpg"
+    },
+    {
+      "rank": 222,
+      "product_id": "5897939",
+      "product_name": "미디 원피스 FREE",
+      "brand_name": "아틀리에 나인",
+      "brand_id": "nain",
+      "product_url": "https://www.musinsa.com/products/5897939",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260115/5897939/5897939_17688108459274_500.jpg",
+      "final_price": 22500,
+      "original_price": 45000,
+      "discount_ratio": 50,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/222_5897939_500.jpg"
+    },
+    {
+      "rank": 223,
+      "product_id": "5887547",
+      "product_name": "나시/민소매 티셔츠 M",
+      "brand_name": "빔스",
+      "brand_id": "beams",
+      "product_url": "https://www.musinsa.com/products/5887547",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260113/5887547/5887547_17682644051368_500.jpg",
+      "final_price": 30600,
+      "original_price": 34000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/223_5887547_500.jpg"
+    },
+    {
+      "rank": 224,
+      "product_id": "6245206",
+      "product_name": "맥시 원피스 1",
+      "brand_name": "마쥬",
+      "brand_id": "maje",
+      "product_url": "https://www.musinsa.com/products/6245206",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260402/6245206/6245206_17751129960731_500.jpg",
+      "final_price": 113310,
+      "original_price": 125900,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/224_6245206_500.jpg"
+    },
+    {
+      "rank": 225,
+      "product_id": "5897579",
+      "product_name": "청/데님 팬츠 25",
+      "brand_name": "리바이스",
+      "brand_id": "levis",
+      "product_url": "https://www.musinsa.com/products/5897579",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260115/5897579/5897579_17684435806075_500.jpg",
+      "final_price": 13500,
+      "original_price": 27000,
+      "discount_ratio": 50,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/225_5897579_500.jpg"
+    },
+    {
+      "rank": 226,
+      "product_id": "5894595",
+      "product_name": "맥시 원피스 FREE",
+      "brand_name": "모리스커밍홈",
+      "brand_id": "morriscominghome",
+      "product_url": "https://www.musinsa.com/products/5894595",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260114/5894595/5894595_17683726445938_500.jpg",
+      "final_price": 14000,
+      "original_price": 28000,
+      "discount_ratio": 50,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/226_5894595_500.jpg"
+    },
+    {
+      "rank": 227,
+      "product_id": "6305123",
+      "product_name": "니트/스웨터 S",
+      "brand_name": "디스이즈네버댓",
+      "brand_id": "thisisneverthat",
+      "product_url": "https://www.musinsa.com/products/6305123",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6305123/6305123_17761332646397_500.jpg",
+      "final_price": 50000,
+      "original_price": 50000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/227_6305123_500.jpg"
+    },
+    {
+      "rank": 228,
+      "product_id": "5981169",
+      "product_name": "브이넥 슬림골지 가디건_MIWCKE330T S",
+      "brand_name": "미쏘",
+      "brand_id": "mixxo",
+      "product_url": "https://www.musinsa.com/products/5981169",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260204/5981169/5981169_17701881308049_500.jpg",
+      "final_price": 10080,
+      "original_price": 35900,
+      "discount_ratio": 72,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/228_5981169_500.jpg"
+    },
+    {
+      "rank": 229,
+      "product_id": "6253668",
+      "product_name": "나시/민소매 티셔츠 S",
+      "brand_name": "인사일런스",
+      "brand_id": "insilence",
+      "product_url": "https://www.musinsa.com/products/6253668",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260403/6253668/6253668_17751976177031_500.jpg",
+      "final_price": 27000,
+      "original_price": 30000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/229_6253668_500.jpg"
+    },
+    {
+      "rank": 230,
+      "product_id": "6170574",
+      "product_name": "캐주얼 셔츠 1",
+      "brand_name": "포터리",
+      "brand_id": "pottery",
+      "product_url": "https://www.musinsa.com/products/6170574",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260320/6170574/6170574_17739938446076_500.jpg",
+      "final_price": 68000,
+      "original_price": 68000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/230_6170574_500.jpg"
+    },
+    {
+      "rank": 231,
+      "product_id": "6261704",
+      "product_name": "긴소매 티셔츠 FREE",
+      "brand_name": "러닝하이",
+      "brand_id": "runninghigh",
+      "product_url": "https://www.musinsa.com/products/6261704",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260406/6261704/6261704_17754604175563_500.jpg",
+      "final_price": 15750,
+      "original_price": 17500,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/231_6261704_500.jpg"
+    },
+    {
+      "rank": 232,
+      "product_id": "6307535",
+      "product_name": "캐주얼 셔츠 S",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6307535",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6307535/6307535_17761474596682_500.jpg",
+      "final_price": 9900,
+      "original_price": 9900,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/232_6307535_500.jpg"
+    },
+    {
+      "rank": 233,
+      "product_id": "6233468",
+      "product_name": "기타 상의 S",
+      "brand_name": "로우클래식",
+      "brand_id": "lowclassic",
+      "product_url": "https://www.musinsa.com/products/6233468",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260401/6233468/6233468_17750081203668_500.jpg",
+      "final_price": 13500,
+      "original_price": 15000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/233_6233468_500.jpg"
+    },
+    {
+      "rank": 234,
+      "product_id": "6308269",
+      "product_name": "코튼 팬츠 25",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6308269",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6308269/6308269_17761510431715_500.jpg",
+      "final_price": 10000,
+      "original_price": 10000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/234_6308269_500.jpg"
+    },
+    {
+      "rank": 235,
+      "product_id": "6297925",
+      "product_name": "니트/스웨터 L",
+      "brand_name": "자바나스",
+      "brand_id": "zavanas",
+      "product_url": "https://www.musinsa.com/products/6297925",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260413/6297925/6297925_17760485111476_500.jpg",
+      "final_price": 12000,
+      "original_price": 12000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/235_6297925_500.jpg"
+    },
+    {
+      "rank": 236,
+      "product_id": "6083683",
+      "product_name": "청/데님 팬츠 30",
+      "brand_name": "겐조",
+      "brand_id": "kenzo",
+      "product_url": "https://www.musinsa.com/products/6083683",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260305/6083683/6083683_17726783098535_500.jpg",
+      "final_price": 72000,
+      "original_price": 90000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/236_6083683_500.jpg"
+    },
+    {
+      "rank": 237,
+      "product_id": "6080034",
+      "product_name": "숏팬츠 M",
+      "brand_name": "꼼데가르송 옴므 플러스",
+      "brand_id": "commedesgarconshommeplus",
+      "product_url": "https://www.musinsa.com/products/6080034",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260304/6080034/6080034_17726090821055_500.jpg",
+      "final_price": 240000,
+      "original_price": 300000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/237_6080034_500.jpg"
+    },
+    {
+      "rank": 238,
+      "product_id": "6308207",
+      "product_name": "기타 바지 M",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6308207",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6308207/6308207_17761508456450_500.jpg",
+      "final_price": 10900,
+      "original_price": 10900,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/238_6308207_500.jpg"
+    },
+    {
+      "rank": 239,
+      "product_id": "6253124",
+      "product_name": "미니스커트 FREE",
+      "brand_name": "페스토",
+      "brand_id": "pesto",
+      "product_url": "https://www.musinsa.com/products/6253124",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260403/6253124/6253124_17751952285592_500.jpg",
+      "final_price": 27000,
+      "original_price": 30000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/239_6253124_500.jpg"
+    },
+    {
+      "rank": 240,
+      "product_id": "6086470",
+      "product_name": "미디 원피스 82/94/155",
+      "brand_name": "미샤",
+      "brand_id": "michaa_used",
+      "product_url": "https://www.musinsa.com/products/6086470",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260305/6086470/6086470_17726944477227_500.jpg",
+      "final_price": 53900,
+      "original_price": 53900,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/240_6086470_500.jpg"
+    },
+    {
+      "rank": 241,
+      "product_id": "6280613",
+      "product_name": "캐주얼 셔츠 M",
+      "brand_name": "타미힐피거",
+      "brand_id": "tommyhilfiger",
+      "product_url": "https://www.musinsa.com/products/6280613",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260408/6280613/6280613_17756595039225_500.jpg",
+      "final_price": 35900,
+      "original_price": 35900,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/241_6280613_500.jpg"
+    },
+    {
+      "rank": 242,
+      "product_id": "6102066",
+      "product_name": "미니스커트 ONE SIZE",
+      "brand_name": "마르디 메크르디",
+      "brand_id": "mardimercredi",
+      "product_url": "https://www.musinsa.com/products/6102066",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260309/6102066/6102066_17730447030090_500.jpg",
+      "final_price": 56000,
+      "original_price": 70000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/242_6102066_500.jpg"
+    },
+    {
+      "rank": 243,
+      "product_id": "5907826",
+      "product_name": "TWO TUCK NYLON PANTS - VINTAGE RED 100",
+      "brand_name": "노매뉴얼",
+      "brand_id": "nomanual",
+      "product_url": "https://www.musinsa.com/products/5907826",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260119/5907826/5907826_17687913417548_500.jpg",
+      "final_price": 13500,
+      "original_price": 69000,
+      "discount_ratio": 80,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/243_5907826_500.jpg"
+    },
+    {
+      "rank": 244,
+      "product_id": "6148438",
+      "product_name": "캐주얼 셔츠 1",
+      "brand_name": "블랭크룸",
+      "brand_id": "blankroom",
+      "product_url": "https://www.musinsa.com/products/6148438",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260317/6148438/6148438_17737367636865_500.jpg",
+      "final_price": 18000,
+      "original_price": 20000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/244_6148438_500.jpg"
+    },
+    {
+      "rank": 245,
+      "product_id": "6263925",
+      "product_name": "트레이닝 팬츠 S",
+      "brand_name": "그란데라인",
+      "brand_id": "grandeline",
+      "product_url": "https://www.musinsa.com/products/6263925",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260406/6263925/6263925_17754718620473_500.jpg",
+      "final_price": 14400,
+      "original_price": 16000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/245_6263925_500.jpg"
+    },
+    {
+      "rank": 246,
+      "product_id": "5896727",
+      "product_name": "슈트 팬츠/슬랙스 S",
+      "brand_name": "로에일",
+      "brand_id": "loeil",
+      "product_url": "https://www.musinsa.com/products/5896727",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260115/5896727/5896727_17684374728919_500.jpg",
+      "final_price": 10000,
+      "original_price": 20000,
+      "discount_ratio": 50,
+      "category_id": "109",
+      "labels": [
+        "S등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/246_5896727_500.jpg"
+    },
+    {
+      "rank": 247,
+      "product_id": "6239955",
+      "product_name": "슈트/블레이저 재킷 S",
+      "brand_name": "미쏘",
+      "brand_id": "mixxo",
+      "product_url": "https://www.musinsa.com/products/6239955",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260401/6239955/6239955_17750405476692_500.jpg",
+      "final_price": 12510,
+      "original_price": 13900,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/247_6239955_500.jpg"
+    },
+    {
+      "rank": 248,
+      "product_id": "6236819",
+      "product_name": "반소매 티셔츠 XS",
+      "brand_name": "코스",
+      "brand_id": "cos_used",
+      "product_url": "https://www.musinsa.com/products/6236819",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260401/6236819/6236819_17750249210367_500.jpg",
+      "final_price": 22500,
+      "original_price": 25000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/248_6236819_500.jpg"
+    },
+    {
+      "rank": 249,
+      "product_id": "5984855",
+      "product_name": "청/데님 팬츠 28",
+      "brand_name": "미쏘",
+      "brand_id": "mixxo",
+      "product_url": "https://www.musinsa.com/products/5984855",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260205/5984855/5984855_17706172937900_500.jpg",
+      "final_price": 9900,
+      "original_price": 16500,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/249_5984855_500.jpg"
+    },
+    {
+      "rank": 250,
+      "product_id": "6307914",
+      "product_name": "긴소매 티셔츠 FREE",
+      "brand_name": "시스템",
+      "brand_id": "system_used",
+      "product_url": "https://www.musinsa.com/products/6307914",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6307914/6307914_17761494182750_500.jpg",
+      "final_price": 25000,
+      "original_price": 25000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/250_6307914_500.jpg"
+    },
+    {
+      "rank": 251,
+      "product_id": "5959690",
+      "product_name": "미디스커트 64/94",
+      "brand_name": "구호",
+      "brand_id": "kuho_used",
+      "product_url": "https://www.musinsa.com/products/5959690",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260130/5959690/5959690_17697380644620_500.jpg",
+      "final_price": 18000,
+      "original_price": 30000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/251_5959690_500.jpg"
+    },
+    {
+      "rank": 252,
+      "product_id": "6287913",
+      "product_name": "기타 점퍼/재킷 XL",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6287913",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260410/6287913/6287913_17757812021459_500.jpg",
+      "final_price": 19000,
+      "original_price": 19000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/252_6287913_500.jpg"
+    },
+    {
+      "rank": 253,
+      "product_id": "5740990",
+      "product_name": "남녀공용 AAR 아노락 홑겹 바람막이 100",
+      "brand_name": "데상트",
+      "brand_id": "descente",
+      "product_url": "https://www.musinsa.com/products/5740990",
+      "image_url": "https://image.msscdn.net/images/goods_img/20251117/5740990/5740990_17732185214452_500.jpg",
+      "final_price": 41250,
+      "original_price": 199000,
+      "discount_ratio": 79,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/253_5740990_500.jpg"
+    },
+    {
+      "rank": 254,
+      "product_id": "6302793",
+      "product_name": "캐주얼 셔츠 S",
+      "brand_name": "디스이즈네버댓",
+      "brand_id": "thisisneverthat",
+      "product_url": "https://www.musinsa.com/products/6302793",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260413/6302793/6302793_17760803245049_500.jpg",
+      "final_price": 25000,
+      "original_price": 25000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/254_6302793_500.jpg"
+    },
+    {
+      "rank": 255,
+      "product_id": "6247286",
+      "product_name": "청/데님 팬츠 30",
+      "brand_name": "리바이스",
+      "brand_id": "levis",
+      "product_url": "https://www.musinsa.com/products/6247286",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260402/6247286/6247286_17751236146495_500.jpg",
+      "final_price": 24300,
+      "original_price": 27000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/255_6247286_500.jpg"
+    },
+    {
+      "rank": 256,
+      "product_id": "5868564",
+      "product_name": "미니 원피스 M",
+      "brand_name": "던스트",
+      "brand_id": "dunstforwomen",
+      "product_url": "https://www.musinsa.com/products/5868564",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260105/5868564/5868564_17675903104303_500.jpg",
+      "final_price": 32000,
+      "original_price": 40000,
+      "discount_ratio": 20,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/256_5868564_500.jpg"
+    },
+    {
+      "rank": 257,
+      "product_id": "6313816",
+      "product_name": "반소매 티셔츠 S",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6313816",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260415/6313816/6313816_17762282151329_500.jpg",
+      "final_price": 9900,
+      "original_price": 9900,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/257_6313816_500.jpg"
+    },
+    {
+      "rank": 258,
+      "product_id": "6304118",
+      "product_name": "후드 티셔츠 S",
+      "brand_name": "디스이즈네버댓",
+      "brand_id": "thisisneverthat",
+      "product_url": "https://www.musinsa.com/products/6304118",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6304118/6304118_17761273868124_500.jpg",
+      "final_price": 25000,
+      "original_price": 25000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/258_6304118_500.jpg"
+    },
+    {
+      "rank": 259,
+      "product_id": "6228955",
+      "product_name": "맥시 원피스 XS",
+      "brand_name": "캘빈클라인 진",
+      "brand_id": "calvinkleinjeans",
+      "product_url": "https://www.musinsa.com/products/6228955",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260331/6228955/6228955_17749431965798_500.jpg",
+      "final_price": 25200,
+      "original_price": 28000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/259_6228955_500.jpg"
+    },
+    {
+      "rank": 260,
+      "product_id": "6122184",
+      "product_name": "HEAVY WOOL FLANNEL CHECK JACKET (BEIGE) S",
+      "brand_name": "이티씨이",
+      "brand_id": "etce",
+      "product_url": "https://www.musinsa.com/products/6122184",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260312/6122184/6122184_17732924302222_500.jpg",
+      "final_price": 41040,
+      "original_price": 198000,
+      "discount_ratio": 79,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/260_6122184_500.jpg"
+    },
+    {
+      "rank": 261,
+      "product_id": "5954566",
+      "product_name": "미디스커트 64",
+      "brand_name": "시스템",
+      "brand_id": "system_used",
+      "product_url": "https://www.musinsa.com/products/5954566",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260129/5954566/5954566_17696633192067_500.jpg",
+      "final_price": 24000,
+      "original_price": 40000,
+      "discount_ratio": 40,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/261_5954566_500.jpg"
+    },
+    {
+      "rank": 262,
+      "product_id": "6214253",
+      "product_name": "코튼 팬츠 EUR 38",
+      "brand_name": "코스",
+      "brand_id": "cos_used",
+      "product_url": "https://www.musinsa.com/products/6214253",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260327/6214253/6214253_17746058739732_500.jpg",
+      "final_price": 26100,
+      "original_price": 29000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/262_6214253_500.jpg"
+    },
+    {
+      "rank": 263,
+      "product_id": "5868486",
+      "product_name": "항공 점퍼/블루종/MA-1 00",
+      "brand_name": "어나더 오피스",
+      "brand_id": "anotheroffice",
+      "product_url": "https://www.musinsa.com/products/5868486",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260105/5868486/5868486_17677753556978_500.jpg",
+      "final_price": 125000,
+      "original_price": 250000,
+      "discount_ratio": 50,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/263_5868486_500.jpg"
+    },
+    {
+      "rank": 264,
+      "product_id": "5889428",
+      "product_name": "청/데님 팬츠 36",
+      "brand_name": "노이어",
+      "brand_id": "noirer",
+      "product_url": "https://www.musinsa.com/products/5889428",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260113/5889428/5889428_17682821810261_500.jpg",
+      "final_price": 52200,
+      "original_price": 58000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/264_5889428_500.jpg"
+    },
+    {
+      "rank": 265,
+      "product_id": "6301880",
+      "product_name": "긴소매 티셔츠 M",
+      "brand_name": "유니클로 x JW 앤더슨",
+      "brand_id": "uniqloxjwanderson",
+      "product_url": "https://www.musinsa.com/products/6301880",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260413/6301880/6301880_17760689273756_500.jpg",
+      "final_price": 20000,
+      "original_price": 20000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/265_6301880_500.jpg"
+    },
+    {
+      "rank": 266,
+      "product_id": "6249089",
+      "product_name": "청/데님 팬츠 86.5",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6249089",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260403/6249089/6249089_17751472882960_500.jpg",
+      "final_price": 20700,
+      "original_price": 23000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/266_6249089_500.jpg"
+    },
+    {
+      "rank": 267,
+      "product_id": "6158951",
+      "product_name": "반소매 티셔츠",
+      "brand_name": "세릭",
+      "brand_id": "cerric",
+      "product_url": "https://www.musinsa.com/products/6158951",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260319/6158951/6158951_17738841269155_500.jpg",
+      "final_price": 35100,
+      "original_price": 39000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/267_6158951_500.jpg"
+    },
+    {
+      "rank": 268,
+      "product_id": "6090880",
+      "product_name": "숏팬츠 61 86",
+      "brand_name": "마쥬",
+      "brand_id": "maje",
+      "product_url": "https://www.musinsa.com/products/6090880",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260306/6090880/6090880_17727620522087_500.jpg",
+      "final_price": 53900,
+      "original_price": 53900,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/268_6090880_500.jpg"
+    },
+    {
+      "rank": 269,
+      "product_id": "6105272",
+      "product_name": "토리노 카고 스트링 치노팬츠 글로시 민트 S",
+      "brand_name": "세터",
+      "brand_id": "satur",
+      "product_url": "https://www.musinsa.com/products/6105272",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260310/6105272/6105272_17731105397286_500.jpg",
+      "final_price": 36000,
+      "original_price": 159000,
+      "discount_ratio": 77,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/269_6105272_500.jpg"
+    },
+    {
+      "rank": 270,
+      "product_id": "6313393",
+      "product_name": "청/데님 팬츠 34",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6313393",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260415/6313393/6313393_17762233775275_500.jpg",
+      "final_price": 23000,
+      "original_price": 23000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/270_6313393_500.jpg"
+    },
+    {
+      "rank": 271,
+      "product_id": "6313226",
+      "product_name": "청/데님 팬츠 34",
+      "brand_name": "플랙",
+      "brand_id": "plac",
+      "product_url": "https://www.musinsa.com/products/6313226",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260415/6313226/6313226_17762224315989_500.jpg",
+      "final_price": 24000,
+      "original_price": 24000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/271_6313226_500.jpg"
+    },
+    {
+      "rank": 272,
+      "product_id": "6290963",
+      "product_name": "긴소매 티셔츠 S(90)",
+      "brand_name": "지프",
+      "brand_id": "jeep",
+      "product_url": "https://www.musinsa.com/products/6290963",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260410/6290963/6290963_17757915702064_500.jpg",
+      "final_price": 25000,
+      "original_price": 25000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/272_6290963_500.jpg"
+    },
+    {
+      "rank": 273,
+      "product_id": "6302813",
+      "product_name": "피케/카라 티셔츠 S",
+      "brand_name": "디스이즈네버댓",
+      "brand_id": "thisisneverthat",
+      "product_url": "https://www.musinsa.com/products/6302813",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260413/6302813/6302813_17760808545871_500.jpg",
+      "final_price": 20000,
+      "original_price": 20000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/273_6302813_500.jpg"
+    },
+    {
+      "rank": 274,
+      "product_id": "6223246",
+      "product_name": "후드 티셔츠 FREE",
+      "brand_name": "팬시클럽",
+      "brand_id": "nastyfancyclub",
+      "product_url": "https://www.musinsa.com/products/6223246",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260330/6223246/6223246_17748801708607_500.jpg",
+      "final_price": 31500,
+      "original_price": 35000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/274_6223246_500.jpg"
+    },
+    {
+      "rank": 275,
+      "product_id": "6215255",
+      "product_name": "코튼 구르카 팬츠 [블랙] 28",
+      "brand_name": "무신사 스탠다드",
+      "brand_id": "musinsastandard",
+      "product_url": "https://www.musinsa.com/products/6215255",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260328/6215255/6215255_17746236217817_500.jpg",
+      "final_price": 9000,
+      "original_price": 49900,
+      "discount_ratio": 82,
+      "category_id": "109",
+      "labels": [
+        "B등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/275_6215255_500.jpg"
+    },
+    {
+      "rank": 276,
+      "product_id": "6253052",
+      "product_name": "카디건",
+      "brand_name": "쿠어",
+      "brand_id": "coor",
+      "product_url": "https://www.musinsa.com/products/6253052",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260403/6253052/6253052_17751949836455_500.jpg",
+      "final_price": 40500,
+      "original_price": 45000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/276_6253052_500.jpg"
+    },
+    {
+      "rank": 277,
+      "product_id": "5934444",
+      "product_name": "W SLIM FIT DENIM SHIRT blue OS",
+      "brand_name": "마리떼 프랑소와 저버",
+      "brand_id": "marithefrancoisgirbaud",
+      "product_url": "https://www.musinsa.com/products/5934444",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260126/5934444/5934444_17693901117311_500.jpg",
+      "final_price": 44520,
+      "original_price": 159000,
+      "discount_ratio": 72,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/277_5934444_500.jpg"
+    },
+    {
+      "rank": 278,
+      "product_id": "5895271",
+      "product_name": "긴소매 티셔츠 M",
+      "brand_name": "오프 화이트",
+      "brand_id": "offwhite",
+      "product_url": "https://www.musinsa.com/products/5895271",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260114/5895271/5895271_17683778742237_500.jpg",
+      "final_price": 80000,
+      "original_price": 160000,
+      "discount_ratio": 50,
+      "category_id": "109",
+      "labels": [
+        "S등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/278_5895271_500.jpg"
+    },
+    {
+      "rank": 279,
+      "product_id": "6255191",
+      "product_name": "캐주얼 셔츠 M",
+      "brand_name": "빔스",
+      "brand_id": "beams",
+      "product_url": "https://www.musinsa.com/products/6255191",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260403/6255191/6255191_17752047709731_500.jpg",
+      "final_price": 36000,
+      "original_price": 40000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/279_6255191_500.jpg"
+    },
+    {
+      "rank": 280,
+      "product_id": "6250696",
+      "product_name": "코튼 팬츠 86.5",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6250696",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260403/6250696/6250696_17751809476849_500.jpg",
+      "final_price": 14400,
+      "original_price": 16000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/280_6250696_500.jpg"
+    },
+    {
+      "rank": 281,
+      "product_id": "6311195",
+      "product_name": "청/데님 팬츠 M",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6311195",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260415/6311195/6311195_17761860865227_500.jpg",
+      "final_price": 14000,
+      "original_price": 14000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/281_6311195_500.jpg"
+    },
+    {
+      "rank": 282,
+      "product_id": "5941024",
+      "product_name": "우븐 파이어버드 트랙 팬츠 - 딥퍼플 / IZ2412 M",
+      "brand_name": "아디다스",
+      "brand_id": "adidas",
+      "product_url": "https://www.musinsa.com/products/5941024",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260127/5941024/5941024_17694816124961_500.jpg",
+      "final_price": 30540,
+      "original_price": 109000,
+      "discount_ratio": 72,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/282_5941024_500.jpg"
+    },
+    {
+      "rank": 283,
+      "product_id": "5873056",
+      "product_name": "ALIA TWEED JACKET (BLACK) FREE",
+      "brand_name": "그로브",
+      "brand_id": "grove",
+      "product_url": "https://www.musinsa.com/products/5873056",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260107/5873056/5873056_17677462688097_500.jpg",
+      "final_price": 67500,
+      "original_price": 278000,
+      "discount_ratio": 76,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/283_5873056_500.jpg"
+    },
+    {
+      "rank": 284,
+      "product_id": "6166837",
+      "product_name": "Cocoon Banded Pants (Heather Gray) 03",
+      "brand_name": "어나더 오피스",
+      "brand_id": "anotheroffice",
+      "product_url": "https://www.musinsa.com/products/6166837",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260320/6166837/6166837_17739745842569_500.jpg",
+      "final_price": 47160,
+      "original_price": 158000,
+      "discount_ratio": 70,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/284_6166837_500.jpg"
+    },
+    {
+      "rank": 285,
+      "product_id": "6290862",
+      "product_name": "반소매 티셔츠 S",
+      "brand_name": "더니트컴퍼니",
+      "brand_id": "theknitcompany",
+      "product_url": "https://www.musinsa.com/products/6290862",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260410/6290862/6290862_17757909863543_500.jpg",
+      "final_price": 14000,
+      "original_price": 14000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/285_6290862_500.jpg"
+    },
+    {
+      "rank": 286,
+      "product_id": "6264698",
+      "product_name": "카디건 M",
+      "brand_name": "코스",
+      "brand_id": "cos_used",
+      "product_url": "https://www.musinsa.com/products/6264698",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260406/6264698/6264698_17754864793007_500.jpg",
+      "final_price": 31500,
+      "original_price": 35000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/286_6264698_500.jpg"
+    },
+    {
+      "rank": 287,
+      "product_id": "6304935",
+      "product_name": "오버올 L",
+      "brand_name": "세인트크루",
+      "brand_id": "saintcrew",
+      "product_url": "https://www.musinsa.com/products/6304935",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6304935/6304935_17761317855742_500.jpg",
+      "final_price": 35000,
+      "original_price": 35000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/287_6304935_500.jpg"
+    },
+    {
+      "rank": 288,
+      "product_id": "5914688",
+      "product_name": "Garter Belt Tee Baby Blue S",
+      "brand_name": "스컬프터",
+      "brand_id": "sculptor",
+      "product_url": "https://www.musinsa.com/products/5914688",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260120/5914688/5914688_17693960682256_500.jpg",
+      "final_price": 57000,
+      "original_price": 57000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/288_5914688_500.jpg"
+    },
+    {
+      "rank": 289,
+      "product_id": "5909966",
+      "product_name": "BDU Pant - Teal Grey M",
+      "brand_name": "디스이즈네버댓",
+      "brand_id": "thisisneverthat",
+      "product_url": "https://www.musinsa.com/products/5909966",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260119/5909966/5909966_17688062321480_500.jpg",
+      "final_price": 30240,
+      "original_price": 139000,
+      "discount_ratio": 78,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/289_5909966_500.jpg"
+    },
+    {
+      "rank": 290,
+      "product_id": "6311693",
+      "product_name": "청/데님 팬츠 86",
+      "brand_name": "지오다노",
+      "brand_id": "giordano",
+      "product_url": "https://www.musinsa.com/products/6311693",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260415/6311693/6311693_17762142499297_500.jpg",
+      "final_price": 24000,
+      "original_price": 24000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/290_6311693_500.jpg"
+    },
+    {
+      "rank": 291,
+      "product_id": "6254874",
+      "product_name": "캐주얼 셔츠 XL",
+      "brand_name": "브룩스 브라더스",
+      "brand_id": "brooksbrothers",
+      "product_url": "https://www.musinsa.com/products/6254874",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260403/6254874/6254874_17752033156610_500.jpg",
+      "final_price": 36000,
+      "original_price": 40000,
+      "discount_ratio": 10,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/291_6254874_500.jpg"
+    },
+    {
+      "rank": 292,
+      "product_id": "6299121",
+      "product_name": "반소매 티셔츠 M",
+      "brand_name": "스컬프터",
+      "brand_id": "sculptor",
+      "product_url": "https://www.musinsa.com/products/6299121",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260413/6299121/6299121_17760569325596_500.jpg",
+      "final_price": 63500,
+      "original_price": 63500,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/292_6299121_500.jpg"
+    },
+    {
+      "rank": 293,
+      "product_id": "6282706",
+      "product_name": "나일론/코치 재킷 XL",
+      "brand_name": "자바나스",
+      "brand_id": "zavanas",
+      "product_url": "https://www.musinsa.com/products/6282706",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260409/6282706/6282706_17757035768957_500.jpg",
+      "final_price": 36000,
+      "original_price": 36000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/293_6282706_500.jpg"
+    },
+    {
+      "rank": 294,
+      "product_id": "6305096",
+      "product_name": "긴소매 티셔츠 L",
+      "brand_name": "자바나스",
+      "brand_id": "zavanas",
+      "product_url": "https://www.musinsa.com/products/6305096",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260414/6305096/6305096_17761330727709_500.jpg",
+      "final_price": 14000,
+      "original_price": 14000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/294_6305096_500.jpg"
+    },
+    {
+      "rank": 295,
+      "product_id": "5883443",
+      "product_name": "501® 오리지널 핏 진_12501-0377 W24 L28",
+      "brand_name": "리바이스",
+      "brand_id": "levis",
+      "product_url": "https://www.musinsa.com/products/5883443",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260109/5883443/5883443_17679481248433_500.jpg",
+      "final_price": 37500,
+      "original_price": 139000,
+      "discount_ratio": 73,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/295_5883443_500.jpg"
+    },
+    {
+      "rank": 296,
+      "product_id": "5919609",
+      "product_name": "반소매 티셔츠 XL",
+      "brand_name": "뉴에라",
+      "brand_id": "newera",
+      "product_url": "https://www.musinsa.com/products/5919609",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260121/5919609/5919609_17691539832140_500.jpg",
+      "final_price": 30000,
+      "original_price": 30000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "S+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/296_5919609_500.jpg"
+    },
+    {
+      "rank": 297,
+      "product_id": "5836336",
+      "product_name": "CLUB DE PARIS 윈드 브레이커 - IVORY S",
+      "brand_name": "이로",
+      "brand_id": "iro",
+      "product_url": "https://www.musinsa.com/products/5836336",
+      "image_url": "https://image.msscdn.net/images/goods_img/20251217/5836336/5836336_17659521564098_500.jpg",
+      "final_price": 84000,
+      "original_price": 439000,
+      "discount_ratio": 81,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/297_5836336_500.jpg"
+    },
+    {
+      "rank": 298,
+      "product_id": "6312817",
+      "product_name": "하프 패딩/하프 헤비 아우터 XL",
+      "brand_name": "유니클로",
+      "brand_id": "uniqlo_used",
+      "product_url": "https://www.musinsa.com/products/6312817",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260415/6312817/6312817_17762204790284_500.jpg",
+      "final_price": 15000,
+      "original_price": 15000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/298_6312817_500.jpg"
+    },
+    {
+      "rank": 299,
+      "product_id": "6072141",
+      "product_name": "ALL DAY ZIP UP HOODIE BLACK(MG2EFMM492A) S",
+      "brand_name": "마하그리드",
+      "brand_id": "mahagrid",
+      "product_url": "https://www.musinsa.com/products/6072141",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260303/6072141/6072141_17730221790418_500.jpg",
+      "final_price": 30600,
+      "original_price": 109000,
+      "discount_ratio": 72,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/299_6072141_500.jpg"
+    },
+    {
+      "rank": 300,
+      "product_id": "6301053",
+      "product_name": "조거 팬츠",
+      "brand_name": "자바나스",
+      "brand_id": "zavanas",
+      "product_url": "https://www.musinsa.com/products/6301053",
+      "image_url": "https://image.msscdn.net/images/goods_img/20260413/6301053/6301053_17760648579498_500.jpg",
+      "final_price": 19000,
+      "original_price": 19000,
+      "discount_ratio": 0,
+      "category_id": "109",
+      "labels": [
+        "A+등급"
+      ],
+      "is_used": true,
+      "local_image_path": "/Users/yoon/Library/CloudStorage/Dropbox/TRUNKROOM/sample-clothes-image/300_6301053_500.jpg"
+    }
+  ]
+}

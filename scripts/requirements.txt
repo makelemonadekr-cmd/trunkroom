@@ -1,0 +1,5 @@
+# TRUNKROOM image processing pipeline dependencies
+# Install with: pip3 install -r scripts/requirements.txt
+
+opencv-python-headless>=4.0.0
+Pillow>=9.0.0

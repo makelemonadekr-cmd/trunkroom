@@ -2,6 +2,7 @@ import { useState } from "react";
 import PrivacyPolicyScreen from "../legal/PrivacyPolicyScreen";
 import TermsOfServiceScreen from "../legal/TermsOfServiceScreen";
 import AccountSettingsScreen from "./AccountSettingsScreen";
+import CustomerSupportPage from "../support/CustomerSupportPage";
 import {
   COMPANY_NAME, COMPANY_CEO, BUSINESS_NUMBER, TELECOM_REG_NUMBER,
   COMPANY_URL, SUPPORT_EMAIL, PARTNERSHIP_EMAIL,
@@ -159,6 +160,7 @@ export default function MenuPage() {
   const [screen,       setScreen]       = useState(null);  // null | "privacy" | "terms"
   const [accountOpen,  setAccountOpen]  = useState(false);
   const [appInfoOpen,  setAppInfoOpen]  = useState(false);
+  const [supportOpen,  setSupportOpen]  = useState(false);
 
   return (
     <div className="relative flex flex-col h-full overflow-hidden" style={{ backgroundColor: LIGHT }}>
@@ -167,6 +169,7 @@ export default function MenuPage() {
       {screen === "privacy" && <PrivacyPolicyScreen onBack={() => setScreen(null)} />}
       {screen === "terms"   && <TermsOfServiceScreen onBack={() => setScreen(null)} />}
       {accountOpen && <AccountSettingsScreen onBack={() => setAccountOpen(false)} />}
+      {supportOpen && <CustomerSupportPage onBack={() => setSupportOpen(false)} />}
 
       {/* ── Header ── */}
       <div
@@ -248,21 +251,14 @@ export default function MenuPage() {
           />
         </RowGroup>
 
-        {/* ── 고객 지원 ── */}
-        <SectionLabel>고객 지원</SectionLabel>
+        {/* ── 고객지원 (new combined entry point) ── */}
+        <SectionLabel>고객지원</SectionLabel>
         <RowGroup>
           <Row
-            label="고객센터 전화"
+            label="고객지원 센터"
             icon={<PhoneIcon />}
-            value={CUSTOMER_SERVICE_PHONE}
-            subValue={SUPPORT_HOURS}
-            onPress={() => openTel(CUSTOMER_SERVICE_PHONE)}
-          />
-          <Row
-            label="이메일 문의"
-            icon={<MailIcon />}
-            value={SUPPORT_EMAIL}
-            onPress={() => openMailTo(SUPPORT_EMAIL, "[문의] 트렁크룸")}
+            subValue="제휴문의 · 전화 · 이메일"
+            onPress={() => setSupportOpen(true)}
             last
           />
         </RowGroup>

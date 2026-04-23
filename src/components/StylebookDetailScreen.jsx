@@ -16,6 +16,7 @@
 
 import { useState } from "react";
 import { CLOSET_ITEMS } from "../constants/mockClosetData";
+import SimilarClosetScreen from "./SimilarClosetScreen";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
@@ -244,20 +245,26 @@ function SectionLabel({ text, badge }) {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 /**
- * @param {object}   coordi          - full coordi/stylebook entry from coordiStore
- * @param {function} onBack          - close the detail view
- * @param {function} [onEdit]        - open the editor for this entry
- * @param {function} [onDelete]      - delete this entry by id
- * @param {function} [onProductSelect] - open ProductDetailPage for an item
+ * @param {object}   coordi            - full coordi/stylebook entry from coordiStore
+ * @param {function} onBack            - close the detail view
+ * @param {function} [onEdit]          - open the editor for this entry
+ * @param {function} [onDelete]        - delete this entry by id
+ * @param {function} [onItemTap]       - open ClosetItemDetailScreen for a closet item
+ * @param {function} [onProductSelect] - legacy alias for onItemTap
  */
 export default function StylebookDetailScreen({
   coordi,
   onBack,
   onEdit,
   onDelete,
+  onItemTap,
   onProductSelect,
 }) {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [similarOpen,   setSimilarOpen]   = useState(false);
+
+  // Resolve the item-tap handler (prefer onItemTap, fall back to onProductSelect)
+  const handleItemTap = onItemTap ?? onProductSelect;
 
   // Resolve item objects from stored IDs
   const items = (coordi.itemIds ?? [])
@@ -439,7 +446,7 @@ export default function StylebookDetailScreen({
               style={{ scrollbarWidth: "none", paddingBottom: 4 }}
             >
               {items.map((item) => (
-                <ItemCard key={item.id} item={item} onTap={onProductSelect} />
+                <ItemCard key={item.id} item={item} onTap={handleItemTap} />
               ))}
             </div>
           </div>
@@ -475,6 +482,32 @@ export default function StylebookDetailScreen({
           </div>
         )}
 
+        {/* ── 나도 비슷하게 코디해볼까? ────────────────────────────────── */}
+        <div className="px-5 pt-4 pb-5" style={{ borderBottom: "1px solid #F2F2F2" }}>
+          <button
+            onClick={() => setSimilarOpen(true)}
+            className="w-full rounded-2xl px-4 py-4 flex items-center justify-between active:opacity-80"
+            style={{ backgroundColor: "#FEFCE8", border: "1.5px solid #EDD83A" }}
+          >
+            <div className="text-left">
+              <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
+                나도 비슷하게 코디해볼까?
+              </p>
+              <p className="text-[11px] mt-0.5" style={{ color: "#888", fontFamily: FONT }}>
+                내 옷장에서 비슷한 아이템을 찾아드려요
+              </p>
+            </div>
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+              style={{ backgroundColor: DARK }}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M6 3L11 8L6 13" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          </button>
+        </div>
+
         {/* ── Brand footer ──────────────────────────────────────────────── */}
         <div className="flex items-center justify-center py-10">
           <div className="flex items-center gap-3">
@@ -494,6 +527,15 @@ export default function StylebookDetailScreen({
           </div>
         </div>
       </div>
+
+      {/* ══ SIMILAR CLOSET OVERLAY ══════════════════════════════════════════ */}
+      {similarOpen && (
+        <SimilarClosetScreen
+          wornItems={items}
+          onBack={() => setSimilarOpen(false)}
+          onItemTap={(item) => { setSimilarOpen(false); handleItemTap?.(item); }}
+        />
+      )}
 
       {/* ══ DELETE CONFIRMATION SHEET ════════════════════════════════════════ */}
       {deleteConfirm && (

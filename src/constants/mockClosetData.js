@@ -1,81 +1,92 @@
-// ─── Capsule wardrobe image pool ──────────────────────────────────────────────
-// 4 capsule flat-lays → 60 individual item crops (cap{1-4}_r{0-2}c{0-4}.jpg)
-// Each crop is 400×400 px, white-background, auto-cropped via Python/PIL.
+// ─── Image pool helpers ───────────────────────────────────────────────────────
+// Clothing categories (상의/하의/아우터/원피스) draw from the 옷 folder:
+//   public/assets/images/items/  (300 Musinsa product shots, zone "closet")
+//
+// Shoes/bags/accessories still use capsule crops — the items pool has only 1
+// image per those categories, so repeating it would look worse than caps.
+//
+// Usage: zoneItemImg("closet", "tops", N)   → items/tops pool, closet zone
+//        CI(n,r,c)                          → capsule crop for shoes/bags/access
+
+import { zoneItemImg } from "../lib/localImages";
 
 const CI = (n, r, c) => `/assets/images/capsule_items/cap${n}_r${r}c${c}.jpg`;
 
+// Shorthand for closet zone — keeps the IMG object readable
+const _t  = (i) => zoneItemImg("closet", "tops",      i);  // tops pool
+const _b  = (i) => zoneItemImg("closet", "bottoms",   i);  // bottoms pool
+const _o  = (i) => zoneItemImg("closet", "outerwear", i);  // outerwear pool
+const _d  = (i) => zoneItemImg("closet", "dress",     i);  // dress pool
+
 const IMG = {
-  // ─── 상의 (Tops) ──────────────────────────────────────────────────────────
-  whiteTee:         CI(1,2,2),  // white cami / tank (cap1 row2 col2)
-  stripedTee:       CI(3,0,0),  // striped polo shirt (cap3 row0 col0)
-  knitTop:          CI(2,0,1),  // gray V-neck sweater (cap2 row0 col1)
-  blouse:           CI(4,2,4),  // white puff-sleeve blouse (cap4 row2 col4)
-  blouse2:          CI(4,1,1),  // white oversized button-up shirt (cap4 row1 col1)
-  rustTop:          CI(3,0,1),  // burgundy velvet strapless top (cap3 row0 col1)
-  beigeTop:         CI(1,1,0),  // beige linen oversized shirt (cap1 row1 col0)
-  // Extra knit variety
-  knitCream:        CI(2,0,0),  // cream cable knit (cap2 row0 col0)
-  knitOlive:        CI(2,0,2),  // olive green knit (cap2 row0 col2)
-  knitGray:         CI(4,0,2),  // gray oversized turtleneck (cap4 row0 col2)
-  knitCream2:       CI(4,0,1),  // cream cable knit alt (cap4 row0 col1)
-  knitFuzzy:        CI(1,0,1),  // cream fuzzy V-neck (cap1 row0 col1)
-  // Cardigans
-  cardGray:         CI(1,0,0),  // gray V-neck cardigan (cap1 row0 col0)
-  cardBrown:        CI(4,0,0),  // brown wrap cardigan (cap4 row0 col0)
-  // Black turtleneck / fitted
-  blackKnit:        CI(1,1,2),  // black turtleneck knit (cap1 row1 col2)
-  tanTank:          CI(2,1,0),  // tan turtleneck sleeveless (cap2 row1 col0)
-  whiteAsym:        CI(4,1,0),  // white asymmetric draped top (cap4 row1 col0)
+  // ─── 상의 (Tops) — from 옷/items pool ────────────────────────────────────
+  whiteTee:         _t(0),   // white cami / tank
+  stripedTee:       _t(1),   // striped top
+  knitTop:          _t(2),   // V-neck sweater
+  blouse:           _t(3),   // puff-sleeve blouse
+  blouse2:          _t(4),   // oversized button-up shirt
+  rustTop:          _t(5),   // strapless / fitted top
+  beigeTop:         _t(6),   // oversized linen shirt
+  knitCream:        _t(7),   // cream cable knit
+  knitOlive:        _t(8),   // olive green knit
+  knitGray:         _t(9),   // gray oversized turtleneck
+  knitCream2:       _t(10),  // cream cable knit alt
+  knitFuzzy:        _t(11),  // fuzzy V-neck knit
+  cardGray:         _t(12),  // gray V-neck cardigan
+  cardBrown:        _t(13),  // brown wrap cardigan
+  blackKnit:        _t(14),  // black turtleneck knit
+  tanTank:          _t(15),  // sleeveless turtleneck
+  whiteAsym:        _t(16),  // asymmetric draped top
 
-  // ─── 하의 (Bottoms) ────────────────────────────────────────────────────────
-  denim:            CI(1,1,3),  // navy wide-leg jeans (cap1 row1 col3)
-  denim2:           CI(3,1,0),  // wide dark indigo jeans (cap3 row1 col0)
-  widePants:        CI(4,1,2),  // cream wide pants + belt (cap4 row1 col2)
-  trousers:         CI(1,1,4),  // burgundy wide trousers (cap1 row1 col4)
-  skirt:            CI(3,1,4),  // burgundy satin midi skirt (cap3 row1 col4)
-  skirtPlaid:       CI(2,1,1),  // red plaid midi skirt (cap2 row1 col1)
-  skirtMini:        CI(3,1,2),  // leopard mini skirt (cap3 row1 col2)
-  skirtCheck:       CI(4,2,1),  // plaid check mini skirt (cap4 row2 col1)
+  // ─── 하의 (Bottoms) — from 옷/items pool ─────────────────────────────────
+  denim:            _b(0),   // wide-leg jeans
+  denim2:           _b(1),   // dark indigo jeans
+  widePants:        _b(2),   // wide pants + belt
+  trousers:         _b(3),   // wide trousers
+  skirt:            _b(4),   // satin midi skirt
+  skirtPlaid:       _b(5),   // plaid midi skirt
+  skirtMini:        _b(6),   // mini skirt
+  skirtCheck:       _b(7),   // check mini skirt
 
-  // ─── 아우터 (Outerwear) ────────────────────────────────────────────────────
-  trench:           CI(4,0,3),  // beige/khaki trench coat (cap4 row0 col3)
-  trench2:          CI(2,0,4),  // olive green belted trench (cap2 row0 col4)
-  blazer:           CI(3,0,2),  // gray cropped blazer (cap3 row0 col2)
-  blazerBurg:       CI(1,0,2),  // burgundy structured blazer (cap1 row0 col2)
-  blazerNavy:       CI(2,1,3),  // navy double-breasted blazer (cap2 row1 col3)
-  streetJkt:        CI(4,1,3),  // navy denim jacket velvet collar (cap4 row1 col3)
-  coatIvory:        CI(1,0,3),  // ivory white wrap coat (cap1 row0 col3)
-  coatChoco:        CI(4,0,4),  // chocolate brown long coat (cap4 row0 col4)
-  coatBeige:        CI(2,0,3),  // beige short crop jacket (cap2 row0 col3)
+  // ─── 아우터 (Outerwear) — from 옷/items pool ─────────────────────────────
+  trench:           _o(0),   // trench coat
+  trench2:          _o(1),   // belted trench
+  blazer:           _o(2),   // cropped blazer
+  blazerBurg:       _o(3),   // structured blazer
+  blazerNavy:       _o(4),   // double-breasted blazer
+  streetJkt:        _o(5),   // denim jacket
+  coatIvory:        _o(6),   // ivory wrap coat
+  coatChoco:        _o(7),   // long coat
+  coatBeige:        _o(8),   // short crop jacket
 
-  // ─── 원피스 (Dresses) ──────────────────────────────────────────────────────
-  florDress:        CI(2,1,2),  // white a-line midi dress (cap2 row1 col2)
-  dotDress:         CI(3,0,3),  // black velvet mini dress (cap3 row0 col3)
-  maxiDress:        CI(3,0,4),  // white halter neck maxi dress (cap3 row0 col4)
-  slvlessDress:     CI(1,0,4),  // black sleeveless wrap dress (cap1 row0 col4)
+  // ─── 원피스 (Dresses) — from 옷/items pool ────────────────────────────────
+  florDress:        _d(0),   // a-line midi dress
+  dotDress:         _d(1),   // mini dress
+  maxiDress:        _d(2),   // maxi dress
+  slvlessDress:     _d(3),   // wrap dress
 
-  // ─── 신발 (Shoes) ──────────────────────────────────────────────────────────
-  lifestyle1:       CI(4,2,0),  // golden goose sneakers (cap4 row2 col0)
-  lifestyle2:       CI(3,2,1),  // black oxford shoes (cap3 row2 col1)
-  boots:            CI(4,2,3),  // brown tall boots + slingback heels (cap4 row2 col3)
-  flats:            CI(3,2,4),  // black ballet flats (cap3 row2 col4)
+  // ─── 신발 (Shoes) — capsule crops (items pool has only 1 shoe image) ─────
+  lifestyle1:       CI(4,2,0),  // golden goose sneakers
+  lifestyle2:       CI(3,2,1),  // black oxford shoes
+  boots:            CI(4,2,3),  // brown boots + slingback heels
+  flats:            CI(3,2,4),  // black ballet flats
 
-  // ─── 가방 (Bags) ───────────────────────────────────────────────────────────
-  bagBurg:          CI(1,2,0),  // burgundy bag pair (cap1 row2 col0)
-  bagTote:          CI(2,2,0),  // burgundy tote (cap2 row2 col0)
-  bagSaddle:        CI(2,2,1),  // saddle cross-body bag (cap2 row2 col1)
-  bagKnot:          CI(3,1,1),  // white knot/braided bag (cap3 row1 col1)
-  bagMini:          CI(3,1,3),  // burgundy mini handbag (cap3 row1 col3)
+  // ─── 가방 (Bags) — capsule crops (items pool has only 1 bag image) ───────
+  bagBurg:          CI(1,2,0),  // burgundy bag pair
+  bagTote:          CI(2,2,0),  // burgundy tote
+  bagSaddle:        CI(2,2,1),  // saddle cross-body bag
+  bagKnot:          CI(3,1,1),  // white knot/braided bag
+  bagMini:          CI(3,1,3),  // burgundy mini handbag
 
-  // ─── 액세서리 (Accessories) ────────────────────────────────────────────────
-  necklace:         CI(1,2,3),  // gold layered necklace (cap1 row2 col3)
-  glasses:          CI(1,2,4),  // glasses (cap1 row2 col4)
-  accessories1:     CI(1,2,1),  // watch + hoop earrings (cap1 row2 col1)
-  pearlearrings:    CI(3,2,0),  // pearl earrings (cap3 row2 col0)
-  silkScarf:        CI(3,2,2),  // silk scarf (cap3 row2 col2)
-  goldWatch:        CI(3,2,3),  // gold watch (cap3 row2 col3)
-  plaidScarf:       CI(2,2,4),  // plaid scarf (cap2 row2 col4)
-  belt:             CI(2,2,2),  // thin belt (cap2 row2 col2)
+  // ─── 액세서리 (Accessories) — capsule crops (items pool has 1 acc image) ─
+  necklace:         CI(1,2,3),  // gold layered necklace
+  glasses:          CI(1,2,4),  // glasses
+  accessories1:     CI(1,2,1),  // watch + hoop earrings
+  pearlearrings:    CI(3,2,0),  // pearl earrings
+  silkScarf:        CI(3,2,2),  // silk scarf
+  goldWatch:        CI(3,2,3),  // gold watch
+  plaidScarf:       CI(2,2,4),  // plaid scarf
+  belt:             CI(2,2,2),  // thin belt
 };
 
 // ─── Main categories ──────────────────────────────────────────────────────────

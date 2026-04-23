@@ -10,7 +10,13 @@ import { useFavorites } from "../../lib/favoritesStore";
 import WeatherDetailScreen from "../weather/WeatherDetailScreen";
 import FullListScreen from "../closet/FullListScreen";
 import { useWeather, CONDITION_META } from "../../hooks/useWeather";
-import { getWeatherOutfitRec, buildWeatherContext } from "../../services/weatherRecommendation";
+import {
+  getWeatherOutfitRec,
+  buildWeatherContext,
+  getTempPref,
+  setTempPref,
+  TEMP_PREF_LABELS,
+} from "../../services/weatherRecommendation";
 import { getWearRecord, todayStr } from "../../lib/wearHistoryStore";
 import {
   MAIN_CATEGORIES,
@@ -20,6 +26,7 @@ import {
   getItemsBySubcategory,
 } from "../../constants/mockClosetData";
 import { filterClosetItemsByPiece } from "../../lib/filterClosetItemsByPiece";
+import SimilarClosetScreen from "../../components/SimilarClosetScreen";
 import {
   COMPANY_NAME, COMPANY_CEO, BUSINESS_NUMBER, TELECOM_REG_NUMBER,
   APP_VERSION,
@@ -27,6 +34,7 @@ import {
   CUSTOMER_SERVICE_PHONE, SUPPORT_HOURS,
   openExternalUrl, openMailTo, openTel,
 } from "../../constants/appConfig";
+import { zoneItemImg, zoneCoordiImg } from "../../lib/localImages";
 
 // ─── 2 banner slides ──────────────────────────────────────────────────────────
 // Order: [0] mainimage (→ introducing), [1] banner2 (→ guide)
@@ -552,6 +560,12 @@ function ClosetItemsByPiece({ piece, onItemTap }) {
 
 // ─── Weather section ──────────────────────────────────────────────────────────
 
+const TEMP_PREFS = [
+  { key: "cold",   label: "추위 탐", emoji: "🧊" },
+  { key: "normal", label: "보통",    emoji: "😊" },
+  { key: "warm",   label: "더위 탐", emoji: "🔥" },
+];
+
 function WeatherSection({ onExpand, onItemTap }) {
   const { weather, loading } = useWeather();
   const [selectedPiece, setSelectedPiece] = useState(null);
@@ -578,7 +592,7 @@ function WeatherSection({ onExpand, onItemTap }) {
 
   if (!weather) return null;
 
-  const outfit = getWeatherOutfitRec(buildWeatherContext(weather));
+  const outfit = getWeatherOutfitRec(buildWeatherContext(weather, getTempPref()));
   const cond   = CONDITION_META[weather.conditionCode] || CONDITION_META.clear;
 
   function handlePieceTap(piece) {
@@ -773,16 +787,15 @@ function WeatherSection({ onExpand, onItemTap }) {
 // Shows community outfit posts from today / last 7 days.
 // Uses capsule flat-lay images as outfit thumbnails.
 
-const CC = (n) => `/assets/images/capsule_coordi/capsule${n}.jpg`;  // capsule flat-lay
-const CI = (n, r, c) => `/assets/images/capsule_items/cap${n}_r${r}c${c}.jpg`; // individual crop
-
+// ─── Community posts use 스타일 folder (coordi pool, community zone 60-79) ────
+// Item listings use 옷 folder (items pool, homeListings zone)
 const COMMUNITY_TODAY_POSTS = [
   {
     id: "c1",
     username: "minj_closet",
     avatar: "🧥",
     timeAgo: "방금",
-    image: CC(1),
+    image: zoneCoordiImg("community", 0),
     mood: "미니멀",
     moodColor: "#E8E8E8",
     moodText: "#444",
@@ -793,7 +806,7 @@ const COMMUNITY_TODAY_POSTS = [
     username: "stylegram_y",
     avatar: "👗",
     timeAgo: "1시간 전",
-    image: CC(2),
+    image: zoneCoordiImg("community", 1),
     mood: "빈티지",
     moodColor: "#F5ECD7",
     moodText: "#7A5C2E",
@@ -804,7 +817,7 @@ const COMMUNITY_TODAY_POSTS = [
     username: "daily.ootd_j",
     avatar: "🧣",
     timeAgo: "3시간 전",
-    image: CC(3),
+    image: zoneCoordiImg("community", 2),
     mood: "캐주얼",
     moodColor: "#E3EEFF",
     moodText: "#2B5DD4",
@@ -815,7 +828,7 @@ const COMMUNITY_TODAY_POSTS = [
     username: "codi_hana",
     avatar: "👔",
     timeAgo: "어제",
-    image: CC(4),
+    image: zoneCoordiImg("community", 3),
     mood: "오피스",
     moodColor: "#E8F5E9",
     moodText: "#2E7D32",
@@ -826,7 +839,7 @@ const COMMUNITY_TODAY_POSTS = [
     username: "fitcheck_s",
     avatar: "🌸",
     timeAgo: "어제",
-    image: CC(1),
+    image: zoneCoordiImg("community", 4),
     mood: "페미닌",
     moodColor: "#FCE4EC",
     moodText: "#C2185B",
@@ -837,7 +850,7 @@ const COMMUNITY_TODAY_POSTS = [
     username: "wearlog_k",
     avatar: "🖤",
     timeAgo: "2일 전",
-    image: CC(3),
+    image: zoneCoordiImg("community", 5),
     mood: "시크",
     moodColor: "#F0F0F0",
     moodText: "#333",
@@ -845,86 +858,279 @@ const COMMUNITY_TODAY_POSTS = [
   },
 ];
 
-function CommunityTodaySection() {
+// ─── Community Style Detail Screen ───────────────────────────────────────────
+// Opens when user taps a community post. Shows outfit photo + metadata + worn items.
+
+function CommunityStyleDetailScreen({ post, onBack, onItemTap }) {
   const FONT = "'Spoqa Han Sans Neo', sans-serif";
+  const [similarOpen, setSimilarOpen] = useState(false);
+
+  // Pick a few sample closet items to "suggest" as worn items for the post
+  // In a real app these would come from post.itemIds; here we pick plausible ones
+  const suggestedItems = CLOSET_ITEMS
+    .slice(0, 6)
+    .filter((_, i) => [0, 2, 4].includes(i));
 
   return (
-    <div className="py-6" style={{ backgroundColor: "#F8F8F8" }}>
-      <SectionHeader en="COMMUNITY" ko="남들은 오늘 이거 입었어요" />
+    <div className="absolute inset-0 z-30 flex flex-col bg-white overflow-hidden">
+      {/* Similar closet items overlay */}
+      {similarOpen && (
+        <SimilarClosetScreen
+          wornItems={suggestedItems}
+          onBack={() => setSimilarOpen(false)}
+          onItemTap={(item) => { setSimilarOpen(false); onItemTap?.(item); }}
+        />
+      )}
 
-      {/* 2-column grid */}
-      <div className="px-4 grid grid-cols-2 gap-3">
-        {COMMUNITY_TODAY_POSTS.map((post) => (
+      {/* Hero image — scrollable */}
+      <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
+        {/* Full-bleed hero */}
+        <div className="relative" style={{ height: 420 }}>
+          <img
+            src={post.image}
+            alt={post.username}
+            className="absolute inset-0 w-full h-full"
+            style={{ objectFit: "cover", objectPosition: "center top" }}
+          />
+          {/* Gradient */}
+          <div
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.05) 50%, rgba(0,0,0,0.0) 100%)" }}
+          />
+          {/* Back button */}
           <button
-            key={post.id}
-            className="relative rounded-2xl overflow-hidden text-left active:opacity-90"
-            style={{ aspectRatio: "3 / 4", backgroundColor: "#E8E8E8" }}
+            onClick={onBack}
+            className="absolute top-4 left-4 w-9 h-9 flex items-center justify-center rounded-full active:opacity-70"
+            style={{ backgroundColor: "rgba(255,255,255,0.88)", backdropFilter: "blur(10px)" }}
           >
-            {/* Outfit photo */}
-            <img
-              src={post.image}
-              alt={post.username}
-              className="absolute inset-0 w-full h-full"
-              style={{ objectFit: "cover", objectPosition: "center top" }}
-            />
-            {/* Gradient overlay */}
-            <div
-              className="absolute inset-0"
-              style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.10) 55%, transparent 100%)" }}
-            />
-            {/* Top: mood chip */}
-            <div className="absolute top-2.5 left-2.5">
-              <span
-                className="text-[9px] font-bold px-2 py-0.5 rounded-full"
-                style={{ backgroundColor: post.moodColor, color: post.moodText, fontFamily: FONT }}
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M11 4L6 9L11 14" stroke="#222" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          {/* Mood chip */}
+          <div className="absolute top-4 right-4">
+            <span
+              className="text-[10px] font-bold px-2.5 py-1 rounded-full"
+              style={{ backgroundColor: post.moodColor, color: post.moodText, fontFamily: FONT }}
+            >
+              {post.mood}
+            </span>
+          </div>
+          {/* Bottom user info overlay */}
+          <div
+            className="absolute bottom-0 left-0 right-0 px-5 pb-5"
+            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.78) 0%, transparent 100%)" }}
+          >
+            <div className="flex items-center gap-2.5 mb-1.5">
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[16px]"
+                style={{ backgroundColor: "rgba(255,255,255,0.18)", backdropFilter: "blur(4px)" }}
               >
-                {post.mood}
-              </span>
-            </div>
-            {/* Top-right: heart + like count */}
-            <div className="absolute top-2.5 right-2.5 flex items-center gap-0.5">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path
-                  d="M5 8.5L1.2 4.8C0.8 4.4 0.8 4 0.8 3.5C0.8 2.4 1.8 1.5 3.1 1.5C3.7 1.5 4.2 1.8 4.6 2.2L5 2.6L5.4 2.2C5.8 1.8 6.3 1.5 6.9 1.5C8.2 1.5 9.2 2.4 9.2 3.5C9.2 4 9.1 4.4 8.8 4.8L5 8.5Z"
-                  fill="rgba(255,255,255,0.75)"
-                />
-              </svg>
-              <span className="text-[9px] font-bold" style={{ color: "rgba(255,255,255,0.85)", fontFamily: FONT }}>{post.likes}</span>
-            </div>
-            {/* Bottom: user info */}
-            <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <div
-                  className="w-5 h-5 rounded-full flex items-center justify-center text-[11px]"
-                  style={{ backgroundColor: "rgba(255,255,255,0.18)", backdropFilter: "blur(4px)" }}
-                >
-                  {post.avatar}
-                </div>
-                <p className="text-[10px] font-bold text-white truncate" style={{ fontFamily: FONT }}>
-                  @{post.username}
-                </p>
+                {post.avatar}
               </div>
-              <p className="text-[9px]" style={{ color: "rgba(255,255,255,0.50)", fontFamily: FONT }}>
-                {post.timeAgo}
+              <div>
+                <p className="text-[13px] font-bold text-white" style={{ fontFamily: FONT }}>@{post.username}</p>
+                <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.55)", fontFamily: FONT }}>{post.timeAgo}</p>
+              </div>
+              <div className="ml-auto flex items-center gap-1">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M7 12L1.5 6.5C1 6 1 5.5 1 4.8C1 3.2 2.5 2 4.2 2C5.1 2 5.9 2.5 6.5 3.1L7 3.7L7.5 3.1C8.1 2.5 8.9 2 9.8 2C11.5 2 13 3.2 13 4.8C13 5.5 12.9 6 12.5 6.5L7 12Z"
+                    fill="rgba(255,255,255,0.8)" />
+                </svg>
+                <span className="text-[12px] font-bold text-white" style={{ fontFamily: FONT }}>{post.likes}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Content body ── */}
+        <div className="px-5 pt-5 pb-8">
+
+          {/* Style summary */}
+          <div className="flex items-center gap-2 mb-4">
+            <span
+              className="text-[12px] font-bold px-3 py-1.5 rounded-full"
+              style={{ backgroundColor: post.moodColor, color: post.moodText, fontFamily: FONT }}
+            >
+              {post.mood}
+            </span>
+            <span className="text-[11px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>{post.timeAgo} 스타일</span>
+          </div>
+
+          {/* Worn items section */}
+          <div className="mb-5">
+            <p
+              className="text-[11px] font-bold tracking-[0.08em] uppercase mb-3"
+              style={{ color: "#AAAAAA", fontFamily: FONT }}
+            >
+              착용한 아이템
+            </p>
+            <div className="grid grid-cols-3 gap-2.5">
+              {suggestedItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => onItemTap?.(item)}
+                  className="flex flex-col text-left active:opacity-70"
+                >
+                  <div
+                    className="rounded-xl overflow-hidden w-full relative"
+                    style={{ aspectRatio: "3/4", backgroundColor: "#F5F2EC" }}
+                  >
+                    {item.image && (
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        style={{
+                          width: "100%", height: "100%",
+                          objectFit: "cover", objectPosition: "center top",
+                          mixBlendMode: "multiply",
+                        }}
+                      />
+                    )}
+                    {/* Tap indicator */}
+                    <div
+                      className="absolute bottom-1.5 right-1.5 w-5 h-5 rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: "rgba(0,0,0,0.18)" }}
+                    >
+                      <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                        <path d="M3 1.5L5.5 4L3 6.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                  </div>
+                  <p className="text-[10px] font-medium mt-1.5 truncate w-full" style={{ color: "#1a1a1a", fontFamily: FONT }}>
+                    {item.displayName ?? item.name}
+                  </p>
+                  <p className="text-[9px] truncate w-full" style={{ color: "#AAAAAA", fontFamily: FONT }}>{item.brand}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div style={{ height: 1, backgroundColor: "#F0F0F0", marginBottom: 16 }} />
+
+          {/* "나도 비슷하게 입어보기" CTA */}
+          <button
+            onClick={() => setSimilarOpen(true)}
+            className="w-full rounded-2xl px-4 py-4 flex items-center justify-between active:opacity-80"
+            style={{ backgroundColor: "#FEFCE8", border: "1.5px solid #EDD83A" }}
+          >
+            <div className="text-left">
+              <p className="text-[13px] font-bold" style={{ color: "#1a1a1a", fontFamily: FONT }}>
+                나도 비슷하게 코디해볼까?
+              </p>
+              <p className="text-[11px] mt-0.5" style={{ color: "#888", fontFamily: FONT }}>
+                내 옷장에서 비슷한 아이템을 찾아드려요
               </p>
             </div>
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+              style={{ backgroundColor: "#1a1a1a" }}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M6 3L11 8L6 13" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
           </button>
-        ))}
-      </div>
-
-      {/* 더보기 button */}
-      <div className="px-4 mt-4">
-        <button
-          className="w-full py-3 rounded-xl flex items-center justify-center gap-2"
-          style={{ backgroundColor: "white", border: "1px solid #E8E8E8" }}
-        >
-          <span className="text-[13px] font-medium" style={{ color: "#444", fontFamily: FONT }}>커뮤니티 코디 더보기</span>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M5 3L9 7L5 11" stroke="#888" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
+        </div>
       </div>
     </div>
+  );
+}
+
+function CommunityTodaySection({ onItemTap }) {
+  const FONT = "'Spoqa Han Sans Neo', sans-serif";
+  const [activePost, setActivePost] = useState(null);
+
+  return (
+    <>
+      {/* Community post detail overlay */}
+      {activePost && (
+        <CommunityStyleDetailScreen
+          post={activePost}
+          onBack={() => setActivePost(null)}
+          onItemTap={onItemTap}
+        />
+      )}
+
+      <div className="py-6" style={{ backgroundColor: "#F8F8F8" }}>
+        <SectionHeader en="COMMUNITY" ko="남들은 오늘 이거 입었어요" />
+
+        {/* 2-column grid */}
+        <div className="px-4 grid grid-cols-2 gap-3">
+          {COMMUNITY_TODAY_POSTS.map((post) => (
+            <button
+              key={post.id}
+              onClick={() => setActivePost(post)}
+              className="relative rounded-2xl overflow-hidden text-left active:opacity-90"
+              style={{ aspectRatio: "3 / 4", backgroundColor: "#E8E8E8" }}
+            >
+              {/* Outfit photo */}
+              <img
+                src={post.image}
+                alt={post.username}
+                className="absolute inset-0 w-full h-full"
+                style={{ objectFit: "cover", objectPosition: "center top" }}
+              />
+              {/* Gradient overlay */}
+              <div
+                className="absolute inset-0"
+                style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.10) 55%, transparent 100%)" }}
+              />
+              {/* Top: mood chip */}
+              <div className="absolute top-2.5 left-2.5">
+                <span
+                  className="text-[9px] font-bold px-2 py-0.5 rounded-full"
+                  style={{ backgroundColor: post.moodColor, color: post.moodText, fontFamily: FONT }}
+                >
+                  {post.mood}
+                </span>
+              </div>
+              {/* Top-right: heart + like count */}
+              <div className="absolute top-2.5 right-2.5 flex items-center gap-0.5">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path
+                    d="M5 8.5L1.2 4.8C0.8 4.4 0.8 4 0.8 3.5C0.8 2.4 1.8 1.5 3.1 1.5C3.7 1.5 4.2 1.8 4.6 2.2L5 2.6L5.4 2.2C5.8 1.8 6.3 1.5 6.9 1.5C8.2 1.5 9.2 2.4 9.2 3.5C9.2 4 9.1 4.4 8.8 4.8L5 8.5Z"
+                    fill="rgba(255,255,255,0.75)"
+                  />
+                </svg>
+                <span className="text-[9px] font-bold" style={{ color: "rgba(255,255,255,0.85)", fontFamily: FONT }}>{post.likes}</span>
+              </div>
+              {/* Bottom: user info */}
+              <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <div
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-[11px]"
+                    style={{ backgroundColor: "rgba(255,255,255,0.18)", backdropFilter: "blur(4px)" }}
+                  >
+                    {post.avatar}
+                  </div>
+                  <p className="text-[10px] font-bold text-white truncate" style={{ fontFamily: FONT }}>
+                    @{post.username}
+                  </p>
+                </div>
+                <p className="text-[9px]" style={{ color: "rgba(255,255,255,0.50)", fontFamily: FONT }}>
+                  {post.timeAgo}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* 더보기 button */}
+        <div className="px-4 mt-4">
+          <button
+            className="w-full py-3 rounded-xl flex items-center justify-center gap-2"
+            style={{ backgroundColor: "white", border: "1px solid #E8E8E8" }}
+          >
+            <span className="text-[13px] font-medium" style={{ color: "#444", fontFamily: FONT }}>커뮤니티 코디 더보기</span>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M5 3L9 7L5 11" stroke="#888" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -949,9 +1155,9 @@ function SectionHeader({ en, ko, onMore }) {
   );
 }
 
-// ─── Product data — capsule item crops ────────────────────────────────────────
-// Uses individual crops from the 4 capsule flat-lays.
-// Items shown as "남의 옷장" listings (for sale / hot picks).
+// ─── Product data — from 옷 folder (items pool, homeListings zone) ────────────
+// tops[40-59], bottoms[36-51], outerwear[30-39], dress[10]
+// Each index is unique within the homeListings zone → no duplicates with closet.
 
 const NEW_LISTINGS = [
   {
@@ -960,7 +1166,7 @@ const NEW_LISTINGS = [
     name: "오버핏 화이트 셔츠",
     price: "28,000",
     condition: "S급",
-    image: CI(4,1,1),   // white button-up oversized shirt
+    image: zoneItemImg("homeListings", "tops", 0),
     fallback: "#F5F5F0",
   },
   {
@@ -969,7 +1175,7 @@ const NEW_LISTINGS = [
     name: "와이드 데님 팬츠",
     price: "45,000",
     condition: "A급",
-    image: CI(3,1,0),   // wide dark indigo jeans
+    image: zoneItemImg("homeListings", "bottoms", 0),
     fallback: "#D4DCE8",
   },
   {
@@ -978,7 +1184,7 @@ const NEW_LISTINGS = [
     name: "베이지 트렌치코트",
     price: "89,000",
     condition: "S급",
-    image: CI(4,0,3),   // beige/khaki trench coat
+    image: zoneItemImg("homeListings", "outerwear", 0),
     fallback: "#E8E0D4",
   },
   {
@@ -987,7 +1193,7 @@ const NEW_LISTINGS = [
     name: "크림 케이블 가디건",
     price: "65,000",
     condition: "A급",
-    image: CI(4,0,0),   // brown wrap cardigan
+    image: zoneItemImg("homeListings", "tops", 1),
     fallback: "#F0EAE0",
   },
   {
@@ -996,7 +1202,7 @@ const NEW_LISTINGS = [
     name: "버건디 와이드 팬츠",
     price: "79,000",
     condition: "S급",
-    image: CI(1,1,4),   // burgundy wide trousers
+    image: zoneItemImg("homeListings", "bottoms", 1),
     fallback: "#EDE0E4",
   },
   {
@@ -1005,7 +1211,7 @@ const NEW_LISTINGS = [
     name: "오버핏 그레이 니트",
     price: "41,000",
     condition: "S급",
-    image: CI(4,0,2),   // gray oversized turtleneck knit
+    image: zoneItemImg("homeListings", "tops", 2),
     fallback: "#E8E8E8",
   },
 ];
@@ -1017,7 +1223,7 @@ const HOT_LISTINGS = [
     name: "아이보리 랩 코트",
     price: "198,000",
     condition: "S급",
-    image: CI(1,0,3),   // ivory white wrap coat
+    image: zoneItemImg("homeListings", "outerwear", 1),
     fallback: "#F5F2EC",
   },
   {
@@ -1026,7 +1232,7 @@ const HOT_LISTINGS = [
     name: "화이트 홀터넥 드레스",
     price: "115,000",
     condition: "S급",
-    image: CI(3,0,4),   // white halter neck maxi dress
+    image: zoneItemImg("homeListings", "dress", 0),
     fallback: "#F5F5F0",
   },
   {
@@ -1035,7 +1241,7 @@ const HOT_LISTINGS = [
     name: "버건디 새틴 미디스커트",
     price: "62,000",
     condition: "A급",
-    image: CI(3,1,4),   // burgundy satin midi skirt
+    image: zoneItemImg("homeListings", "bottoms", 2),
     fallback: "#EAD8DC",
   },
   {
@@ -1044,7 +1250,7 @@ const HOT_LISTINGS = [
     name: "네이비 더블 블레이저",
     price: "145,000",
     condition: "A급",
-    image: CI(2,1,3),   // navy double-breasted blazer
+    image: zoneItemImg("homeListings", "outerwear", 2),
     fallback: "#D8DCE8",
   },
   {
@@ -1053,7 +1259,7 @@ const HOT_LISTINGS = [
     name: "초콜릿 롱 울코트",
     price: "248,000",
     condition: "S급",
-    image: CI(4,0,4),   // chocolate brown long coat
+    image: zoneItemImg("homeListings", "outerwear", 3),
     fallback: "#E0D4CC",
   },
   {
@@ -1062,39 +1268,39 @@ const HOT_LISTINGS = [
     name: "버건디 스트럭처드 블레이저",
     price: "178,000",
     condition: "S급",
-    image: CI(1,0,2),   // burgundy structured blazer
+    image: zoneItemImg("homeListings", "outerwear", 4),
     fallback: "#EAD8DC",
   },
 ];
 
 // MAIN_CATEGORIES and SUBCATEGORIES are now imported from mockClosetData
 
-// STYLE_BOOKS — capsule coordi flat-lay images
+// STYLE_BOOKS — from 스타일 folder (coordi pool, styleBooks zone 35-44)
 // outfitId links each book to a real OUTFIT_DATA entry for the detail screen.
 const STYLE_BOOKS = [
   {
     id: 1, title: "City Minimal",  count: 24, color: "#1C1C1E",
-    image: CC(1), outfitId: "outfit-002",
+    image: zoneCoordiImg("styleBooks", 0), outfitId: "outfit-002",
     tags: ["미니멀", "모노톤", "데일리"],
   },
   {
     id: 2, title: "Vintage Vibes", count: 18, color: "#6B5040",
-    image: CC(2), outfitId: "outfit-020",
+    image: zoneCoordiImg("styleBooks", 1), outfitId: "outfit-020",
     tags: ["빈티지", "레트로", "웜톤"],
   },
   {
     id: 3, title: "Street Core",   count: 31, color: "#1A2A3A",
-    image: CC(3), outfitId: "outfit-008",
+    image: zoneCoordiImg("styleBooks", 2), outfitId: "outfit-008",
     tags: ["스트릿", "오버핏", "캐주얼"],
   },
   {
     id: 4, title: "Clean Fit",     count: 15, color: "#3A3A3A",
-    image: CC(4), outfitId: "outfit-015",
+    image: zoneCoordiImg("styleBooks", 3), outfitId: "outfit-015",
     tags: ["클린", "베이직", "오피스"],
   },
   {
     id: 5, title: "Feminine",      count: 22, color: "#7A3040",
-    image: CC(1), outfitId: "outfit-005",
+    image: zoneCoordiImg("styleBooks", 4), outfitId: "outfit-005",
     tags: ["페미닌", "플로럴", "데이트"],
   },
 ];
@@ -1490,7 +1696,7 @@ function Footer({ onLegalOpen }) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
-export default function HomePage({ onProductSelect, onLegalOpen, onGoToRecord }) {
+export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGoToRecord }) {
   const [activeDetail,    setActiveDetail]    = useState(null);
   const [weatherOpen,     setWeatherOpen]     = useState(false);
   const [fullList,        setFullList]        = useState(null); // { title, items }
@@ -1670,7 +1876,7 @@ export default function HomePage({ onProductSelect, onLegalOpen, onGoToRecord })
         />
 
         {/* ⑤ Community — what others wore today / this week */}
-        <CommunityTodaySection />
+        <CommunityTodaySection onItemTap={onItemTap} />
 
         {/* ⑥ Trending items from others' closets */}
         <div className="py-6 bg-white">

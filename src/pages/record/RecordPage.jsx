@@ -6,7 +6,6 @@ import {
   getWearStats,
   getItemWearFrequency,
   getItemLastWornDates,
-  getRecentRecords,
   localDateStr,
   todayStr,
 } from "../../lib/wearHistoryStore";
@@ -16,9 +15,13 @@ import {
   markWashed,
   getWearsSinceWash,
 } from "../../lib/laundryStore";
-import { saveCoordi } from "../../lib/coordiStore";
+import { saveCoordi, getAllCoordi, deleteCoordi } from "../../lib/coordiStore";
+import StylebookDetailScreen from "../../components/StylebookDetailScreen";
 import { extractColors } from "../../lib/colorExtractor";
+import OutfitCanvasEditor from "../../components/OutfitCanvasEditor";
+import StyleRecordFlow from "../../components/StyleRecordFlow";
 import { CLOSET_ITEMS, MAIN_CATEGORIES } from "../../constants/mockClosetData";
+import FullListScreen from "../closet/FullListScreen";
 
 const FONT    = "'Spoqa Han Sans Neo', sans-serif";
 const DARK    = "#1a1a1a";
@@ -455,10 +458,9 @@ function DayRecordSheet({ dateStr, record, onSave, onDelete, onClose }) {
 
   if (showStylebook) {
     return (
-      <StylebookCreatorSheet
-        itemIds={selectedIds}
+      <OutfitCanvasEditor
+        initialItemIds={selectedIds}
         dateStr={dateStr}
-        photoUrl={photoUrl}
         onSave={() => {
           setShowStylebook(false);
           onClose();
@@ -659,7 +661,7 @@ function TodaySquareCard({ todayRecord, onTap }) {
           position:    "relative",
           background:  hasRecord
             ? "linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%)"
-            : `linear-gradient(145deg, ${YELLOW} 0%, #FFD140 100%)`,
+            : "linear-gradient(145deg, #F2F2F2 0%, #E6E6E6 100%)",
         }}
       >
         {/* Background item photos — subtle collage */}
@@ -689,17 +691,36 @@ function TodaySquareCard({ todayRecord, onTap }) {
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)" }} />
         )}
 
+        {/* Edit button — top-right corner when recorded */}
+        {hasRecord && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onTap(); }}
+            className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full active:opacity-70"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.16)",
+              backdropFilter:  "blur(10px)",
+              border:          "1px solid rgba(255,255,255,0.22)",
+              zIndex:          2,
+            }}
+          >
+            <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
+              <path d="M9.5 2L12 4.5L5.5 11H3V8.5L9.5 2Z" stroke="white" strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round" />
+            </svg>
+            <span className="text-[11px] font-bold text-white" style={{ fontFamily: FONT }}>수정</span>
+          </button>
+        )}
+
         {/* Content */}
         <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "flex-end", padding: 22 }}>
           {/* Badge */}
           <div
             className="inline-flex self-start items-center gap-1.5 px-2.5 py-1 rounded-full mb-3"
-            style={{ backgroundColor: hasRecord ? "rgba(245,194,0,0.22)" : "rgba(0,0,0,0.10)" }}
+            style={{ backgroundColor: hasRecord ? "rgba(245,194,0,0.22)" : "rgba(0,0,0,0.07)" }}
           >
             <span style={{ fontSize: 10 }}>{hasRecord ? "✅" : "📷"}</span>
             <span
               className="text-[10px] font-bold"
-              style={{ color: hasRecord ? YELLOW : DARK, fontFamily: FONT, letterSpacing: "0.04em" }}
+              style={{ color: hasRecord ? YELLOW : "#555", fontFamily: FONT, letterSpacing: "0.04em" }}
             >
               {hasRecord ? "오늘 기록 완료" : "오늘 착장 기록"}
             </span>
@@ -708,9 +729,9 @@ function TodaySquareCard({ todayRecord, onTap }) {
           {/* Main text */}
           <h2
             className="text-[26px] font-bold leading-tight"
-            style={{ color: hasRecord ? "white" : DARK, fontFamily: FONT, letterSpacing: "-0.04em" }}
+            style={{ color: hasRecord ? "white" : "#222", fontFamily: FONT, letterSpacing: "-0.04em", whiteSpace: "pre-line" }}
           >
-            {hasRecord ? "오늘의\n코디 완성!" : "오늘은\n무엇을\n입었나요?"}
+            {hasRecord ? "오늘의\n스타일 완성!" : "오늘은\n무엇을\n입었나요?"}
           </h2>
 
           {/* Item thumbnails strip */}
@@ -735,8 +756,8 @@ function TodaySquareCard({ todayRecord, onTap }) {
 
           {/* CTA pill */}
           {!hasRecord && (
-            <div className="inline-flex self-start items-center gap-1.5 mt-4 px-4 py-2 rounded-full" style={{ backgroundColor: "rgba(0,0,0,0.12)" }}>
-              <span className="text-[12px] font-bold" style={{ color: DARK, fontFamily: FONT }}>지금 기록하기</span>
+            <div className="inline-flex self-start items-center gap-1.5 mt-4 px-4 py-2 rounded-full" style={{ backgroundColor: "rgba(0,0,0,0.10)" }}>
+              <span className="text-[12px] font-bold" style={{ color: "#333", fontFamily: FONT }}>지금 기록하기</span>
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <path d="M4 2.5L7.5 6L4 9.5" stroke={DARK} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -874,30 +895,52 @@ function CalendarSection({ history, onDayTap }) {
           {/* Grid */}
           <div className="grid grid-cols-7">
             {cells.map((day, idx) => {
-              if (day === null) return <div key={`pad-${idx}`} style={{ height: 50 }} />;
-              const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+              if (day === null) return <div key={`pad-${idx}`} style={{ height: 64 }} />;
+              const dateStr   = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
               const isFuture  = dateStr > todayDateStr;
               const isToday   = dateStr === todayDateStr;
-              const hasRecord = !!history[dateStr];
+              const rec       = history[dateStr];
+              const hasRecord = !!rec;
               const dow       = new Date(dateStr + "T12:00:00").getDay();
+              // Compute thumbnail URL: prefer photoUrl, else first item image
+              const thumbUrl  = hasRecord
+                ? (rec.photoUrl ?? (() => {
+                    const firstId = rec.itemIds?.[0];
+                    return firstId ? (CLOSET_ITEMS.find((i) => i.id === firstId)?.image ?? null) : null;
+                  })())
+                : null;
               return (
                 <button
                   key={dateStr}
                   onClick={() => !isFuture && onDayTap(dateStr)}
-                  className="flex flex-col items-center justify-center"
-                  style={{ height: 50, opacity: isFuture ? 0.3 : 1 }}
+                  className="flex flex-col items-center"
+                  style={{ height: 64, paddingTop: 5, opacity: isFuture ? 0.3 : 1 }}
                 >
                   <div
-                    className="w-7 h-7 flex items-center justify-center rounded-full"
+                    className="w-6 h-6 flex items-center justify-center rounded-full"
                     style={{ backgroundColor: isToday ? YELLOW : "transparent" }}
                   >
-                    <span className="text-[11px] font-bold" style={{ color: isToday ? DARK : dow === 0 ? "#E84040" : dow === 6 ? "#4060E8" : "#444", fontFamily: FONT }}>
+                    <span className="text-[10px] font-bold" style={{ color: isToday ? DARK : dow === 0 ? "#E84040" : dow === 6 ? "#4060E8" : "#444", fontFamily: FONT }}>
                       {day}
                     </span>
                   </div>
-                  {hasRecord && (
-                    <div className="w-1 h-1 rounded-full mt-0.5" style={{ backgroundColor: YELLOW }} />
-                  )}
+                  {/* Style thumbnail — same visual language as weekly strip */}
+                  <div
+                    className="mt-1 rounded overflow-hidden"
+                    style={{ width: 22, height: 26, backgroundColor: hasRecord ? "#E4E4E4" : "transparent" }}
+                  >
+                    {thumbUrl ? (
+                      <img
+                        src={thumbUrl}
+                        alt=""
+                        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
+                      />
+                    ) : hasRecord ? (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span style={{ fontSize: 10 }}>👗</span>
+                      </div>
+                    ) : null}
+                  </div>
                 </button>
               );
             })}
@@ -944,7 +987,7 @@ function DonutChart({ data, total }) {
   );
 }
 
-function InsightsSection() {
+function InsightsSection({ onMore }) {
   // Category distribution from CLOSET_ITEMS
   const catData = useMemo(() => {
     const counts = {};
@@ -957,35 +1000,25 @@ function InsightsSection() {
       .sort((a, b) => b.count - a.count);
   }, []);
 
-  // Category wear frequency from history
-  const catWearData = useMemo(() => {
-    const freq = getItemWearFrequency();
-    const catFreq = {};
-    freq.forEach((count, itemId) => {
-      const item = CLOSET_ITEMS.find((i) => i.id === itemId);
-      if (!item) return;
-      const cat = item.mainCategory ?? "기타";
-      catFreq[cat] = (catFreq[cat] ?? 0) + count;
-    });
-    return Object.entries(catFreq)
-      .map(([label, count]) => ({
-        label,
-        count,
-        emoji: MAIN_CATEGORIES.find((c) => c.label === label)?.emoji ?? "👗",
-        color: CAT_COLORS[label] ?? "#CCC",
-      }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-  }, []);
-
-  const total    = CLOSET_ITEMS.length;
-  const maxWear  = catWearData[0]?.count ?? 1;
+  const total = CLOSET_ITEMS.length;
 
   return (
     <div className="mx-4 mb-4 rounded-2xl overflow-hidden" style={{ border: `1px solid ${DIVIDER}`, backgroundColor: "white" }}>
-      <div className="px-4 pt-4 pb-2" style={{ borderBottom: `1px solid ${DIVIDER}` }}>
-        <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#AAAAAA", fontFamily: FONT }}>MY CLOSET INSIGHTS</p>
-        <h3 className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>내 옷장 인사이트</h3>
+      <div className="px-4 pt-4 pb-2 flex items-center justify-between" style={{ borderBottom: `1px solid ${DIVIDER}` }}>
+        <div>
+          <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#AAAAAA", fontFamily: FONT }}>MY CLOSET INSIGHTS</p>
+          <h3 className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>내 옷장 인사이트</h3>
+        </div>
+        <button
+          onClick={onMore}
+          className="flex items-center gap-1 px-3 py-1.5 rounded-full active:opacity-70"
+          style={{ backgroundColor: "#F2F2F2" }}
+        >
+          <span className="text-[12px] font-medium" style={{ color: "#666", fontFamily: FONT }}>더보기</span>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M4.5 2L7.5 6L4.5 10" stroke="#888" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
       </div>
 
       <div className="flex px-4 pt-4 pb-4 gap-5">
@@ -1010,52 +1043,407 @@ function InsightsSection() {
         </div>
       </div>
 
-      {/* Wear frequency bar chart */}
-      {catWearData.length > 0 && (
-        <div className="px-4 pb-4" style={{ borderTop: `1px solid ${DIVIDER}` }}>
-          <p className="text-[11px] font-bold mt-3 mb-3" style={{ color: "#888", fontFamily: FONT }}>카테고리별 착용 횟수</p>
-          <div className="flex flex-col gap-2">
-            {catWearData.map((d) => (
-              <div key={d.label} className="flex items-center gap-2">
-                <span style={{ fontSize: 13, width: 18, textAlign: "center" }}>{d.emoji}</span>
-                <span className="text-[11px] shrink-0" style={{ color: "#555", fontFamily: FONT, width: 32 }}>{d.label}</span>
-                <div className="flex-1 rounded-full overflow-hidden" style={{ height: 7, backgroundColor: "#F0F0F0" }}>
-                  <div
-                    className="h-full rounded-full"
-                    style={{
-                      width:           `${(d.count / maxWear) * 100}%`,
-                      backgroundColor: d.color,
-                      transition:      "width 0.4s ease",
-                    }}
-                  />
-                </div>
-                <span className="text-[11px] font-bold shrink-0" style={{ color: DARK, fontFamily: FONT, width: 20, textAlign: "right" }}>{d.count}</span>
+    </div>
+  );
+}
+
+// ─── InsightsDetailScreen ─────────────────────────────────────────────────────
+// Full-screen overlay with expanded closet analytics.
+
+function InsightsDetailScreen({ onBack }) {
+  // ── Data ──────────────────────────────────────────────────────────────────
+  const total       = CLOSET_ITEMS.length;
+  const wearFreq    = useMemo(() => getItemWearFrequency(), []);
+  const lastWornMap = useMemo(() => getItemLastWornDates(), []);
+  const todayLocal  = useMemo(() => localDateStr(new Date()), []);
+
+  // Category distribution
+  const catData = useMemo(() => {
+    const counts = {};
+    CLOSET_ITEMS.forEach((item) => {
+      const cat = item.mainCategory ?? "기타";
+      counts[cat] = (counts[cat] ?? 0) + 1;
+    });
+    return Object.entries(counts)
+      .map(([label, count]) => ({ label, count, color: CAT_COLORS[label] ?? "#CCC" }))
+      .sort((a, b) => b.count - a.count);
+  }, []);
+
+  // Category wear frequency (all categories)
+  const catWearData = useMemo(() => {
+    const catFreq = {};
+    wearFreq.forEach((count, itemId) => {
+      const item = CLOSET_ITEMS.find((i) => i.id === itemId);
+      if (!item) return;
+      const cat = item.mainCategory ?? "기타";
+      catFreq[cat] = (catFreq[cat] ?? 0) + count;
+    });
+    return Object.entries(catFreq)
+      .map(([label, count]) => ({ label, count, color: CAT_COLORS[label] ?? "#CCC", emoji: MAIN_CATEGORIES.find((c) => c.label === label)?.emoji ?? "👗" }))
+      .sort((a, b) => b.count - a.count);
+  }, [wearFreq]);
+
+  // Top worn items
+  const topWorn = useMemo(() =>
+    CLOSET_ITEMS
+      .filter((item) => wearFreq.has(item.id))
+      .sort((a, b) => (wearFreq.get(b.id) ?? 0) - (wearFreq.get(a.id) ?? 0))
+      .slice(0, 6)
+      .map((item) => ({ item, count: wearFreq.get(item.id) ?? 0 })),
+  [wearFreq]);
+
+  // Dormant items (never worn or last worn 30+ days ago)
+  const dormantItems = useMemo(() =>
+    CLOSET_ITEMS.filter((item) => {
+      const lw = lastWornMap.get(item.id);
+      if (!lw) return true;
+      return Math.floor((new Date(todayLocal) - new Date(lw + "T12:00:00")) / 86400000) >= 30;
+    }).length,
+  [lastWornMap, todayLocal]);
+
+  // Brand top 5
+  const brandData = useMemo(() => {
+    const counts = {};
+    CLOSET_ITEMS.forEach((item) => {
+      const b = item.brand ?? "기타";
+      counts[b] = (counts[b] ?? 0) + 1;
+    });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  }, []);
+
+  // Season distribution
+  const seasonData = useMemo(() => {
+    const counts = { 봄: 0, 여름: 0, 가을: 0, 겨울: 0 };
+    CLOSET_ITEMS.forEach((item) => {
+      (item.season ?? []).forEach((s) => { if (counts[s] !== undefined) counts[s]++; });
+    });
+    return Object.entries(counts).map(([label, count]) => ({ label, count }));
+  }, []);
+
+  // Worn vs not-worn counts
+  const wornCount    = CLOSET_ITEMS.filter((i) => wearFreq.has(i.id)).length;
+  const laundryCount = getItemsNeedingWash(2).length;
+
+  const maxCatWear  = catWearData[0]?.count  ?? 1;
+  const maxBrand    = brandData[0]?.[1]       ?? 1;
+  const maxSeason   = Math.max(...seasonData.map((s) => s.count), 1);
+  const SEASON_CLR  = { 봄: "#FFB7C5", 여름: "#80D8A0", 가을: "#F5A843", 겨울: "#87B5E8" };
+
+  return (
+    <div className="absolute inset-0 z-[70] flex flex-col bg-white overflow-hidden">
+      {/* Header */}
+      <div
+        className="flex items-center gap-3 px-4 shrink-0"
+        style={{ height: 52, borderBottom: `1px solid ${DIVIDER}` }}
+      >
+        <button
+          onClick={onBack}
+          className="w-9 h-9 flex items-center justify-center rounded-full active:opacity-70"
+          style={{ backgroundColor: "#F2F2F2" }}
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M11 4L6 9L11 14" stroke={DARK} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <div>
+          <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#AAAAAA", fontFamily: FONT }}>MY CLOSET INSIGHTS</p>
+          <h2 className="text-[15px] font-bold leading-tight" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>내 옷장 인사이트</h2>
+        </div>
+      </div>
+
+      {/* Scrollable body */}
+      <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
+        <div className="px-4 pt-4 pb-8 flex flex-col gap-5">
+
+          {/* ── Summary cards row ── */}
+          <div className="grid grid-cols-2 gap-2.5">
+            {[
+              { label: "총 아이템",    value: total,         unit: "개",  color: "#1a1a1a", bg: "#F8F8F8" },
+              { label: "착용 아이템",  value: wornCount,     unit: "개",  color: "#2E7D32", bg: "#E8F5E9" },
+              { label: "미착용 아이템", value: dormantItems,  unit: "개",  color: "#C62828", bg: "#FDE8E8" },
+              { label: "세탁 필요",    value: laundryCount,  unit: "개",  color: "#E65100", bg: "#FFF3E0" },
+            ].map((card) => (
+              <div key={card.label} className="rounded-2xl px-4 py-3.5" style={{ backgroundColor: card.bg }}>
+                <p className="text-[26px] font-bold leading-none" style={{ color: card.color, fontFamily: FONT, letterSpacing: "-0.04em" }}>
+                  {card.value}<span className="text-[14px] font-medium ml-1">{card.unit}</span>
+                </p>
+                <p className="text-[11px] mt-1" style={{ color: "rgba(0,0,0,0.48)", fontFamily: FONT }}>{card.label}</p>
               </div>
             ))}
           </div>
+
+          {/* ── Category distribution ── */}
+          <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${DIVIDER}` }}>
+            <div className="px-4 py-3" style={{ borderBottom: `1px solid ${DIVIDER}` }}>
+              <p className="text-[12px] font-bold" style={{ color: DARK, fontFamily: FONT }}>카테고리 분포</p>
+            </div>
+            <div className="px-4 py-4 flex gap-5 items-center">
+              <DonutChart data={catData} total={total} />
+              <div className="flex-1 flex flex-col gap-2 min-w-0">
+                {catData.map((d) => {
+                  const pct = Math.round((d.count / total) * 100);
+                  return (
+                    <div key={d.label} className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
+                      <span className="text-[11px] flex-1 truncate" style={{ color: "#555", fontFamily: FONT }}>{d.label}</span>
+                      <span className="text-[10px] shrink-0" style={{ color: "#AAA", fontFamily: FONT }}>{d.count}개</span>
+                      <span className="text-[11px] font-bold shrink-0 w-8 text-right" style={{ color: DARK, fontFamily: FONT }}>{pct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Category wear frequency ── */}
+          {catWearData.length > 0 && (
+            <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${DIVIDER}` }}>
+              <div className="px-4 py-3" style={{ borderBottom: `1px solid ${DIVIDER}` }}>
+                <p className="text-[12px] font-bold" style={{ color: DARK, fontFamily: FONT }}>카테고리별 착용 횟수</p>
+              </div>
+              <div className="px-4 py-4 flex flex-col gap-2.5">
+                {catWearData.map((d) => (
+                  <div key={d.label} className="flex items-center gap-2">
+                    <span style={{ fontSize: 14, width: 20, textAlign: "center" }}>{d.emoji}</span>
+                    <span className="text-[11px] shrink-0" style={{ color: "#555", fontFamily: FONT, width: 36 }}>{d.label}</span>
+                    <div className="flex-1 rounded-full overflow-hidden" style={{ height: 8, backgroundColor: "#F0F0F0" }}>
+                      <div className="h-full rounded-full" style={{ width: `${(d.count / maxCatWear) * 100}%`, backgroundColor: d.color, transition: "width 0.4s" }} />
+                    </div>
+                    <span className="text-[11px] font-bold shrink-0 w-8 text-right" style={{ color: DARK, fontFamily: FONT }}>{d.count}회</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Top worn items ── */}
+          {topWorn.length > 0 && (
+            <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${DIVIDER}` }}>
+              <div className="px-4 py-3" style={{ borderBottom: `1px solid ${DIVIDER}` }}>
+                <p className="text-[12px] font-bold" style={{ color: DARK, fontFamily: FONT }}>자주 입는 아이템 TOP {topWorn.length}</p>
+              </div>
+              <div className="px-4 py-4 grid grid-cols-3 gap-3">
+                {topWorn.map(({ item, count }, rank) => (
+                  <div key={item.id} className="flex flex-col">
+                    <div className="relative rounded-xl overflow-hidden" style={{ aspectRatio: "3/4", backgroundColor: "#F5F5F5" }}>
+                      {item.image && <img src={item.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />}
+                      <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-full" style={{ backgroundColor: rank < 3 ? YELLOW : "#E8E8E8" }}>
+                        <span className="text-[8px] font-bold" style={{ color: rank < 3 ? DARK : "#666", fontFamily: FONT }}>{count}회</span>
+                      </div>
+                    </div>
+                    <p className="text-[10px] font-medium mt-1 truncate" style={{ color: DARK, fontFamily: FONT }}>{item.displayName ?? item.name}</p>
+                    <p className="text-[9px] truncate" style={{ color: "#AAAAAA", fontFamily: FONT }}>{item.brand}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Brand distribution ── */}
+          <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${DIVIDER}` }}>
+            <div className="px-4 py-3" style={{ borderBottom: `1px solid ${DIVIDER}` }}>
+              <p className="text-[12px] font-bold" style={{ color: DARK, fontFamily: FONT }}>브랜드 TOP 5</p>
+            </div>
+            <div className="px-4 py-4 flex flex-col gap-2.5">
+              {brandData.map(([brand, count], i) => (
+                <div key={brand} className="flex items-center gap-2.5">
+                  <span className="text-[10px] font-bold w-4 text-right shrink-0" style={{ color: i < 3 ? "#A07800" : "#BBBBBB", fontFamily: FONT }}>{i + 1}</span>
+                  <span className="text-[11px] flex-1 truncate" style={{ color: "#444", fontFamily: FONT }}>{brand}</span>
+                  <div className="rounded-full overflow-hidden" style={{ width: 80, height: 7, backgroundColor: "#F0F0F0" }}>
+                    <div className="h-full rounded-full" style={{ width: `${(count / maxBrand) * 100}%`, backgroundColor: i === 0 ? YELLOW : i === 1 ? "#DDCF80" : "#E8E8E8" }} />
+                  </div>
+                  <span className="text-[11px] font-bold shrink-0 w-8 text-right" style={{ color: DARK, fontFamily: FONT }}>{count}개</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Season distribution ── */}
+          <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${DIVIDER}` }}>
+            <div className="px-4 py-3" style={{ borderBottom: `1px solid ${DIVIDER}` }}>
+              <p className="text-[12px] font-bold" style={{ color: DARK, fontFamily: FONT }}>시즌 분포</p>
+              <p className="text-[10px] mt-0.5" style={{ color: "#AAAAAA", fontFamily: FONT }}>아이템은 여러 시즌에 중복 집계돼요</p>
+            </div>
+            <div className="px-4 py-4 grid grid-cols-4 gap-2">
+              {seasonData.map(({ label, count }) => (
+                <div key={label} className="flex flex-col items-center gap-1.5">
+                  <div
+                    className="w-full rounded-xl flex items-end justify-center pb-1.5"
+                    style={{ height: 60, backgroundColor: SEASON_CLR[label] + "33" }}
+                  >
+                    <div
+                      className="w-5 rounded-lg"
+                      style={{ height: `${Math.max(8, (count / maxSeason) * 40)}px`, backgroundColor: SEASON_CLR[label] }}
+                    />
+                  </div>
+                  <p className="text-[11px] font-bold" style={{ color: DARK, fontFamily: FONT }}>{label}</p>
+                  <p className="text-[10px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>{count}개</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Dormant items summary ── */}
+          <div
+            className="rounded-2xl px-4 py-4 flex items-center gap-4"
+            style={{ backgroundColor: "#FFF8F0", border: "1px solid #FFE0B2" }}
+          >
+            <span style={{ fontSize: 32, lineHeight: 1 }}>🧊</span>
+            <div>
+              <p className="text-[14px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
+                {dormantItems}개의 아이템이 쉬고 있어요
+              </p>
+              <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "#888", fontFamily: FONT }}>
+                30일 이상 착용 기록이 없는 아이템이에요.{"\n"}옷장 앞자리로 꺼내보는 건 어떨까요?
+              </p>
+            </div>
+          </div>
+
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
 // ─── StatsRow ─────────────────────────────────────────────────────────────────
 
-function StatsRow({ stats }) {
+function StatsRow({ stats, onStatTap }) {
   const items = [
-    { label: "연속 기록",     value: `${stats.streak}일`,      accent: true },
-    { label: "총 기록일",     value: `${stats.totalDays}일`              },
-    { label: "기록된 아이템", value: `${stats.totalItems}개`             },
+    { key: "streak", label: "연속 기록",     value: `${stats.streak}일`,      accent: true },
+    { key: "days",   label: "총 기록일",     value: `${stats.totalDays}일`              },
+    { key: "items",  label: "기록된 아이템", value: `${stats.totalItems}개`             },
   ];
   return (
-    <div className="mx-4 mb-4 rounded-2xl flex" style={{ backgroundColor: DARK }}>
+    <div
+      className="mx-4 mb-4 rounded-2xl flex"
+      style={{ backgroundColor: "#FEFCE8", border: "1.5px solid #EDD83A" }}
+    >
       {items.map((item, i) => (
-        <div key={item.label} className="flex-1 flex flex-col items-center py-4 relative">
-          {i > 0 && <div className="absolute left-0 top-2 bottom-2" style={{ width: 1, backgroundColor: "rgba(255,255,255,0.10)" }} />}
-          <p className="text-[20px] font-bold" style={{ color: item.accent ? YELLOW : "white", fontFamily: FONT, letterSpacing: "-0.04em" }}>{item.value}</p>
-          <p className="text-[9px] mt-0.5" style={{ color: "rgba(255,255,255,0.38)", fontFamily: FONT }}>{item.label}</p>
-        </div>
+        <button
+          key={item.label}
+          onClick={() => onStatTap?.(item.key)}
+          className="flex-1 flex flex-col items-center py-4 relative active:opacity-70 transition-opacity"
+        >
+          {i > 0 && <div className="absolute left-0 top-2 bottom-2" style={{ width: 1, backgroundColor: "rgba(0,0,0,0.08)" }} />}
+          <p className="text-[20px] font-bold" style={{ color: item.accent ? "#A07800" : DARK, fontFamily: FONT, letterSpacing: "-0.04em" }}>{item.value}</p>
+          <p className="text-[9px] mt-0.5" style={{ color: "rgba(0,0,0,0.42)", fontFamily: FONT }}>{item.label}</p>
+          <svg width="9" height="9" viewBox="0 0 9 9" fill="none" style={{ marginTop: 3 }}>
+            <path d="M3.5 2L6.5 4.5L3.5 7" stroke="rgba(0,0,0,0.22)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
       ))}
+    </div>
+  );
+}
+
+// ─── StreakDetailScreen ────────────────────────────────────────────────────────
+
+function StreakDetailScreen({ stats, history, onBack }) {
+  const streak = stats.streak;
+
+  const milestones = [
+    { days: 3,  label: "첫 습관",     emoji: "🌱" },
+    { days: 7,  label: "일주일",      emoji: "🔥" },
+    { days: 14, label: "2주 달성",    emoji: "⭐" },
+    { days: 30, label: "한 달 챌린지", emoji: "🏆" },
+  ];
+
+  // Last 14 days activity grid
+  const today = new Date();
+  const last14 = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() - (13 - i));
+    const dateStr = localDateStr(d);
+    return { dateStr, date: d, hasRecord: !!history[dateStr] };
+  });
+
+  return (
+    <div className="absolute inset-0 z-[70] flex flex-col bg-white overflow-hidden">
+      <div className="flex items-center gap-3 px-4 shrink-0" style={{ height: 52, borderBottom: `1px solid ${DIVIDER}` }}>
+        <button onClick={onBack} className="w-9 h-9 flex items-center justify-center rounded-full active:opacity-70" style={{ backgroundColor: "#F2F2F2" }}>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M11 4L6 9L11 14" stroke={DARK} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <div>
+          <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#AAAAAA", fontFamily: FONT }}>STREAK</p>
+          <h2 className="text-[15px] font-bold leading-tight" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>연속 기록 현황</h2>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 py-5 flex flex-col gap-4" style={{ scrollbarWidth: "none" }}>
+
+        {/* Streak hero */}
+        <div className="rounded-2xl px-6 py-8 flex flex-col items-center text-center" style={{ backgroundColor: "#FEFCE8", border: "1.5px solid #EDD83A" }}>
+          <p className="text-[72px] font-bold leading-none" style={{ color: "#A07800", fontFamily: FONT, letterSpacing: "-0.05em" }}>{streak}</p>
+          <p className="text-[17px] font-bold mt-2" style={{ color: DARK, fontFamily: FONT }}>일 연속 기록 중</p>
+          <p className="text-[12px] mt-1.5 leading-relaxed" style={{ color: "#888", fontFamily: FONT }}>
+            오늘도 기록하면 {streak + 1}일이 돼요!
+          </p>
+        </div>
+
+        {/* All-time stats */}
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { label: "총 기록일",     value: stats.totalDays,  unit: "일" },
+            { label: "기록된 아이템", value: stats.totalItems, unit: "개" },
+          ].map((c) => (
+            <div key={c.label} className="rounded-xl px-4 py-3.5" style={{ backgroundColor: "#F8F8F8" }}>
+              <p className="text-[24px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.04em" }}>
+                {c.value}<span className="text-[13px] font-medium ml-1">{c.unit}</span>
+              </p>
+              <p className="text-[10px] mt-0.5" style={{ color: "#AAAAAA", fontFamily: FONT }}>{c.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* 14-day activity */}
+        <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${DIVIDER}` }}>
+          <div className="px-4 py-3" style={{ borderBottom: `1px solid ${DIVIDER}` }}>
+            <p className="text-[12px] font-bold" style={{ color: DARK, fontFamily: FONT }}>최근 14일 활동</p>
+          </div>
+          <div className="px-4 py-4 flex gap-2">
+            {last14.map(({ dateStr, date, hasRecord }) => (
+              <div key={dateStr} className="flex-1 flex flex-col items-center gap-1">
+                <div
+                  className="w-full rounded-md"
+                  style={{ aspectRatio: "1", backgroundColor: hasRecord ? YELLOW : "#F0F0F0" }}
+                />
+                <span className="text-[8px]" style={{ color: "#CCCCCC", fontFamily: FONT }}>{date.getDate()}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Milestone badges */}
+        <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${DIVIDER}` }}>
+          <div className="px-4 py-3" style={{ borderBottom: `1px solid ${DIVIDER}` }}>
+            <p className="text-[12px] font-bold" style={{ color: DARK, fontFamily: FONT }}>달성 뱃지</p>
+            <p className="text-[10px] mt-0.5" style={{ color: "#AAAAAA", fontFamily: FONT }}>총 기록일 기준으로 달성돼요</p>
+          </div>
+          <div className="px-4 py-4 grid grid-cols-4 gap-3">
+            {milestones.map((m) => {
+              const achieved = stats.totalDays >= m.days;
+              return (
+                <div key={m.days} className="flex flex-col items-center gap-1.5">
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                    style={{
+                      backgroundColor: achieved ? "#FEFCE8" : "#F5F5F5",
+                      border: achieved ? "1.5px solid #EDD83A" : "1.5px solid transparent",
+                    }}
+                  >
+                    <span style={{ fontSize: 26, opacity: achieved ? 1 : 0.28 }}>{m.emoji}</span>
+                  </div>
+                  <p className="text-[10px] font-bold text-center" style={{ color: achieved ? "#A07800" : "#CCCCCC", fontFamily: FONT }}>{m.days}일</p>
+                  <p className="text-[9px] text-center" style={{ color: achieved ? "#888" : "#CCCCCC", fontFamily: FONT }}>{m.label}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
@@ -1070,6 +1458,205 @@ function SectionHeader({ title, subtitle, emoji }) {
         <h2 className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>{title}</h2>
         {subtitle && <p className="text-[11px] mt-0.5" style={{ color: "#AAAAAA", fontFamily: FONT }}>{subtitle}</p>}
       </div>
+    </div>
+  );
+}
+
+// ─── Style Insights Banner ────────────────────────────────────────────────────
+// Wraps StatsRow with a section header + subtitle.
+
+function StyleInsightsBanner({ stats, onStatTap }) {
+  return (
+    <div className="pb-2">
+      <div className="px-4 pb-3 pt-1">
+        <p className="text-[10px] font-bold tracking-[0.12em] uppercase mb-0.5" style={{ color: "#AAAAAA", fontFamily: FONT }}>
+          STYLE INSIGHTS
+        </p>
+        <h2 className="text-[16px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>
+          스타일 인사이트
+        </h2>
+        <p className="text-[12px] mt-0.5" style={{ color: "#AAAAAA", fontFamily: FONT }}>
+          매일 기록을 통해 내 스타일을 파악할 수 있어요!
+        </p>
+      </div>
+      <StatsRow stats={stats} onStatTap={onStatTap} />
+    </div>
+  );
+}
+
+// ─── Streak Banner ─────────────────────────────────────────────────────────────
+// Compact section below the calendar that shows the active streak.
+
+function StreakBanner({ stats, onTap }) {
+  const streak = stats.streak;
+  const next   = streak + 1;
+
+  return (
+    <div className="mx-4 mb-4">
+      <button
+        onClick={onTap}
+        className="w-full rounded-2xl px-5 py-4 flex items-center justify-between active:opacity-80"
+        style={{ backgroundColor: "#FEFCE8", border: "1.5px solid #EDD83A" }}
+      >
+        <div className="flex items-center gap-3">
+          <div
+            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+            style={{ backgroundColor: streak > 0 ? "#F5C200" : "#F5F5F5" }}
+          >
+            <span style={{ fontSize: 22 }}>{streak > 0 ? "🔥" : "🌱"}</span>
+          </div>
+          <div className="text-left">
+            <p className="text-[16px] font-bold" style={{ color: "#A07800", fontFamily: FONT, letterSpacing: "-0.03em" }}>
+              {streak}일 연속 기록
+            </p>
+            <p className="text-[11px] mt-0.5" style={{ color: "#888", fontFamily: FONT }}>
+              {streak > 0
+                ? `오늘도 기록하면 ${next}일이 돼요!`
+                : "오늘 기록을 시작해보세요!"}
+            </p>
+          </div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M6 3L11 8L6 13" stroke="#CCA800" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+// ─── My Stylebooks Screen ─────────────────────────────────────────────────────
+// Full-screen overlay: shows all saved stylebooks. Launched from Record page.
+
+function MyStylebooksScreen({ onBack, onItemTap }) {
+  const [coordiList,    setCoordiList]    = useState(() => getAllCoordi());
+  const [detailOpen,    setDetailOpen]    = useState(null);  // coordi object
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [coordiRefresh, setCoordiRefresh] = useState(0);
+
+  useEffect(() => {
+    setCoordiList(getAllCoordi());
+  }, [coordiRefresh]);
+
+  function handleDelete(id) {
+    deleteCoordi(id);
+    setCoordiRefresh((n) => n + 1);
+    setDeleteConfirm(null);
+    if (detailOpen?.id === id) setDetailOpen(null);
+  }
+
+  return (
+    <div className="absolute inset-0 z-[70] flex flex-col bg-white overflow-hidden">
+
+      {/* Header */}
+      <div
+        className="flex items-center gap-3 px-4 shrink-0"
+        style={{ height: 52, borderBottom: `1px solid ${DIVIDER}` }}
+      >
+        <button
+          onClick={onBack}
+          className="w-9 h-9 flex items-center justify-center rounded-full active:opacity-70"
+          style={{ backgroundColor: "#F2F2F2" }}
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M11 4L6 9L11 14" stroke={DARK} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#AAAAAA", fontFamily: FONT }}>
+            MY STYLEBOOK
+          </p>
+          <h2 className="text-[15px] font-bold leading-tight" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>
+            나의 스타일북
+          </h2>
+        </div>
+        <span
+          className="px-2 py-0.5 rounded-full text-[11px] font-bold"
+          style={{ backgroundColor: "#F2F2F2", color: "#888", fontFamily: FONT }}
+        >
+          {coordiList.length}개
+        </span>
+      </div>
+
+      {/* Grid body */}
+      <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
+        {coordiList.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 px-8 gap-4">
+            <span style={{ fontSize: 52, opacity: 0.25 }}>✨</span>
+            <p className="text-[15px] font-bold text-center" style={{ color: "#BBBBBB", fontFamily: FONT }}>
+              아직 저장된 스타일북이 없어요
+            </p>
+            <p className="text-[12px] text-center leading-relaxed" style={{ color: "#CCCCCC", fontFamily: FONT }}>
+              착장을 기록하고 스타일북에 추가해보세요
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 px-4 py-4">
+            {coordiList.map((c) => (
+              <div key={c.id} className="relative">
+                <button
+                  onClick={() => setDetailOpen(c)}
+                  className="w-full rounded-2xl overflow-hidden active:opacity-80"
+                  style={{ aspectRatio: "3/4", backgroundColor: c.bgColor || "#F2F2F2", display: "block", position: "relative" }}
+                >
+                  {c.thumbnail ? (
+                    <img src={c.thumbnail} alt={c.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span style={{ fontSize: 40, opacity: 0.18 }}>👗</span>
+                    </div>
+                  )}
+                  <div
+                    className="absolute inset-0"
+                    style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 55%)" }}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
+                    <p className="text-white text-[12px] font-bold truncate" style={{ fontFamily: FONT }}>
+                      {c.title || "제목 없음"}
+                    </p>
+                    <p className="text-[9px] mt-0.5" style={{ color: "rgba(255,255,255,0.55)", fontFamily: FONT }}>
+                      {c.dateStr || (c.updatedAt ? new Date(c.updatedAt).toLocaleDateString("ko-KR", { month: "short", day: "numeric" }) : "")}
+                    </p>
+                  </div>
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setDeleteConfirm(c.id); }}
+                  className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+                >
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path d="M2 2L8 8M8 2L2 8" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        <div style={{ height: 24 }} />
+      </div>
+
+      {/* Stylebook detail overlay */}
+      {detailOpen && (
+        <StylebookDetailScreen
+          coordi={detailOpen}
+          onBack={() => setDetailOpen(null)}
+          onDelete={(id) => handleDelete(id)}
+          onItemTap={onItemTap}
+        />
+      )}
+
+      {/* Delete confirm sheet */}
+      {deleteConfirm && (
+        <div className="absolute inset-0 z-[80] flex items-end" style={{ backgroundColor: "rgba(0,0,0,0.4)" }}>
+          <div className="w-full rounded-t-3xl px-5 pt-6 pb-8 bg-white">
+            <p className="text-[16px] font-bold text-center mb-1" style={{ color: DARK, fontFamily: FONT }}>스타일을 삭제할까요?</p>
+            <p className="text-[12px] text-center mb-6" style={{ color: "#AAAAAA", fontFamily: FONT }}>삭제한 스타일은 복구할 수 없어요</p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteConfirm(null)} className="flex-1 h-12 rounded-xl text-[14px] font-medium" style={{ backgroundColor: "#F5F5F5", color: "#888", fontFamily: FONT }}>취소</button>
+              <button onClick={() => handleDelete(deleteConfirm)} className="flex-1 h-12 rounded-xl text-[14px] font-bold" style={{ backgroundColor: "#E84040", color: "white", fontFamily: FONT }}>삭제</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1204,7 +1791,7 @@ function LaundrySection({ onItemTap }) {
 
   return (
     <div className="pb-4">
-      <SectionHeader title="세탁 알림" emoji="🧺" subtitle={`${laundryItems.length}개 아이템이 세탁 타임`} />
+      <SectionHeader title="세탁 관리" emoji="🧺" subtitle={`${laundryItems.length}개 아이템이 세탁 타임 — 완료 표시로 착용 횟수를 리셋하세요`} />
       <div className="flex gap-3 overflow-x-auto px-4" style={{ scrollbarWidth: "none" }}>
         {laundryItems.map(({ item, wearsSinceWash }) => {
           const status = getLaundryStatus(item.id);
@@ -1305,60 +1892,81 @@ function NotWornSection({ onItemTap }) {
   );
 }
 
-// ─── Wardrobe Tips ────────────────────────────────────────────────────────────
+// ─── 내 옷장 관리 팁 ──────────────────────────────────────────────────────────
+// A. ❄️  오래 안 입은 옷 N개 발견! 팔아서 돈을 버는 것은 어때요?
+// B. 🧺  세탁 타임! N개 아이템이 세탁 타임. 완료 표시로 착용 횟수를 리셋하세요
 
-function WardrobeTips() {
-  const tips = useMemo(() => {
-    const result = [];
-    const lastWorn       = getItemLastWornDates();
-    const today          = localDateStr(new Date());
-    const laundryItems   = getItemsNeedingWash(3);
-    const notWornCount   = CLOSET_ITEMS.filter((item) => {
+function WardrobeTips({ onTipAction }) {
+  const { longUnwornItems, laundryCount, laundryItems } = useMemo(() => {
+    const lastWorn = getItemLastWornDates();
+    const today    = localDateStr(new Date());
+
+    const longUnwornItems = CLOSET_ITEMS.filter((item) => {
       const lw = lastWorn.get(item.id);
       if (!lw) return true;
-      const days = Math.floor((new Date(today) - new Date(lw + "T12:00:00")) / 86400000);
-      return days >= 30;
-    }).length;
+      return Math.floor((new Date(today) - new Date(lw + "T12:00:00")) / 86400000) >= 90;
+    });
 
-    if (notWornCount >= 5) {
-      result.push({ emoji: "🔄", title: "옷 순환 팁", text: `${notWornCount}개의 옷이 30일 이상 쉬고 있어요. 옷장 앞자리로 꺼내보는 건 어떨까요?` });
-    }
-    if (laundryItems.length > 0) {
-      result.push({ emoji: "🧺", title: "세탁 체크", text: `자주 입는 옷 ${laundryItems.length}개가 세탁 타임! 세탁 후 착용 횟수를 리셋해보세요.` });
-    }
+    const laundryRaw   = getItemsNeedingWash(2);
+    const laundryItems = laundryRaw
+      .map(({ itemId }) => CLOSET_ITEMS.find((i) => i.id === itemId))
+      .filter(Boolean);
 
-    const month = new Date().getMonth() + 1;
-    if (month >= 3 && month <= 5) result.push({ emoji: "🌸", title: "봄 정리 TIP", text: "봄 아이템을 앞쪽으로 정리하고 겨울 옷은 청소·보관해 보세요." });
-    else if (month >= 6 && month <= 8) result.push({ emoji: "☀️", title: "여름 관리 TIP", text: "땀 흡수가 잦은 여름 옷은 더 자주 세탁하는 것이 좋아요." });
-    else if (month >= 9 && month <= 11) result.push({ emoji: "🍂", title: "가을 전환 TIP", text: "여름 옷을 정리하고 가을 아우터를 꺼낼 시간이에요." });
-    else result.push({ emoji: "❄️", title: "겨울 보관 TIP", text: "울·캐시미어 아이템은 보관 전 드라이클리닝을 권장해요." });
-
-    // Always add a general tip
-    result.push({ emoji: "💡", title: "코디 인사이트", text: "매일 기록을 이어가면 내가 진짜 자주 입는 옷이 무엇인지 파악할 수 있어요!" });
-
-    return result.slice(0, 3);
-  }, []);
+    return { longUnwornItems, laundryCount: laundryRaw.length, laundryItems };
+  }, []); // eslint-disable-line
 
   return (
-    <div className="pb-6 px-4">
+    <div className="pb-4 px-4">
       <div className="flex items-center gap-2 mb-3">
         <span style={{ fontSize: 18 }}>💡</span>
-        <h2 className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>옷장 관리 팁</h2>
+        <h2 className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>내 옷장 관리 팁</h2>
       </div>
       <div className="flex flex-col gap-2.5">
-        {tips.map((tip, i) => (
-          <div
-            key={i}
-            className="rounded-2xl px-4 py-3.5 flex gap-3 items-start"
-            style={{ backgroundColor: "#FAFAFA", border: `1px solid ${DIVIDER}` }}
-          >
-            <span style={{ fontSize: 22, lineHeight: 1.2 }}>{tip.emoji}</span>
-            <div>
-              <p className="text-[12px] font-bold" style={{ color: DARK, fontFamily: FONT }}>{tip.title}</p>
-              <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "#888", fontFamily: FONT }}>{tip.text}</p>
+
+        {/* A. Long-unworn items → sell suggestion */}
+        <button
+          onClick={() => onTipAction?.({ title: "오래 안 입은 아이템", items: longUnwornItems })}
+          className="rounded-2xl px-4 py-4 flex gap-3 items-start w-full text-left active:opacity-80"
+          style={{ backgroundColor: "#F0F5FF", border: "1px solid #C8D8F5" }}
+        >
+          <span style={{ fontSize: 24, lineHeight: 1.2, flexShrink: 0 }}>❄️</span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
+                오래 안 입은 옷 {longUnwornItems.length}개 발견!
+              </p>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                <path d="M5 3L9 7L5 11" stroke="#8899CC" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </div>
+            <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "#6677AA", fontFamily: FONT }}>
+              팔아서 돈을 버는 것은 어때요?
+            </p>
           </div>
-        ))}
+        </button>
+
+        {/* B. Laundry tip */}
+        <button
+          onClick={() => onTipAction?.({ title: "세탁이 필요한 아이템", items: laundryItems })}
+          className="rounded-2xl px-4 py-4 flex gap-3 items-start w-full text-left active:opacity-80"
+          style={{ backgroundColor: "#FFF8F0", border: "1px solid #FFD8AA" }}
+        >
+          <span style={{ fontSize: 24, lineHeight: 1.2, flexShrink: 0 }}>🧺</span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
+                세탁 타임! {laundryCount}개 아이템이 세탁 타임.
+              </p>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                <path d="M5 3L9 7L5 11" stroke="#CC9955" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "#AA7733", fontFamily: FONT }}>
+              완료 표시로 착용 횟수를 리셋하세요
+            </p>
+          </div>
+        </button>
+
       </div>
     </div>
   );
@@ -1366,18 +1974,32 @@ function WardrobeTips() {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
-export default function RecordPage({ onItemSelect }) {
+export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandled }) {
   const TODAY = todayStr();
 
-  const [history,      setHistory]   = useState(() => getAllWearHistory());
-  const [stats,        setStats]     = useState(() => getWearStats());
-  const [recentRecs,   setRecent]    = useState(() => getRecentRecords(7));
-  const [selectedDate, setSelected]  = useState(null);
+  const [history,        setHistory]       = useState(() => getAllWearHistory());
+  const [stats,          setStats]         = useState(() => getWearStats());
+  const [selectedDate,   setSelected]      = useState(null);
+  const [showInsights,   setShowInsights]  = useState(false);
+  const [showStreak,     setShowStreak]    = useState(false);
+  const [stylebooksOpen, setStylebooksOpen] = useState(false);
+  const [fullList,       setFullList]      = useState(null); // { title, items }
+  const [styleFlowDate,  setStyleFlowDate] = useState(null); // non-null → StyleRecordFlow open
+  const [stylebookData,  setStylebookData] = useState(null); // { itemIds, photoUrl, dateStr }
+
+  // When the home screen's "기록 시작하기" fires, open today's flow immediately
+  useEffect(() => {
+    if (autoOpenFlow) {
+      openDayRecord(TODAY);
+      onAutoOpenHandled?.();
+    }
+    // openDayRecord reads history — intentionally omitted from deps to avoid loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpenFlow]);
 
   function refresh() {
     setHistory(getAllWearHistory());
     setStats(getWearStats());
-    setRecent(getRecentRecords(7));
   }
 
   function handleSave(dateStr, record) {
@@ -1386,10 +2008,47 @@ export default function RecordPage({ onItemSelect }) {
     setSelected(null);
   }
 
+  // StyleRecordFlow save — record comes pre-built from DraftStep
+  function handleStyleFlowSave(dateStr, record) {
+    saveWearRecord(dateStr, record);
+    refresh();
+    // Stay on "done" step — user closes from there
+  }
+
+  // Open StyleRecordFlow for new record; open DayRecordSheet for editing
+  function openDayRecord(dateStr) {
+    const existing = history[dateStr];
+    if (existing) {
+      setSelected(dateStr);
+    } else {
+      setStyleFlowDate(dateStr);
+    }
+  }
+
   function handleDelete(dateStr) {
     deleteWearRecord(dateStr);
     refresh();
     setSelected(null);
+  }
+
+  // ── StatsRow tap routing ──────────────────────────────────────────────────
+  function handleStatTap(key) {
+    if (key === "streak") {
+      setShowStreak(true);
+    } else if (key === "items") {
+      const freq = getItemWearFrequency();
+      const sorted = CLOSET_ITEMS
+        .filter((i) => freq.has(i.id))
+        .sort((a, b) => (freq.get(b.id) ?? 0) - (freq.get(a.id) ?? 0));
+      setFullList({ title: "기록된 아이템 전체", items: sorted.length > 0 ? sorted : CLOSET_ITEMS.slice(0, 20) });
+    } else if (key === "days") {
+      // Show all history entries as items
+      const wornIds = new Set(
+        Object.values(history).flatMap((rec) => rec.itemIds ?? [])
+      );
+      const wornItems = CLOSET_ITEMS.filter((i) => wornIds.has(i.id));
+      setFullList({ title: "총 기록 아이템", items: wornItems.length > 0 ? wornItems : CLOSET_ITEMS.slice(0, 20) });
+    }
   }
 
   const selectedRecord = selectedDate ? (history[selectedDate] ?? null) : null;
@@ -1405,7 +2064,7 @@ export default function RecordPage({ onItemSelect }) {
         <div style={{ width: 34 }} />
         <h1 className="text-[17px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>기록</h1>
         <button
-          onClick={() => setSelected(TODAY)}
+          onClick={() => openDayRecord(TODAY)}
           className="w-[34px] h-[34px] flex items-center justify-center rounded-full active:opacity-70"
           style={{ backgroundColor: "#F5F5F5" }}
         >
@@ -1418,48 +2077,89 @@ export default function RecordPage({ onItemSelect }) {
       {/* ── Scroll body ── */}
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
 
-        {/* Square today card */}
+        {/* 1. 오늘은 무엇을 입었나요 */}
         <TodaySquareCard
           todayRecord={history[TODAY] ?? null}
-          onTap={() => setSelected(TODAY)}
+          onTap={() => openDayRecord(TODAY)}
         />
 
-        {/* Weekly / monthly calendar */}
-        <CalendarSection history={history} onDayTap={setSelected} />
+        {/* 2. 스타일 인사이트 */}
+        <StyleInsightsBanner stats={stats} onStatTap={handleStatTap} />
 
-        {/* Streak/stats */}
-        <StatsRow stats={stats} />
+        {/* 3. 캘린더 */}
+        <CalendarSection history={history} onDayTap={openDayRecord} />
 
-        {/* Charts */}
-        <div className="mx-4 mb-1" style={{ height: 1, backgroundColor: DIVIDER }} />
-        <InsightsSection />
+        {/* 4. 연속 기록 streak banner */}
+        <StreakBanner stats={stats} onTap={() => setShowStreak(true)} />
 
-        {/* Recent records */}
-        {recentRecs.length > 0 && (
-          <>
-            <div className="mx-4 mb-4" style={{ height: 1, backgroundColor: DIVIDER }} />
-            <RecentRecordsSection records={recentRecs} onTap={setSelected} />
-          </>
-        )}
+        {/* 5. 나의 스타일북 모두 보기 */}
+        <div className="px-4 mb-4">
+          <button
+            onClick={() => setStylebooksOpen(true)}
+            className="w-full rounded-2xl px-4 py-4 flex items-center justify-between active:opacity-80"
+            style={{ backgroundColor: "#FAFAFA", border: `1px solid ${DIVIDER}` }}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                style={{ backgroundColor: "#1a1a1a" }}
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <rect x="3" y="2" width="12" height="14" rx="2" stroke="white" strokeWidth="1.4" />
+                  <path d="M6 6H12M6 9H12M6 12H9" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+                </svg>
+              </div>
+              <div className="text-left">
+                <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>나의 스타일북 모두 보기</p>
+                <p className="text-[11px] mt-0.5" style={{ color: "#AAAAAA", fontFamily: FONT }}>저장한 코디를 한눈에 확인해보세요</p>
+              </div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M6 3L11 8L6 13" stroke="#CCCCCC" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
 
-        {/* Laundry alerts */}
-        <div className="mx-4 mb-4 relative" style={{ height: 1, backgroundColor: DIVIDER }} />
-        <LaundrySection onItemTap={onItemSelect} />
-
-        {/* Most worn */}
+        {/* 6. 내 옷장 관리 팁 */}
         <div className="mx-4 mb-4" style={{ height: 1, backgroundColor: DIVIDER }} />
-        <MostWornSection onItemTap={onItemSelect} />
+        <WardrobeTips onTipAction={(data) => setFullList(data)} />
 
-        {/* Not worn */}
+        {/* 7. 내 옷장 인사이트 */}
         <div className="mx-4 mb-4" style={{ height: 1, backgroundColor: DIVIDER }} />
-        <NotWornSection onItemTap={onItemSelect} />
+        <InsightsSection onMore={() => setShowInsights(true)} />
 
-        {/* Wardrobe tips */}
-        <div className="mx-4 mb-4" style={{ height: 1, backgroundColor: DIVIDER }} />
-        <WardrobeTips />
+        <div style={{ height: 24 }} />
       </div>
 
       {/* ── Overlays ── */}
+
+      {/* StyleRecordFlow — photo-first wizard for NEW records */}
+      {styleFlowDate && !stylebookData && (
+        <StyleRecordFlow
+          dateStr={styleFlowDate}
+          onSave={handleStyleFlowSave}
+          onClose={() => setStyleFlowDate(null)}
+          onOpenStylebook={(itemIds, photoUrl, dateStr) => {
+            setStylebookData({ itemIds, photoUrl, dateStr });
+          }}
+        />
+      )}
+
+      {/* StylebookCreatorSheet — optional after StyleRecordFlow done screen */}
+      {stylebookData && (
+        <StylebookCreatorSheet
+          itemIds={stylebookData.itemIds}
+          dateStr={stylebookData.dateStr}
+          photoUrl={stylebookData.photoUrl}
+          onSave={() => {
+            setStylebookData(null);
+            setStyleFlowDate(null);
+          }}
+          onClose={() => setStylebookData(null)}
+        />
+      )}
+
+      {/* DayRecordSheet — edit existing records only */}
       {selectedDate && (
         <DayRecordSheet
           dateStr={selectedDate}
@@ -1467,6 +2167,30 @@ export default function RecordPage({ onItemSelect }) {
           onSave={handleSave}
           onDelete={handleDelete}
           onClose={() => setSelected(null)}
+        />
+      )}
+      {showInsights && (
+        <InsightsDetailScreen onBack={() => setShowInsights(false)} />
+      )}
+      {showStreak && (
+        <StreakDetailScreen
+          stats={stats}
+          history={history}
+          onBack={() => setShowStreak(false)}
+        />
+      )}
+      {stylebooksOpen && (
+        <MyStylebooksScreen
+          onBack={() => setStylebooksOpen(false)}
+          onItemTap={onItemSelect}
+        />
+      )}
+      {fullList && (
+        <FullListScreen
+          title={fullList.title}
+          items={fullList.items}
+          onBack={() => setFullList(null)}
+          onItemSelect={onItemSelect}
         />
       )}
     </div>

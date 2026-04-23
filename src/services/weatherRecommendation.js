@@ -40,7 +40,40 @@ import { zoneCoordiImg } from "../lib/localImages";
  * @property {number}  [rainMm]      - Today's rain forecast in mm (optional)
  * @property {number}  hour          - Current hour 0–23 (for time-of-day logic)
  * @property {string}  [season]      - "spring" | "summer" | "fall" | "winter" (optional, computed if absent)
+ * @property {"cold"|"normal"|"warm"} [tempPref] - User temperature sensitivity preference
  */
+
+// ─── User temperature preference helpers ─────────────────────────────────────
+// Stored in localStorage under key "trunkroom_temp_pref"
+// Values: "cold" (추위 탐), "normal" (보통), "warm" (더위 탐)
+// cold → feels 3°C colder → recommends warmer clothes
+// warm → feels 3°C warmer → recommends lighter clothes
+
+const TEMP_PREF_KEY = "trunkroom_temp_pref";
+
+export function getTempPref() {
+  try { return localStorage.getItem(TEMP_PREF_KEY) ?? "normal"; }
+  catch { return "normal"; }
+}
+
+export function setTempPref(pref) {
+  try { localStorage.setItem(TEMP_PREF_KEY, pref); }
+  catch { /* ignore */ }
+}
+
+/** Convert user preference to a numeric adjustment in °C */
+export function tempPrefOffset(pref) {
+  if (pref === "cold") return -3;   // 추위 탐 — feels colder
+  if (pref === "warm") return  3;   // 더위 탐 — feels warmer
+  return 0;
+}
+
+/** Korean label for each preference key */
+export const TEMP_PREF_LABELS = {
+  cold:   "추위 탐",
+  normal: "보통",
+  warm:   "더위 탐",
+};
 
 /**
  * @typedef {Object} OutfitPiece
@@ -451,9 +484,14 @@ export function getWeatherOutfitRec(ctx) {
     conditionCode: ctx?.conditionCode ?? "clear",
     rainMm:        ctx?.rainMm        ?? 0,
     hour:          ctx?.hour          ?? new Date().getHours(),
+    tempPref:      ctx?.tempPref      ?? "normal",
   };
 
-  const eff = timeAdjustedTemp(safe.hour, effectiveTemp(safe));
+  // Apply user temperature preference offset before effective-temp calculation
+  const prefOffset = tempPrefOffset(safe.tempPref);
+  const adjustedCtx = { ...safe, feelsLike: safe.feelsLike + prefOffset };
+
+  const eff = timeAdjustedTemp(safe.hour, effectiveTemp(adjustedCtx));
 
   const rule = OUTFIT_RULES.find((r) => r.match(safe, eff));
   if (!rule) {
@@ -477,7 +515,7 @@ export function getWeatherOutfitRec(ctx) {
  * @param {object} weather - from useWeather() hook
  * @returns {WeatherContext}
  */
-export function buildWeatherContext(weather) {
+export function buildWeatherContext(weather, tempPref) {
   if (!weather) return null;
   const now = new Date();
   return {
@@ -489,6 +527,7 @@ export function buildWeatherContext(weather) {
     rainMm:        weather.forecast?.[0]?.rain ?? 0,
     hour:          now.getHours(),
     season:        getSeason(now.getMonth() + 1),
+    tempPref:      tempPref ?? getTempPref(),
   };
 }
 

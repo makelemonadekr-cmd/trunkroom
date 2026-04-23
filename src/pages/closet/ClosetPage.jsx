@@ -1,22 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import FullListScreen from "./FullListScreen";
 import AddClosetItemScreen from "../sell/AddClosetItemScreen";
-import OutfitDetailScreen from "../../components/OutfitDetailScreen";
-import CoordiEditorPage from "../codi/CoordiEditorPage";
 import MySizePage from "./MySizePage";
 import LazyImage from "../../components/LazyImage";
-import { getAllCoordi, deleteCoordi } from "../../lib/coordiStore";
-import StylebookDetailScreen from "../../components/StylebookDetailScreen";
-import { isLiked, getLikeCount, toggleLike } from "../../lib/likesStore";
 import {
   MAIN_CATEGORIES,
   CLOSET_ITEMS,
   getItemsByCategory,
 } from "../../constants/mockClosetData";
-import { STYLE_FILTER_OPTIONS } from "../../constants/styleCategories";
-import { SEASON_FILTER_OPTIONS } from "../../constants/seasonFilters";
-import { getOutfitsByStyleAndSeason } from "../../constants/mockOutfitData";
 import { useFavorites } from "../../lib/favoritesStore";
+import { getTempPref, setTempPref } from "../../services/weatherRecommendation";
 
 const YELLOW = "#F5C200";
 const DARK   = "#1a1a1a";
@@ -136,43 +129,53 @@ function SubStats() {
   );
 }
 
-// ─── Sub-tabs ────────────────────────────────────────────────────────────────
-function SubTabs({ active, onChange }) {
-  const tabs = [
-    { id: "clothing", label: "내 아이템" },
-    { id: "codebook", label: "스타일북"  },
-  ];
+// ─── Temperature preference section ──────────────────────────────────────────
+const TEMP_PREFS = [
+  { key: "cold",   label: "추위탐", emoji: "🧊" },
+  { key: "normal", label: "보통",   emoji: "😊" },
+  { key: "warm",   label: "더위탐", emoji: "🔥" },
+];
+
+function TempPrefSection() {
+  const [pref, setPrefState] = useState(() => getTempPref());
+
+  function handleChange(key) {
+    setPrefState(key);
+    setTempPref(key);
+  }
+
   return (
-    <div className="flex bg-white" style={{ borderBottom: "1px solid #F0F0F0" }}>
-      {tabs.map((tab) => {
-        const isActive = active === tab.id;
-        return (
-          <button
-            key={tab.id}
-            onClick={() => onChange(tab.id)}
-            className="flex-1 flex flex-col items-center pt-3 pb-0"
-          >
-            <span
-              className="text-[13px] pb-2.5"
+    <div
+      className="mx-4 mb-3 rounded-2xl px-4 py-3 flex items-center gap-3"
+      style={{ backgroundColor: "#F8F8F8", border: "1px solid #EEEEEE" }}
+    >
+      <div className="flex-1 min-w-0">
+        <p className="text-[9px] font-bold tracking-[0.1em] uppercase mb-0.5" style={{ color: "#BBBBBB", fontFamily: FONT }}>
+          BODY TEMP PREFERENCE
+        </p>
+        <p className="text-[12px] font-bold" style={{ color: DARK, fontFamily: FONT }}>체온 성향</p>
+      </div>
+      <div className="flex gap-1.5">
+        {TEMP_PREFS.map((p) => {
+          const isActive = pref === p.key;
+          return (
+            <button
+              key={p.key}
+              onClick={() => handleChange(p.key)}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all"
               style={{
-                color:      isActive ? DARK : "#AAAAAA",
-                fontFamily: FONT,
-                fontWeight: isActive ? 700 : 400,
+                backgroundColor: isActive ? DARK    : "white",
+                color:           isActive ? "white" : "#666",
+                border:          isActive ? `1.5px solid ${DARK}` : "1.5px solid #E8E8E8",
+                fontFamily:      FONT,
               }}
             >
-              {tab.label}
-            </span>
-            <div
-              style={{
-                height:          2,
-                width:           "100%",
-                backgroundColor: isActive ? DARK : "transparent",
-                borderRadius:    1,
-              }}
-            />
-          </button>
-        );
-      })}
+              <span style={{ fontSize: 11 }}>{p.emoji}</span>
+              <span>{p.label}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -302,145 +305,353 @@ function CategorySwipeRow({ active, onChange }) {
   );
 }
 
-// ─── 내 아이템 tab ────────────────────────────────────────────────────────────
-function ClothingTab({ onMorePress, onItemSelect }) {
-  const [catFilter, setCatFilter] = useState("전체");
+// ─── Filter bottom-sheet ──────────────────────────────────────────────────────
+const SEASON_OPTS   = ["봄", "여름", "가을", "겨울"];
+const MATERIAL_OPTS = ["면", "울", "데님", "니트", "린넨", "폴리에스터", "가죽", "시폰", "벨벳"];
 
-  const filtered =
-    catFilter === "전체" ? CLOSET_ITEMS : getItemsByCategory(catFilter);
+function FilterSheet({ filters, onApply, onClose }) {
+  const [local, setLocal] = useState(filters);
+
+  // Derive unique colors + brands from actual data
+  const allColors = useMemo(
+    () => [...new Set(CLOSET_ITEMS.map((i) => i.color).filter(Boolean))].sort(),
+    []
+  );
+  const allBrands = useMemo(
+    () => [...new Set(CLOSET_ITEMS.map((i) => i.brand).filter(Boolean))].sort(),
+    []
+  );
+
+  function toggle(key, value) {
+    setLocal((prev) => ({
+      ...prev,
+      [key]: prev[key].includes(value)
+        ? prev[key].filter((v) => v !== value)
+        : [...prev[key], value],
+    }));
+  }
+
+  const activeCount = Object.values(local).flat().length;
+
+  const chipStyle = (active) => ({
+    backgroundColor: active ? DARK    : "#F5F5F5",
+    color:           active ? "white" : "#555",
+    border:          active ? `1px solid ${DARK}` : "1px solid transparent",
+    fontFamily:      FONT,
+  });
+
+  return (
+    <div
+      className="absolute inset-0 z-50 flex items-end"
+      style={{ backgroundColor: "rgba(0,0,0,0.42)" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="w-full rounded-t-3xl bg-white" style={{ maxHeight: "82%" }}>
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-0">
+          <div className="w-10 h-1 rounded-full" style={{ backgroundColor: "#DDD" }} />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: "1px solid #F0F0F0" }}>
+          <h3 className="text-[16px] font-bold" style={{ color: DARK, fontFamily: FONT }}>필터</h3>
+          <button
+            onClick={() => { setLocal({ season: [], color: [], brand: [], material: [] }); }}
+            className="text-[12px]" style={{ color: "#AAAAAA", fontFamily: FONT }}
+          >
+            초기화
+          </button>
+        </div>
+
+        <div className="overflow-y-auto px-5 py-4 flex flex-col gap-5" style={{ scrollbarWidth: "none", maxHeight: "56vh" }}>
+
+          {/* Season */}
+          <div>
+            <p className="text-[11px] font-bold mb-2.5 tracking-[0.08em] uppercase" style={{ color: "#AAAAAA", fontFamily: FONT }}>시즌</p>
+            <div className="flex flex-wrap gap-2">
+              {SEASON_OPTS.map((s) => (
+                <button key={s} onClick={() => toggle("season", s)}
+                  className="px-3.5 py-1.5 rounded-full text-[12px] font-medium"
+                  style={chipStyle(local.season.includes(s))}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Color */}
+          <div>
+            <p className="text-[11px] font-bold mb-2.5 tracking-[0.08em] uppercase" style={{ color: "#AAAAAA", fontFamily: FONT }}>색상</p>
+            <div className="flex flex-wrap gap-2">
+              {allColors.map((c) => (
+                <button key={c} onClick={() => toggle("color", c)}
+                  className="px-3.5 py-1.5 rounded-full text-[12px] font-medium"
+                  style={chipStyle(local.color.includes(c))}>
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Brand */}
+          <div>
+            <p className="text-[11px] font-bold mb-2.5 tracking-[0.08em] uppercase" style={{ color: "#AAAAAA", fontFamily: FONT }}>브랜드</p>
+            <div className="flex flex-wrap gap-2">
+              {allBrands.map((b) => (
+                <button key={b} onClick={() => toggle("brand", b)}
+                  className="px-3.5 py-1.5 rounded-full text-[12px] font-medium"
+                  style={chipStyle(local.brand.includes(b))}>
+                  {b}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Material */}
+          <div>
+            <p className="text-[11px] font-bold mb-2.5 tracking-[0.08em] uppercase" style={{ color: "#AAAAAA", fontFamily: FONT }}>소재</p>
+            <div className="flex flex-wrap gap-2">
+              {MATERIAL_OPTS.map((m) => (
+                <button key={m} onClick={() => toggle("material", m)}
+                  className="px-3.5 py-1.5 rounded-full text-[12px] font-medium"
+                  style={chipStyle(local.material.includes(m))}>
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Apply button */}
+        <div className="px-5 pt-3 pb-6" style={{ borderTop: "1px solid #F0F0F0" }}>
+          <button
+            onClick={() => { onApply(local); onClose(); }}
+            className="w-full h-12 rounded-2xl text-[15px] font-bold"
+            style={{ backgroundColor: DARK, color: "white", fontFamily: FONT }}
+          >
+            {activeCount > 0 ? `${activeCount}개 필터 적용하기` : "적용하기"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Active filter chips bar ──────────────────────────────────────────────────
+function ActiveFilterBar({ filters, onRemove }) {
+  const chips = [];
+  Object.entries(filters).forEach(([key, values]) => {
+    values.forEach((v) => chips.push({ key, value: v }));
+  });
+  if (chips.length === 0) return null;
+
+  return (
+    <div className="flex gap-2 overflow-x-auto px-4 pb-2" style={{ scrollbarWidth: "none" }}>
+      {chips.map(({ key, value }) => (
+        <button
+          key={`${key}-${value}`}
+          onClick={() => onRemove(key, value)}
+          className="shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium"
+          style={{ backgroundColor: "#1a1a1a", color: "white", fontFamily: FONT }}
+        >
+          {value}
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+            <path d="M1 1L7 7M7 1L1 7" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+          </svg>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── 내 아이템 tab ────────────────────────────────────────────────────────────
+function ClothingTab({ onMorePress, onItemTap, onFilterOpen }) {
+  const [catFilter,     setCatFilter]     = useState("전체");
+  const [filters,       setFilters]       = useState({ season: [], color: [], brand: [], material: [] });
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+
+  const activeFilterCount = Object.values(filters).flat().length;
+
+  const filtered = useMemo(() => {
+    let items = catFilter === "전체" ? CLOSET_ITEMS : getItemsByCategory(catFilter);
+    if (filters.season.length   > 0) items = items.filter((i) => i.season?.some((s) => filters.season.includes(s)));
+    if (filters.color.length    > 0) items = items.filter((i) => filters.color.includes(i.color));
+    if (filters.brand.length    > 0) items = items.filter((i) => filters.brand.includes(i.brand));
+    if (filters.material.length > 0) items = items.filter((i) => filters.material.includes(i.material));
+    return items;
+  }, [catFilter, filters]);
+
+  function removeFilter(key, value) {
+    setFilters((prev) => ({ ...prev, [key]: prev[key].filter((v) => v !== value) }));
+  }
+
+  const listTitle = catFilter === "전체" ? "전체 아이템" : catFilter;
 
   return (
     <div>
-      {/* emoji swipe row */}
+      {/* Category emoji swipe row */}
       <div className="bg-white" style={{ borderBottom: "1px solid #F4F4F4" }}>
         <CategorySwipeRow active={catFilter} onChange={setCatFilter} />
       </div>
 
-      {/* Count + more button */}
+      {/* Count row + filter button */}
       <div className="flex items-center justify-between px-5 py-2.5">
         <p className="text-[12px] font-medium" style={{ color: "#888", fontFamily: FONT }}>
           {catFilter === "전체" ? "전체" : catFilter} {filtered.length}개
+          {activeFilterCount > 0 && (
+            <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold"
+              style={{ backgroundColor: DARK, color: "white", fontFamily: FONT }}>
+              필터 {activeFilterCount}
+            </span>
+          )}
         </p>
-        {filtered.length > 0 && (
+        <div className="flex items-center gap-3">
           <button
-            onClick={() =>
-              onMorePress({
-                title: catFilter === "전체" ? "전체 아이템" : catFilter,
-                items: filtered,
-              })
-            }
-            className="flex items-center gap-0.5"
-          >
-            <span className="text-[12px]" style={{ color: "#888", fontFamily: FONT }}>더보기</span>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M5 3L9 7L5 11" stroke="#888" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-        )}
-      </div>
-
-      {/* Item grid */}
-      <div className="grid grid-cols-2 gap-3 px-4 pb-4">
-        {filtered.slice(0, 8).map((item) => (
-          <ClothingItemCard key={item.id} item={item} onSelect={onItemSelect} />
-        ))}
-      </div>
-
-      {filtered.length > 8 && (
-        <div className="px-4 pb-6">
-          <button
-            onClick={() =>
-              onMorePress({
-                title: catFilter === "전체" ? "전체 아이템" : catFilter,
-                items: filtered,
-              })
-            }
-            className="w-full py-3 rounded-xl text-[13px] font-bold"
+            onClick={() => setFilterSheetOpen(true)}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full"
             style={{
-              backgroundColor: "#F5F5F5",
-              color:           "#555",
+              backgroundColor: activeFilterCount > 0 ? DARK : "#F2F2F2",
+              color:           activeFilterCount > 0 ? "white" : "#555",
               fontFamily:      FONT,
-              border:          "1px solid #EBEBEB",
+              fontSize:        12,
+              fontWeight:      activeFilterCount > 0 ? 700 : 500,
             }}
           >
-            {filtered.length - 8}개 더보기
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M1.5 3H10.5M3 6H9M5 9H7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+            필터{activeFilterCount > 0 ? ` ${activeFilterCount}` : ""}
+          </button>
+          {filtered.length > 0 && (
+            <button onClick={() => onMorePress({ title: listTitle, items: filtered })}
+              className="flex items-center gap-0.5">
+              <span className="text-[12px]" style={{ color: "#888", fontFamily: FONT }}>더보기</span>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M5 3L9 7L5 11" stroke="#888" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Active filter chips */}
+      <ActiveFilterBar filters={filters} onRemove={removeFilter} />
+
+      {/* Item grid */}
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-14 px-8">
+          <span style={{ fontSize: 40, opacity: 0.3 }}>🔍</span>
+          <p className="text-[14px] font-bold mt-3 text-center" style={{ color: "#BBBBBB", fontFamily: FONT }}>
+            조건에 맞는 아이템이 없어요
+          </p>
+          <button onClick={() => setFilters({ season: [], color: [], brand: [], material: [] })}
+            className="mt-3 px-4 py-2 rounded-full text-[12px] font-medium"
+            style={{ backgroundColor: "#F2F2F2", color: "#555", fontFamily: FONT }}>
+            필터 초기화
           </button>
         </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-3 px-4 pb-4">
+            {filtered.slice(0, 8).map((item) => (
+              <ClothingItemCard key={item.id} item={item} onSelect={onItemTap} />
+            ))}
+          </div>
+          {filtered.length > 8 && (
+            <div className="px-4 pb-6">
+              <button
+                onClick={() => onMorePress({ title: listTitle, items: filtered })}
+                className="w-full py-3 rounded-xl text-[13px] font-bold"
+                style={{ backgroundColor: "#F5F5F5", color: "#555", fontFamily: FONT, border: "1px solid #EBEBEB" }}
+              >
+                {filtered.length - 8}개 더보기
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Filter bottom-sheet */}
+      {filterSheetOpen && (
+        <FilterSheet
+          filters={filters}
+          onApply={(f) => setFilters(f)}
+          onClose={() => setFilterSheetOpen(false)}
+        />
       )}
     </div>
   );
 }
 
-// ─── Community outfit card (used in CodibookTab → 커뮤니티 view) ─────────────
-function CommunityOutfitCard({ outfit, onTap }) {
-  const [liked, setLiked] = useState(() => isLiked(outfit.id));
-  const [count, setCount] = useState(() => getLikeCount(outfit.id, outfit.likes ?? 0));
 
-  function handleLike(e) {
-    e.stopPropagation();
-    const result = toggleLike(outfit.id, outfit.likes ?? 0);
-    setLiked(result.liked);
-    setCount(result.count);
-  }
 
-  const imgSrc = outfit.previewImage;
+
+
+// ─── Photo source picker bottom sheet ────────────────────────────────────────
+// Shown when user taps "아이템 등록하기" — asks whether to take a photo or pick from gallery.
+
+function PhotoSourceSheet({ onSelect, onClose }) {
+  const options = [
+    {
+      key:   "camera",
+      emoji: "📸",
+      title: "사진 촬영",
+      desc:  "지금 바로 옷 사진을 찍어요",
+    },
+    {
+      key:   "gallery",
+      emoji: "🖼️",
+      title: "사진 불러오기",
+      desc:  "갤러리에서 사진을 선택해요",
+    },
+  ];
 
   return (
     <div
-      className="relative rounded-2xl overflow-hidden active:opacity-90 transition-opacity"
-      style={{ aspectRatio: "3/4", backgroundColor: outfit.color || "#EEE", cursor: "pointer" }}
-      onClick={() => onTap?.(outfit)}
+      className="absolute inset-0 z-50 flex items-end"
+      style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <LazyImage
-        src={imgSrc}
-        alt={outfit.title}
-        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
-      />
-      {/* Gradient */}
-      <div
-        className="absolute inset-0"
-        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.10) 55%, transparent 100%)" }}
-      />
-      {/* Top: style badge + like */}
-      <div className="absolute top-2.5 left-2.5 right-2.5 flex items-start justify-between">
-        <span
-          className="px-2 py-0.5 rounded-full text-[9px] font-bold"
-          style={{ backgroundColor: "rgba(255,255,255,0.18)", color: "white", backdropFilter: "blur(6px)", fontFamily: FONT }}
-        >
-          {outfit.style}
-        </span>
-        <button
-          onClick={handleLike}
-          className="flex items-center gap-1 px-2 py-1 rounded-full"
-          style={{ backgroundColor: "rgba(0,0,0,0.28)", backdropFilter: "blur(6px)" }}
-        >
-          <svg width="12" height="12" viewBox="0 0 13 13" fill="none">
-            <path
-              d="M6.5 11L1.5 6.3C1.06 5.86 1 5.18 1 4.5C1 3.12 2.12 2 3.5 2C4.3 2 5.02 2.41 5.5 3.04L6.5 4.19L7.5 3.04C7.98 2.41 8.7 2 9.5 2C10.88 2 12 3.12 12 4.5C12 5.18 11.94 5.86 11.5 6.3L6.5 11Z"
-              fill={liked ? "#E84040" : "none"}
-              stroke={liked ? "#E84040" : "rgba(255,255,255,0.85)"}
-              strokeWidth="1.2"
-            />
-          </svg>
-          <span className="text-[9px] font-medium" style={{ color: liked ? "#ff7070" : "rgba(255,255,255,0.85)", fontFamily: FONT }}>
-            {count}
-          </span>
-        </button>
-      </div>
-      {/* Bottom info */}
-      <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
-        <p className="text-[12px] font-bold text-white truncate mb-1" style={{ fontFamily: FONT }}>
-          {outfit.title}
-        </p>
-        <div className="flex flex-wrap gap-1">
-          {(outfit.tags ?? []).slice(0, 2).map((tag) => (
-            <span
-              key={tag}
-              className="text-[8px] px-1.5 py-0.5 rounded-full"
-              style={{ backgroundColor: "rgba(255,255,255,0.13)", color: "rgba(255,255,255,0.78)", fontFamily: FONT }}
+      <div className="w-full rounded-t-3xl bg-white pb-8">
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-4">
+          <div className="w-10 h-1 rounded-full" style={{ backgroundColor: "#DDD" }} />
+        </div>
+
+        {/* Header */}
+        <div className="px-5 pb-5">
+          <p className="text-[10px] font-bold tracking-[0.12em] uppercase" style={{ color: "#AAAAAA", fontFamily: FONT }}>ADD ITEM</p>
+          <h3 className="text-[18px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.025em" }}>
+            어떻게 사진을 추가할까요?
+          </h3>
+          <p className="text-[12px] mt-1" style={{ color: "#AAAAAA", fontFamily: FONT }}>
+            AI가 사진을 분석해서 카테고리·소재·색상을 자동으로 입력해드려요
+          </p>
+        </div>
+
+        {/* Options */}
+        <div className="px-4 flex flex-col gap-3">
+          {options.map((opt) => (
+            <button
+              key={opt.key}
+              onClick={() => onSelect(opt.key)}
+              className="flex items-center gap-4 px-4 py-4 rounded-2xl active:opacity-80 text-left"
+              style={{ backgroundColor: "#F8F8F8", border: "1.5px solid #F0F0F0" }}
             >
-              #{tag}
-            </span>
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                style={{ backgroundColor: YELLOW, fontSize: 22 }}
+              >
+                {opt.emoji}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT }}>{opt.title}</p>
+                <p className="text-[12px] mt-0.5" style={{ color: "#888", fontFamily: FONT }}>{opt.desc}</p>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+                <path d="M6 3L11 8L6 13" stroke="#CCCCCC" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
           ))}
         </div>
       </div>
@@ -448,258 +659,19 @@ function CommunityOutfitCard({ outfit, onTap }) {
   );
 }
 
-// ─── 스타일북 tab ───────────────────────────────────────────────────────────────
-function CodibookTab({ onOutfitTap, onViewMyCoordi, onEditMyCoordi, myCoordiRefresh }) {
-  const [codebookView, setCodebookView] = useState("mine");       // "mine" | "community"
-  const [styleFilter,  setStyleFilter]  = useState("전체");
-  const [seasonFilter, setSeasonFilter] = useState("전체");
-  const [myCoordi,     setMyCoordi]     = useState(() => getAllCoordi());
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
-
-  // Reload my coordi whenever the editor closes
-  useEffect(() => {
-    setMyCoordi(getAllCoordi());
-  }, [myCoordiRefresh]);
-
-  // Community outfits — likes persisted via likesStore
-  const filtered = getOutfitsByStyleAndSeason(styleFilter, seasonFilter);
-
-  function handleDeleteMyCoordi(id) {
-    deleteCoordi(id);
-    setMyCoordi(getAllCoordi());
-    setDeleteConfirm(null);
-  }
-
-  return (
-    <div>
-      {/* ── Sub-tab toggle ── */}
-      <div
-        className="flex items-center gap-2 px-4 py-3 bg-white"
-        style={{ borderBottom: "1px solid #F0F0F0" }}
-      >
-        {["mine", "community"].map((v) => {
-          const active = codebookView === v;
-          const label  = v === "mine" ? "내 스타일" : "커뮤니티";
-          return (
-            <button
-              key={v}
-              onClick={() => setCodebookView(v)}
-              className="px-4 py-1.5 rounded-full text-[12px] font-bold transition-all"
-              style={{
-                backgroundColor: active ? DARK    : "#F2F2F2",
-                color:           active ? "white" : "#777",
-                fontFamily:      FONT,
-              }}
-            >
-              {label}
-              {v === "mine" && myCoordi.length > 0 && (
-                <span
-                  className="ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full"
-                  style={{ backgroundColor: active ? "rgba(255,255,255,0.25)" : "#E0E0E0", color: active ? "white" : "#888" }}
-                >
-                  {myCoordi.length}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ── 내 스타일 view ── */}
-      {codebookView === "mine" && (
-        <div className="bg-white">
-          {myCoordi.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 gap-3 px-6">
-              <span style={{ fontSize: 44 }}>✨</span>
-              <p className="text-[14px] font-bold text-center" style={{ color: "#1a1a1a", fontFamily: FONT }}>
-                아직 만든 스타일이 없어요
-              </p>
-              <p className="text-[12px] text-center leading-relaxed" style={{ color: "#AAAAAA", fontFamily: FONT }}>
-                아래 버튼을 눌러 나만의 스타일을 만들어 보세요
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3 px-4 py-4">
-              {myCoordi.map((c) => (
-                <div key={c.id} className="relative">
-                  {/* Card */}
-                  <button
-                    onClick={() => onViewMyCoordi?.(c)}
-                    className="w-full rounded-2xl overflow-hidden active:opacity-80"
-                    style={{ aspectRatio: "3/4", backgroundColor: c.bgColor || "#F2F2F2", display: "block" }}
-                  >
-                    {c.thumbnail ? (
-                      <img src={c.thumbnail} alt={c.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <span style={{ fontSize: 40, opacity: 0.18 }}>👗</span>
-                      </div>
-                    )}
-                    {/* Gradient */}
-                    <div
-                      className="absolute inset-0"
-                      style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 55%)" }}
-                    />
-                    {/* Bottom info */}
-                    <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
-                      <p className="text-white text-[12px] font-bold truncate" style={{ fontFamily: FONT }}>
-                        {c.title || "제목 없음"}
-                      </p>
-                      <p className="text-[9px] mt-0.5" style={{ color: "rgba(255,255,255,0.55)", fontFamily: FONT }}>
-                        {c.updatedAt
-                          ? new Date(c.updatedAt).toLocaleDateString("ko-KR", { month: "short", day: "numeric" })
-                          : ""}
-                      </p>
-                    </div>
-                  </button>
-                  {/* Delete button */}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setDeleteConfirm(c.id); }}
-                    className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
-                  >
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                      <path d="M2 2L8 8M8 2L2 8" stroke="white" strokeWidth="1.4" strokeLinecap="round"/>
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── 커뮤니티 view ── */}
-      {codebookView === "community" && (
-        <>
-          {/* Style filter */}
-          <div className="bg-white pt-3 pb-2">
-            <p className="px-4 text-[10px] font-bold tracking-[0.12em] uppercase mb-2" style={{ color: "#AAAAAA", fontFamily: FONT }}>스타일</p>
-            <div className="flex overflow-x-auto px-4 gap-2" style={{ scrollbarWidth: "none" }}>
-              {STYLE_FILTER_OPTIONS.map((s) => {
-                const isActive = styleFilter === s;
-                return (
-                  <button key={s} onClick={() => setStyleFilter(s)}
-                    className="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all"
-                    style={{
-                      backgroundColor: isActive ? DARK    : "#F2F2F2",
-                      color:           isActive ? "white" : "#555",
-                      fontFamily:      FONT,
-                      border:          isActive ? `1.5px solid ${DARK}` : "1.5px solid transparent",
-                    }}
-                  >
-                    {s}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Season filter */}
-          <div className="bg-white pt-2 pb-3" style={{ borderBottom: "1px solid #F0F0F0" }}>
-            <p className="px-4 text-[10px] font-bold tracking-[0.12em] uppercase mb-2" style={{ color: "#AAAAAA", fontFamily: FONT }}>시즌</p>
-            <div className="flex px-4 gap-2">
-              {SEASON_FILTER_OPTIONS.map((s) => {
-                const isActive = seasonFilter === s;
-                return (
-                  <button key={s} onClick={() => setSeasonFilter(s)}
-                    className="shrink-0 px-3 py-1 rounded-full text-[11px] font-medium transition-all"
-                    style={{
-                      backgroundColor: isActive ? YELLOW : "#F9F9F9",
-                      color:           isActive ? DARK   : "#888",
-                      fontFamily:      FONT,
-                      border:          isActive ? `1.5px solid ${YELLOW}` : "1.5px solid #EBEBEB",
-                    }}
-                  >
-                    {s}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Result count */}
-          <div className="px-4 py-2 bg-white">
-            <p className="text-[11px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>
-              {styleFilter !== "전체" ? `${styleFilter} · ` : ""}
-              {seasonFilter !== "전체" ? `${seasonFilter} · ` : ""}
-              {filtered.length}개 스타일
-            </p>
-          </div>
-
-          {/* Community outfit grid */}
-          {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 gap-3">
-              <span style={{ fontSize: 36 }}>🔍</span>
-              <p className="text-[13px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>해당 조건의 스타일이 없어요</p>
-            </div>
-          ) : (
-            <div className="bg-white px-3 pt-2 pb-4">
-              <div className="grid grid-cols-2 gap-2">
-                {filtered.map((outfit) => (
-                  <CommunityOutfitCard key={outfit.id} outfit={outfit} onTap={onOutfitTap} />
-                ))}
-              </div>
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Delete confirmation sheet */}
-      {deleteConfirm && (
-        <div className="absolute inset-0 z-50 flex items-end" style={{ backgroundColor: "rgba(0,0,0,0.4)" }}>
-          <div className="w-full rounded-t-3xl px-5 pt-6 pb-8" style={{ backgroundColor: "white" }}>
-            <p className="text-[16px] font-bold text-center mb-1" style={{ color: "#1a1a1a", fontFamily: FONT }}>스타일을 삭제할까요?</p>
-            <p className="text-[13px] text-center mb-6" style={{ color: "#888", fontFamily: FONT }}>삭제한 스타일은 복구할 수 없어요</p>
-            <div className="flex gap-3">
-              <button onClick={() => setDeleteConfirm(null)} className="flex-1 h-12 rounded-xl text-[14px] font-medium" style={{ backgroundColor: "#F5F5F5", color: "#888", fontFamily: FONT }}>
-                취소
-              </button>
-              <button onClick={() => handleDeleteMyCoordi(deleteConfirm)} className="flex-1 h-12 rounded-xl text-[14px] font-bold" style={{ backgroundColor: "#E84040", color: "white", fontFamily: FONT }}>
-                삭제
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-
 // ─── Root ─────────────────────────────────────────────────────────────────────
-export default function ClosetPage({ onProductSelect }) {
-  const [activeSubTab,    setActiveSubTab]    = useState("clothing");
+export default function ClosetPage({ onProductSelect, onItemTap }) {
   const [fullList,        setFullList]        = useState(null);
   const [addItemOpen,     setAddItemOpen]     = useState(false);
-  const [outfitDetail,    setOutfitDetail]    = useState(null);
-  const [editorOpen,      setEditorOpen]      = useState(false);
-  const [editingCoordi,   setEditingCoordi]   = useState(null);
-  const [coordiRefresh,   setCoordiRefresh]   = useState(0);
+  const [photoSource,     setPhotoSource]     = useState(null);
+  const [showSourceSheet, setShowSourceSheet] = useState(false);
   const [mySizeOpen,      setMySizeOpen]      = useState(false);
-  const [stylebookDetail, setStylebookDetail] = useState(null); // StylebookDetailScreen
 
-  function openEditor(coordi = null) {
-    setEditingCoordi(coordi);
-    setEditorOpen(true);
+  function handleSourceSelect(source) {
+    setPhotoSource(source);
+    setShowSourceSheet(false);
+    setAddItemOpen(true);
   }
-
-  function handleEditorClose() {
-    setEditorOpen(false);
-    setEditingCoordi(null);
-    setCoordiRefresh((n) => n + 1);
-  }
-
-  function handleCTAPress() {
-    if (activeSubTab === "codebook") {
-      openEditor(null);
-    } else {
-      setAddItemOpen(true);
-    }
-  }
-
-  const ctaLabel =
-    activeSubTab === "codebook" ? "내 스타일 만들기" : "아이템 등록하기";
 
   return (
     <div className="relative flex flex-col h-full bg-white overflow-hidden">
@@ -708,47 +680,39 @@ export default function ClosetPage({ onProductSelect }) {
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
         <ProfileSection onSizePress={() => setMySizeOpen(true)} />
         <SubStats />
-        <SubTabs active={activeSubTab} onChange={setActiveSubTab} />
 
-        {activeSubTab === "clothing" && (
-          <ClothingTab
-            onMorePress={(data) => setFullList(data)}
-            onItemSelect={onProductSelect}
-          />
-        )}
-        {activeSubTab === "codebook" && (
-          <CodibookTab
-            onOutfitTap={(outfit) => setOutfitDetail(outfit)}
-            onViewMyCoordi={(c) => setStylebookDetail(c)}
-            onEditMyCoordi={(c) => openEditor(c)}
-            myCoordiRefresh={coordiRefresh}
-          />
-        )}
+        {/* ── Temperature preference ── */}
+        <div className="pt-3">
+          <TempPrefSection />
+        </div>
+
+        {/* ── Items + filters ── */}
+        <ClothingTab
+          onMorePress={(data) => setFullList(data)}
+          onItemTap={onItemTap}
+        />
       </div>
 
-      {/* CTA: "아이템 등록하기" / "내 스타일 만들기" */}
-      <div
-        className="px-4 py-3 bg-white shrink-0"
-        style={{ borderTop: "1px solid #F0F0F0" }}
-      >
+      {/* CTA: 아이템 등록하기 */}
+      <div className="px-4 py-3 bg-white shrink-0" style={{ borderTop: "1px solid #F0F0F0" }}>
         <button
-          onClick={handleCTAPress}
+          onClick={() => setShowSourceSheet(true)}
           className="w-full flex items-center justify-center gap-2 rounded-2xl transition-all active:opacity-80"
           style={{
-            backgroundColor: "#F5C200",
+            backgroundColor: YELLOW,
             height:          52,
             fontFamily:      FONT,
             fontSize:        15,
             fontWeight:      700,
-            color:           "#1a1a1a",
+            color:           DARK,
             letterSpacing:   "-0.01em",
             boxShadow:       "0 4px 16px rgba(245,194,0,0.30)",
           }}
         >
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <path d="M9 3V15M3 9H15" stroke="#1a1a1a" strokeWidth="2.2" strokeLinecap="round" />
+            <path d="M9 3V15M3 9H15" stroke={DARK} strokeWidth="2.2" strokeLinecap="round" />
           </svg>
-          {ctaLabel}
+          아이템 등록하기
         </button>
       </div>
 
@@ -758,47 +722,24 @@ export default function ClosetPage({ onProductSelect }) {
           title={fullList.title}
           items={fullList.items}
           onBack={() => setFullList(null)}
-          onItemSelect={onProductSelect}
+          onItemSelect={onItemTap ?? onProductSelect}
         />
       )}
 
-      {/* Outfit detail overlay */}
-      {outfitDetail && (
-        <OutfitDetailScreen
-          outfit={outfitDetail}
-          onBack={() => setOutfitDetail(null)}
-        />
-      )}
-
-      {/* Stylebook detail overlay */}
-      {stylebookDetail && (
-        <StylebookDetailScreen
-          coordi={stylebookDetail}
-          onBack={() => setStylebookDetail(null)}
-          onEdit={(c) => { setStylebookDetail(null); openEditor(c); }}
-          onDelete={(id) => {
-            deleteCoordi(id);
-            setCoordiRefresh((n) => n + 1);
-            setStylebookDetail(null);
-          }}
-          onProductSelect={onProductSelect}
-        />
-      )}
-
-      {/* Coordi editor overlay */}
-      {editorOpen && (
-        <CoordiEditorPage
-          coordi={editingCoordi}
-          onClose={handleEditorClose}
-          onSaved={handleEditorClose}
+      {/* Photo source picker sheet */}
+      {showSourceSheet && (
+        <PhotoSourceSheet
+          onSelect={handleSourceSelect}
+          onClose={() => setShowSourceSheet(false)}
         />
       )}
 
       {/* AddClosetItemScreen overlay */}
       {addItemOpen && (
         <AddClosetItemScreen
-          onClose={() => setAddItemOpen(false)}
-          onSave={() => setAddItemOpen(false)}
+          photoSource={photoSource}
+          onClose={() => { setAddItemOpen(false); setPhotoSource(null); }}
+          onSave={() => { setAddItemOpen(false); setPhotoSource(null); }}
         />
       )}
 

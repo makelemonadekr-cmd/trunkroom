@@ -19,6 +19,7 @@
  *   cleanout    [ 45,  5]  CleanoutServiceScreen cards
  *   sellerProf  [ 50,  8]  mockSellerData profile photos
  *   closetLife  [ 58,  2]  mockClosetData lifestyle shots
+ *   community   [ 60, 20]  HomePage COMMUNITY_TODAY_POSTS  ← 스타일 folder
  *   sellerCover [ 80,  8]  mockSellerData cover photos
  *   subcatShoes [100, 10]  subcategoryImageMap — 신발
  *   subcatBags  [110, 10]  subcategoryImageMap — 가방
@@ -90,6 +91,7 @@ export const COORDI_ZONES = {
   cleanout:     [45,   5],  // CleanoutServiceScreen — 45-49
   sellerProf:   [50,   8],  // mockSellerData profiles — 50-57
   closetLife:   [58,   2],  // mockClosetData lifestyle — 58-59
+  community:    [60,  20],  // HomePage COMMUNITY_TODAY_POSTS — 60-79  (스타일 folder)
   sellerCover:  [80,   8],  // mockSellerData covers — 80-87
   subcatShoes:  [100, 10],  // subcategoryImageMap 신발 — 100-109
   subcatBags:   [110, 10],  // subcategoryImageMap 가방 — 110-119

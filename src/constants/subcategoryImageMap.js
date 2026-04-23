@@ -127,7 +127,7 @@ export const SUBCATEGORY_IMAGE_MAP = {
 };
 
 /** Generic fallback for subcategories not in map */
-const FALLBACK_IMAGE = coordiImg(0);
+const FALLBACK_IMAGE = zoneCoordiImg("outfits", 0);
 
 /**
  * Get the representative image URL for a given subcategory.

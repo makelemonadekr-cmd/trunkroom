@@ -6,6 +6,7 @@ import ClosetPage from "./pages/closet/ClosetPage";
 import DiscoveryPage from "./pages/discover/DiscoveryPage";
 import RecordPage from "./pages/record/RecordPage";
 import ProductDetailPage from "./pages/product/ProductDetailPage";
+import ClosetItemDetailScreen from "./components/ClosetItemDetailScreen";
 import MenuPage from "./pages/menu/MenuPage";
 import PrivacyPolicyScreen from "./pages/legal/PrivacyPolicyScreen";
 import TermsOfServiceScreen from "./pages/legal/TermsOfServiceScreen";
@@ -30,9 +31,11 @@ export default function App() {
   const [phase, setPhase] = useState(
     () => (localStorage.getItem(ONBOARDING_KEY) ? "app" : "onboarding")
   );
-  const [activeTab,      setActiveTab]      = useState("home");
-  const [currentProduct, setCurrentProduct] = useState(null);
-  const [legalScreen,    setLegalScreen]    = useState(null); // null | "privacy" | "terms"
+  const [activeTab,        setActiveTab]        = useState("home");
+  const [currentProduct,   setCurrentProduct]   = useState(null);  // for-sale products → ProductDetailPage
+  const [currentItem,      setCurrentItem]       = useState(null);  // closet items → ClosetItemDetailScreen
+  const [legalScreen,      setLegalScreen]       = useState(null);  // null | "privacy" | "terms"
+  const [autoOpenFlow,     setAutoOpenFlow]      = useState(false); // trigger StyleRecordFlow in RecordPage
 
   // ── Global toast ─────────────────────────────────────────────────────────────
   const [toast,     setToast]     = useState(null);  // { message, type }
@@ -59,7 +62,16 @@ export default function App() {
 
   function handleTabChange(tab) {
     setCurrentProduct(null);
+    setCurrentItem(null);
     setActiveTab(tab);
+  }
+
+  // Called from HomePage's "기록 시작하기" — switch to record tab and open flow directly
+  function handleStartStyleFlow() {
+    setCurrentProduct(null);
+    setCurrentItem(null);
+    setActiveTab("record");
+    setAutoOpenFlow(true);
   }
 
   if (phase === "onboarding") {
@@ -125,18 +137,36 @@ export default function App() {
           {activeTab === "home"   && (
             <HomePage
               onProductSelect={setCurrentProduct}
+              onItemTap={setCurrentItem}
               onLegalOpen={(type) => setLegalScreen(type)}
-              onGoToRecord={() => handleTabChange("record")}
+              onGoToRecord={handleStartStyleFlow}
             />
           )}
           {activeTab === "record" && (
-            <RecordPage onItemSelect={setCurrentProduct} />
+            <RecordPage
+              onItemSelect={setCurrentItem}
+              autoOpenFlow={autoOpenFlow}
+              onAutoOpenHandled={() => setAutoOpenFlow(false)}
+            />
           )}
-          {activeTab === "closet" && <ClosetPage onProductSelect={setCurrentProduct} />}
+          {activeTab === "closet" && (
+            <ClosetPage
+              onProductSelect={setCurrentProduct}
+              onItemTap={setCurrentItem}
+            />
+          )}
           {activeTab === "discover" && <DiscoveryPage />}
           {activeTab === "menu"   && <MenuPage />}
 
-          {/* Product detail overlay — absolute, covers full page area */}
+          {/* Closet item detail overlay — for any closet item tapped in the app */}
+          {currentItem && !currentProduct && (
+            <ClosetItemDetailScreen
+              item={currentItem}
+              onBack={() => setCurrentItem(null)}
+            />
+          )}
+
+          {/* Product detail overlay — for marketplace products */}
           {currentProduct && (
             <ProductDetailPage
               product={currentProduct}

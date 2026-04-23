@@ -5,7 +5,7 @@
  * Pipeline: user picks photo → background removal → OpenAI Vision → form prefill.
  */
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import AutoDetectLoadingState from "../../components/AutoDetectLoadingState.jsx";
 import AutoDetectedBadge      from "../../components/AutoDetectedBadge.jsx";
 import { runUploadPipeline }  from "../../lib/uploadClothing.js";
@@ -48,6 +48,7 @@ const CONDITIONS = ["S급", "A급", "B급", "C급"];
 
 const SEASONS     = ["봄", "여름", "가을", "겨울"];
 const STYLE_TAGS  = ["미니멀", "캐주얼", "페미닌", "오피스", "스트릿", "스포티", "빈티지", "포멀", "트렌디", "로맨틱"];
+const MATERIALS   = ["면", "린넨", "폴리에스터", "울", "캐시미어", "실크", "데님", "가죽", "니트", "쉬폰", "레이온", "혼방"];
 
 // ─── Photo slot component ─────────────────────────────────────────────────────
 
@@ -266,7 +267,7 @@ function ChipGroup({ label, options, selected, onToggle, single = false, badge, 
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
-export default function AddClosetItemScreen({ onClose, onSave }) {
+export default function AddClosetItemScreen({ onClose, onSave, photoSource = null }) {
   // Photos
   const [photos,         setPhotos]         = useState([]);       // array of base64 strings
   const [displayMime,    setDisplayMime]     = useState("image/jpeg");
@@ -288,6 +289,8 @@ export default function AddClosetItemScreen({ onClose, onSave }) {
   const [category,       setCategory]        = useState("TOP");
   const [subCategory,    setSubCategory]     = useState("");
   const [color,          setColor]           = useState("");
+  const [material,       setMaterial]        = useState("");      // 소재
+  const [customMood,     setCustomMood]      = useState("");      // 나만의 무드
   const [condition,      setCondition]       = useState("A급");
   const [seasons,        setSeasons]         = useState([]);
   const [styleTags,      setStyleTags]       = useState([]);
@@ -296,6 +299,16 @@ export default function AddClosetItemScreen({ onClose, onSave }) {
 
   const fileInputRef = useRef(null);
   const MAX_PHOTOS   = 6;
+
+  // ── Auto-trigger file input based on photoSource prop ─────────────────────
+  // When the screen opens from the source picker, immediately open the correct picker
+  useEffect(() => {
+    if (!photoSource) return;
+    const timer = setTimeout(() => {
+      fileInputRef.current?.click();
+    }, 300); // slight delay to let the screen animate in
+    return () => clearTimeout(timer);
+  }, []); // run once on mount
 
   // ── File picker handler ────────────────────────────────────────────────────
 
@@ -416,6 +429,8 @@ export default function AddClosetItemScreen({ onClose, onSave }) {
       name:        name || "새 아이템",
       brand,
       color,
+      material,
+      customMood:  customMood.trim() || null,
       subCategory,
       category:    CATEGORIES.find((c) => c.id === category)?.label ?? "상의",
       image:       photos[0] ? `data:${displayMime};base64,${photos[0]}` : null,
@@ -426,6 +441,7 @@ export default function AddClosetItemScreen({ onClose, onSave }) {
       bgRemoved,
       autoDetected,
       needsReview,
+      photoSource,
       addedAt:     new Date().toISOString(),
     };
 
@@ -447,11 +463,12 @@ export default function AddClosetItemScreen({ onClose, onSave }) {
   return (
     <div className="absolute inset-0 z-30 flex flex-col bg-white overflow-hidden">
 
-      {/* Hidden file input */}
+      {/* Hidden file input — capture="environment" for camera, none for gallery */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp,image/heic"
+        capture={photoSource === "camera" ? "environment" : undefined}
         className="hidden"
         onChange={(e) => {
           setPipelineState("uploading");
@@ -495,6 +512,19 @@ export default function AddClosetItemScreen({ onClose, onSave }) {
         className="flex-1 overflow-y-auto px-5 pt-5"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
+        {/* Photo source indicator */}
+        {photoSource && (
+          <div
+            className="flex items-center gap-2 rounded-xl px-3 py-2 mb-3"
+            style={{ backgroundColor: "#F0F8FF", border: "1px solid #D0E8FF" }}
+          >
+            <span style={{ fontSize: 14 }}>{photoSource === "camera" ? "📸" : "🖼️"}</span>
+            <p className="text-[11px]" style={{ color: "#2B6CB0", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+              {photoSource === "camera" ? "카메라로 촬영하기 — 사진 앱이 열려요" : "갤러리에서 선택하기 — 파일 선택 창이 열려요"}
+            </p>
+          </div>
+        )}
+
         {/* AI intro banner */}
         <div
           className="flex items-center gap-3 rounded-xl p-3 mb-5"
@@ -672,8 +702,18 @@ export default function AddClosetItemScreen({ onClose, onSave }) {
           accent={DARK}
         />
 
+        {/* Material chips */}
+        <ChipGroup
+          label="소재"
+          options={MATERIALS}
+          selected={material}
+          onToggle={(m) => setMaterial(m)}
+          single
+          accent={DARK}
+        />
+
         {/* Style tags */}
-        <div className="mb-8">
+        <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
             <label
               className="text-[12px] font-bold tracking-wide"
@@ -704,6 +744,37 @@ export default function AddClosetItemScreen({ onClose, onSave }) {
               );
             })}
           </div>
+        </div>
+
+        {/* 나만의 무드 — freeform custom mood text */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-1.5">
+            <label
+              className="text-[12px] font-bold tracking-wide"
+              style={{ color: "#888", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+            >
+              나만의 무드
+            </label>
+            <span
+              className="text-[9px] px-1.5 py-0.5 rounded-full"
+              style={{ backgroundColor: "#F0F0F0", color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+            >
+              선택
+            </span>
+          </div>
+          <input
+            type="text"
+            value={customMood}
+            onChange={(e) => setCustomMood(e.target.value)}
+            placeholder="이 아이템만의 특별한 무드를 적어보세요 (예: 파리지앵 느낌, 주말 브런치)"
+            className="w-full rounded-xl px-4 py-3 text-[13px] outline-none"
+            style={{
+              backgroundColor: "#F8F8F8",
+              border:          "1.5px solid #F0F0F0",
+              color:           DARK,
+              fontFamily:      "'Spoqa Han Sans Neo', sans-serif",
+            }}
+          />
         </div>
       </div>
 

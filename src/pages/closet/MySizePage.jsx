@@ -5,6 +5,7 @@ import {
   hasSizeProfile,
   DEFAULT_SIZE_PROFILE,
 } from "../../lib/sizeStore";
+import { getTempPref, setTempPref } from "../../services/weatherRecommendation";
 import {
   getShoeSizeConversion,
   getTopSizeConversion,
@@ -25,6 +26,53 @@ import {
 const DARK   = "#1a1a1a";
 const YELLOW = "#F5C200";
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
+
+// ─── Temperature preference card ──────────────────────────────────────────────
+
+const TEMP_PREFS = [
+  { key: "cold",   label: "추위탐", emoji: "🧊" },
+  { key: "normal", label: "보통",   emoji: "😊" },
+  { key: "warm",   label: "더위탐", emoji: "🔥" },
+];
+
+function TempPrefCard() {
+  const [pref, setPrefState] = useState(() => getTempPref());
+
+  function handleChange(key) {
+    setPrefState(key);
+    setTempPref(key);
+  }
+
+  return (
+    <div className="mx-4 mb-3 rounded-2xl overflow-hidden" style={{ border: "1px solid #EEEEEE" }}>
+      <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: "1px solid #F0F0F0", backgroundColor: "#FAFAFA" }}>
+        <span style={{ fontSize: 14 }}>🌡️</span>
+        <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>체온 성향</p>
+        <p className="text-[10px] ml-auto" style={{ color: "#AAAAAA", fontFamily: FONT }}>날씨 추천에 반영돼요</p>
+      </div>
+      <div className="flex gap-2 px-4 py-3">
+        {TEMP_PREFS.map((p) => {
+          const isActive = pref === p.key;
+          return (
+            <button
+              key={p.key}
+              onClick={() => handleChange(p.key)}
+              className="flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl text-[11px] font-bold transition-all active:opacity-70"
+              style={{
+                backgroundColor: isActive ? DARK    : "#F5F5F5",
+                color:           isActive ? "white" : "#666",
+                fontFamily:      FONT,
+              }}
+            >
+              <span style={{ fontSize: 18 }}>{p.emoji}</span>
+              {p.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 // ─── Shared primitives ────────────────────────────────────────────────────────
 
@@ -535,6 +583,9 @@ function MySizeViewScreen({ profile, onEdit }) {
         )}
       </div>
 
+      {/* Temperature preference */}
+      <TempPrefCard />
+
       {/* Detail measurement card (chest / waist / hips etc.) */}
       <BodyMeasurementsCard profile={profile} />
 
@@ -915,7 +966,7 @@ export default function MySizePage({ onClose }) {
           className="text-[16px] font-bold"
           style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}
         >
-          {mode === "view" ? "내 사이즈" : isSetup ? "사이즈 설정" : "사이즈 수정"}
+          {mode === "view" ? "내 정보" : isSetup ? "내 정보 설정" : "내 정보 수정"}
         </h1>
 
         {/* Right action */}

@@ -15,6 +15,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { CLOSET_ITEMS } from "../constants/mockClosetData";
 import { useWeather }   from "../hooks/useWeather";
 import { getTempPref }  from "../services/weatherRecommendation";
+import OutfitCanvasEditor from "./OutfitCanvasEditor";
 
 const FONT    = "'Spoqa Han Sans Neo', sans-serif";
 const DARK    = "#1a1a1a";
@@ -35,9 +36,8 @@ const MOOD_OPTIONS = [
 ];
 
 const TEMPLATES = [
-  { id: "daily",     label: "빠른 기록",  emoji: "⚡", desc: "착용 아이템만 빠르게 기록해요"          },
-  { id: "stylebook", label: "스타일북",   emoji: "📖", desc: "무드와 스타일을 자세히 남겨요"           },
-  { id: "insight",   label: "인사이트",   emoji: "📊", desc: "날씨·착장 데이터를 분석해요"             },
+  { id: "daily",     label: "빠른 기록",          emoji: "⚡", desc: "착용 아이템만 빠르게 기록해요" },
+  { id: "stylebook", label: "스타일북 직접 꾸미기", emoji: "📖", desc: "손가락으로 꾸미는 나만의 스타일북" },
 ];
 
 // ─── Simulate AI analysis ─────────────────────────────────────────────────────
@@ -45,10 +45,14 @@ const TEMPLATES = [
 // In production this would be a real CV/AI call.
 
 const MATCH_CATEGORIES = [
-  { id: "상의",   emoji: "👕", label: "상의"   },
-  { id: "하의",   emoji: "👖", label: "하의"   },
-  { id: "아우터", emoji: "🧥", label: "아우터" },
-  { id: "신발",   emoji: "👟", label: "신발"   },
+  { id: "상의",     emoji: "👕", label: "상의"     },
+  { id: "하의",     emoji: "👖", label: "하의"     },
+  { id: "아우터",   emoji: "🧥", label: "아우터"   },
+  { id: "원피스",   emoji: "👗", label: "원피스"   },
+  { id: "신발",     emoji: "👟", label: "신발"     },
+  { id: "가방",     emoji: "👜", label: "가방"     },
+  { id: "액세서리", emoji: "💍", label: "액세서리" },
+  { id: "스포츠",   emoji: "🎽", label: "스포츠"   },
 ];
 
 function simulateAnalysis() {
@@ -634,55 +638,405 @@ function MatchingStep({ photoUrl, matchResults, onUpdate, onNext, onClose }) {
 }
 
 // ─── STEP 4: Draft editor ─────────────────────────────────────────────────────
+// Three sub-steps:
+//   "layout"  – square template preview (photo left | items right) + date + template picker
+//   "preview" – polished template card output (daily path only)
+//   "info"    – mood, memo, public toggle → save
 
-function DraftStep({ photoUrl, confirmedItems, dateStr, weather, onSave, onClose }) {
-  const [template,   setTemplate]   = useState("daily");
-  const [mood,       setMood]       = useState(null);
-  const [customMood, setCustomMood] = useState("");
-  const [memo,       setMemo]       = useState("");
-  const [isPublic,   setIsPublic]   = useState(false);
+// Helper: renders worn-items grid in the right column of the template card
+function ItemsGrid({ items }) {
+  if (items.length === 0) {
+    return (
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#EEEEEE" }}>
+        <span style={{ fontSize: 20, opacity: 0.28 }}>📦</span>
+      </div>
+    );
+  }
+  if (items.length <= 2) {
+    return (
+      <>
+        {items.map((item) => (
+          <div key={item.id} style={{ flex: 1, overflow: "hidden", backgroundColor: "#F0F0F0" }}>
+            {item.image && <img src={item.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />}
+          </div>
+        ))}
+      </>
+    );
+  }
+  return (
+    <>
+      <div style={{ flex: 1, display: "flex", gap: 3 }}>
+        {items.slice(0, 2).map((item) => (
+          <div key={item.id} style={{ flex: 1, overflow: "hidden", backgroundColor: "#F0F0F0" }}>
+            {item.image && <img src={item.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />}
+          </div>
+        ))}
+      </div>
+      <div style={{ flex: 1, display: "flex", gap: 3 }}>
+        {items.slice(2, 4).map((item) => (
+          <div key={item.id} style={{ flex: 1, overflow: "hidden", backgroundColor: "#F0F0F0" }}>
+            {item.image && <img src={item.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />}
+          </div>
+        ))}
+        {items.length === 3 && <div style={{ flex: 1 }} />}
+      </div>
+    </>
+  );
+}
 
-  // Format date label
-  const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
-  const [yr, mo, dy] = dateStr.split("-").map(Number);
-  const dow = new Date(yr, mo - 1, dy).getDay();
-  const dateLabel = `${mo}월 ${dy}일 (${DAY_NAMES[dow]})`;
+function DraftStep({ photoUrl, confirmedItems, dateStr: initDateStr, weather, onSave, onClose }) {
+  const [subStep,      setSubStep]      = useState("layout");
+  const [template,     setTemplate]     = useState("daily");
+  const [selectedDate, setSelectedDate] = useState(initDateStr);
+  const [mood,         setMood]         = useState(null);
+  const [customMood,   setCustomMood]   = useState("");
+  const [memo,         setMemo]         = useState("");
+  const [isPublic,     setIsPublic]     = useState(false);
+  const [showCanvas,   setShowCanvas]   = useState(false);
+  const dateInputRef = useRef(null);
 
-  const moodOpt = MOOD_OPTIONS.find((m) => m.id === mood);
+  const D_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
 
-  function handleSave() {
-    onSave({
+  function toDs(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+  function fmtDate(ds) {
+    const [y, m, d] = ds.split("-").map(Number);
+    return `${m}월 ${d}일 (${D_NAMES[new Date(y, m - 1, d).getDay()]})`;
+  }
+  function offsetDay(n) {
+    const [y, m, d] = selectedDate.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    dt.setDate(dt.getDate() + n);
+    const now = new Date();
+    now.setHours(23, 59, 59, 999);
+    if (dt > now) return;
+    setSelectedDate(toDs(dt));
+  }
+  const todayDs = toDs(new Date());
+
+  function buildRecord(extra = {}) {
+    return {
       itemIds:         confirmedItems.map((i) => i.id),
       photoUrl:        photoUrl ?? null,
       mood:            mood ?? null,
       customMood:      customMood.trim() || null,
-      note:            "",        // public note kept empty by default
-      memo:            memo,      // PRIVATE — never surfaced publicly
+      note:            "",
+      memo,
       isPublic,
       template,
-      weatherSnapshot: weather ? {
-        temp:      weather.temp,
-        feelsLike: weather.feelsLike,
-        condition: weather.condition,
-        location:  weather.location,
-      } : null,
+      weatherSnapshot: weather
+        ? { temp: weather.temp, feelsLike: weather.feelsLike, condition: weather.condition, location: weather.location }
+        : null,
       updatedAt: new Date().toISOString(),
-    });
+      ...extra,
+    };
   }
 
+  // ── Canvas editor overlay (스타일북 직접 꾸미기) ─────────────────────────────
+  if (showCanvas) {
+    return (
+      <OutfitCanvasEditor
+        initialItemIds={confirmedItems.map((i) => i.id)}
+        dateStr={selectedDate}
+        onSave={() => {
+          setShowCanvas(false);
+          // Also save the wear record alongside the coordi that OutfitCanvasEditor already saved
+          onSave(selectedDate, buildRecord({ template: "stylebook", isPublic: false, mood: null, memo: "" }));
+        }}
+        onClose={() => setShowCanvas(false)}
+      />
+    );
+  }
+
+  // ── Sub-step 1: Layout ───────────────────────────────────────────────────────
+  if (subStep === "layout") {
+    return (
+      <div className="absolute inset-0 z-50 flex flex-col bg-white overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 shrink-0" style={{ height: 52, borderBottom: `1px solid ${DIVIDER}` }}>
+          <button onClick={onClose} className="flex items-center gap-1 active:opacity-60" style={{ color: "#888", fontFamily: FONT, fontSize: 13 }}>
+            <svg width="8" height="12" viewBox="0 0 8 12" fill="none">
+              <path d="M6.5 1.5L2 6L6.5 10.5" stroke="#888" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            아이템 수정
+          </button>
+          <div className="text-center">
+            <h2 className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>기록 작성</h2>
+            <p className="text-[10px]" style={{ color: "#CCCCCC", fontFamily: FONT }}>1 / 3</p>
+          </div>
+          <div style={{ width: 60 }} />
+        </div>
+
+        <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
+
+          {/* ── Template card preview: photo (left) │ items (right) ── */}
+          <div className="px-4 pt-4 pb-3">
+            <div
+              className="w-full rounded-2xl overflow-hidden"
+              style={{ aspectRatio: "1 / 1", backgroundColor: "#F0F0F0", display: "flex" }}
+            >
+              {/* Left: photo */}
+              <div style={{ width: "50%", height: "100%", overflow: "hidden", flexShrink: 0 }}>
+                {photoUrl ? (
+                  <img src={photoUrl} alt="outfit" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
+                ) : (
+                  <div style={{ width: "100%", height: "100%", backgroundColor: "#E8E8E8", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: 36 }}>👗</span>
+                  </div>
+                )}
+              </div>
+              {/* Divider */}
+              <div style={{ width: 3, backgroundColor: "white", flexShrink: 0 }} />
+              {/* Right: items grid */}
+              <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: 3, padding: 3 }}>
+                <ItemsGrid items={confirmedItems} />
+              </div>
+            </div>
+          </div>
+
+          {/* ── Worn items list — larger cards ── */}
+          <div className="px-4 pb-4">
+            <p className="text-[11px] font-bold mb-2.5" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>
+              착용 아이템 {confirmedItems.length}개
+            </p>
+            {confirmedItems.length === 0 ? (
+              <p className="text-[12px]" style={{ color: "#CCCCCC", fontFamily: FONT }}>선택된 아이템이 없어요</p>
+            ) : (
+              <div className="flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+                {confirmedItems.map((item) => (
+                  <div key={item.id} className="shrink-0 flex flex-col gap-1" style={{ width: 72 }}>
+                    <div className="rounded-xl overflow-hidden" style={{ width: 72, height: 90, backgroundColor: "#F0F0F0" }}>
+                      {item.image && (
+                        <img src={item.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
+                      )}
+                    </div>
+                    <p className="text-[9px] font-bold truncate" style={{ color: DARK, fontFamily: FONT }}>{item.displayName ?? item.name}</p>
+                    <p className="text-[8px] truncate" style={{ color: "#AAAAAA", fontFamily: FONT }}>{item.brand ?? ""}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ── Date picker ── */}
+          <div className="px-4 pb-4">
+            <p className="text-[11px] font-bold mb-2" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>날짜</p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => offsetDay(-1)}
+                className="w-9 h-9 flex items-center justify-center rounded-full active:opacity-60 shrink-0"
+                style={{ backgroundColor: "#F2F2F2" }}
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M6.5 2L3.5 5L6.5 8" stroke={DARK} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <button
+                onClick={() => dateInputRef.current?.click()}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl active:opacity-80"
+                style={{ backgroundColor: "#F5F5F5" }}
+              >
+                <span style={{ fontSize: 14 }}>📅</span>
+                <span className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>{fmtDate(selectedDate)}</span>
+              </button>
+              <button
+                onClick={() => offsetDay(1)}
+                className="w-9 h-9 flex items-center justify-center rounded-full active:opacity-60 shrink-0"
+                style={{ backgroundColor: "#F2F2F2", opacity: selectedDate >= todayDs ? 0.35 : 1 }}
+                disabled={selectedDate >= todayDs}
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M3.5 2L6.5 5L3.5 8" stroke={DARK} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+            <input
+              ref={dateInputRef}
+              type="date"
+              className="hidden"
+              value={selectedDate}
+              max={todayDs}
+              onChange={(e) => { if (e.target.value) setSelectedDate(e.target.value); }}
+            />
+          </div>
+
+          {/* ── Template selector ── */}
+          <div className="px-4 pb-8">
+            <p className="text-[11px] font-bold mb-2.5" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>기록 템플릿</p>
+            <div className="flex flex-col gap-2.5">
+              {TEMPLATES.map((t) => {
+                const isActive  = template === t.id;
+                const activeBg  = t.id === "stylebook" ? DARK  : YELLOW;
+                const activeFg  = t.id === "stylebook" ? "white" : DARK;
+                const activeSubFg = t.id === "stylebook" ? "rgba(255,255,255,0.55)" : "rgba(26,26,26,0.5)";
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => setTemplate(t.id)}
+                    className="flex items-center gap-3 px-4 py-4 rounded-2xl text-left active:opacity-80 transition-all"
+                    style={{
+                      backgroundColor: isActive ? activeBg  : "#F8F8F8",
+                      border: `1.5px solid ${isActive ? activeBg : "#EEEEEE"}`,
+                    }}
+                  >
+                    <span style={{ fontSize: 24 }}>{t.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-bold" style={{ color: isActive ? activeFg : DARK, fontFamily: FONT }}>{t.label}</p>
+                      <p className="text-[11px] mt-0.5" style={{ color: isActive ? activeSubFg : "#AAAAAA", fontFamily: FONT }}>{t.desc}</p>
+                    </div>
+                    {isActive && (
+                      <div
+                        className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: t.id === "stylebook" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)" }}
+                      >
+                        <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                          <path d="M2 5.5L4.5 8L9 3" stroke={activeFg} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="px-5 pb-8 pt-3 shrink-0" style={{ borderTop: `1px solid ${DIVIDER}` }}>
+          <button
+            onClick={() => {
+              if (template === "stylebook") {
+                setShowCanvas(true);
+              } else {
+                setSubStep("preview");
+              }
+            }}
+            className="w-full flex items-center justify-center gap-2 rounded-2xl font-bold active:opacity-80"
+            style={{ height: 56, backgroundColor: YELLOW, color: DARK, fontFamily: FONT, fontSize: 15 }}
+          >
+            다음
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 8H12M9 5L12 8L9 11" stroke={DARK} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Sub-step 2: Preview ──────────────────────────────────────────────────────
+  if (subStep === "preview") {
+    return (
+      <div className="absolute inset-0 z-50 flex flex-col bg-white overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 shrink-0" style={{ height: 52, borderBottom: `1px solid ${DIVIDER}` }}>
+          <button
+            onClick={() => setSubStep("layout")}
+            className="flex items-center gap-1 active:opacity-60"
+            style={{ color: "#888", fontFamily: FONT, fontSize: 13 }}
+          >
+            <svg width="8" height="12" viewBox="0 0 8 12" fill="none">
+              <path d="M6.5 1.5L2 6L6.5 10.5" stroke="#888" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            뒤로
+          </button>
+          <div className="text-center">
+            <h2 className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>이미지 확인</h2>
+            <p className="text-[10px]" style={{ color: "#CCCCCC", fontFamily: FONT }}>2 / 3</p>
+          </div>
+          <div style={{ width: 36 }} />
+        </div>
+
+        <div className="flex-1 overflow-y-auto flex flex-col items-center" style={{ scrollbarWidth: "none" }}>
+          <div className="px-4 pt-6 pb-2 w-full">
+            {/* Polished template card */}
+            <div
+              className="w-full rounded-2xl overflow-hidden"
+              style={{ aspectRatio: "1 / 1", backgroundColor: "#FAFAFA", display: "flex", boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}
+            >
+              {/* Left: photo with date badge */}
+              <div style={{ width: "50%", height: "100%", overflow: "hidden", flexShrink: 0, position: "relative" }}>
+                {photoUrl ? (
+                  <img src={photoUrl} alt="outfit" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
+                ) : (
+                  <div style={{ width: "100%", height: "100%", backgroundColor: "#DDDDDD", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: 40 }}>👗</span>
+                  </div>
+                )}
+                {/* Date badge */}
+                <div style={{ position: "absolute", bottom: 10, left: 8 }}>
+                  <div style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", borderRadius: 6, padding: "3px 8px", display: "inline-flex" }}>
+                    <span className="text-[9px] font-bold text-white" style={{ fontFamily: FONT }}>{fmtDate(selectedDate)}</span>
+                  </div>
+                </div>
+              </div>
+              {/* Divider */}
+              <div style={{ width: 3, backgroundColor: "white", flexShrink: 0 }} />
+              {/* Right: items */}
+              <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: 3, padding: 3 }}>
+                <ItemsGrid items={confirmedItems} />
+              </div>
+            </div>
+
+            {/* Author row below card */}
+            <div className="flex items-center justify-between mt-3 px-1">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full overflow-hidden shrink-0" style={{ backgroundColor: "#EBEBEB" }}>
+                  <img src="/officiallogo.png" alt="" style={{ width: "100%", height: "100%", objectFit: "contain", opacity: 0.6 }} />
+                </div>
+                <span className="text-[12px] font-bold" style={{ color: DARK, fontFamily: FONT }}>윤킴</span>
+              </div>
+              <span className="text-[11px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>{fmtDate(selectedDate)}</span>
+            </div>
+          </div>
+
+          <p className="text-[11px] px-4 pt-1 pb-6 text-center" style={{ color: "#BBBBBB", fontFamily: FONT }}>
+            ⚡ 빠른 기록 템플릿 미리보기예요
+          </p>
+        </div>
+
+        {/* CTA */}
+        <div className="px-5 pb-8 pt-3 shrink-0" style={{ borderTop: `1px solid ${DIVIDER}` }}>
+          <button
+            onClick={() => setSubStep("info")}
+            className="w-full flex items-center justify-center gap-2 rounded-2xl font-bold active:opacity-80"
+            style={{ height: 56, backgroundColor: YELLOW, color: DARK, fontFamily: FONT, fontSize: 15 }}
+          >
+            다음
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 8H12M9 5L12 8L9 11" stroke={DARK} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Sub-step 3: Info ────────────────────────────────────────────────────────
   return (
     <div className="absolute inset-0 z-50 flex flex-col bg-white overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-5 shrink-0" style={{ height: 52, borderBottom: `1px solid ${DIVIDER}` }}>
-        <button onClick={onClose} className="flex items-center gap-1 active:opacity-60" style={{ color: "#888", fontFamily: FONT, fontSize: 13 }}>
+        <button
+          onClick={() => setSubStep("preview")}
+          className="flex items-center gap-1 active:opacity-60"
+          style={{ color: "#888", fontFamily: FONT, fontSize: 13 }}
+        >
           <svg width="8" height="12" viewBox="0 0 8 12" fill="none">
             <path d="M6.5 1.5L2 6L6.5 10.5" stroke="#888" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          아이템 수정
+          뒤로
         </button>
-        <h2 className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>기록 작성</h2>
+        <div className="text-center">
+          <h2 className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>정보 입력</h2>
+          <p className="text-[10px]" style={{ color: "#CCCCCC", fontFamily: FONT }}>3 / 3</p>
+        </div>
         <button
-          onClick={handleSave}
+          onClick={() => onSave(selectedDate, buildRecord())}
           className="px-4 py-1.5 rounded-full text-[13px] font-bold active:opacity-80"
           style={{ backgroundColor: YELLOW, color: DARK, fontFamily: FONT }}
         >
@@ -692,86 +1046,9 @@ function DraftStep({ photoUrl, confirmedItems, dateStr, weather, onSave, onClose
 
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
 
-        {/* Hero — photo + item strip */}
+        {/* Mood */}
         <div className="px-5 pt-5 pb-4">
-          <div className="flex gap-3 items-start">
-            {/* Photo thumbnail */}
-            <div className="relative shrink-0 rounded-2xl overflow-hidden" style={{ width: 88, height: 110, backgroundColor: "#F0F0F0" }}>
-              {photoUrl ? (
-                <img src={photoUrl} alt="outfit" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span style={{ fontSize: 28 }}>👗</span>
-                </div>
-              )}
-            </div>
-
-            {/* Item chips + date/weather */}
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-bold mb-2" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>착용 아이템</p>
-              <div className="flex flex-wrap gap-1.5">
-                {confirmedItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-1 px-2 py-1 rounded-full"
-                    style={{ backgroundColor: "#F5F5F5" }}
-                  >
-                    <div className="rounded-full overflow-hidden shrink-0" style={{ width: 16, height: 16, backgroundColor: "#E0E0E0" }}>
-                      {item.image && <img src={item.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />}
-                    </div>
-                    <span className="text-[10px] font-medium truncate" style={{ color: DARK, fontFamily: FONT, maxWidth: 80 }}>
-                      {item.displayName ?? item.name}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Date + weather */}
-              <div className="flex items-center gap-2 mt-2.5">
-                <span className="text-[10px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>📅 {dateLabel}</span>
-                {weather && (
-                  <span className="text-[10px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>
-                    🌡️ {weather.temp}°C
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Template selector */}
-        <div className="px-5 pb-4">
-          <p className="text-[11px] font-bold mb-2.5" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>
-            기록 템플릿
-          </p>
-          <div className="flex gap-2">
-            {TEMPLATES.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTemplate(t.id)}
-                className="flex-1 flex flex-col items-center gap-1 py-3 rounded-2xl transition-all active:opacity-80"
-                style={{
-                  backgroundColor: template === t.id ? YELLOW : "#F5F5F5",
-                  border:          template === t.id ? `1.5px solid ${YELLOW}` : "1.5px solid transparent",
-                }}
-              >
-                <span style={{ fontSize: 20 }}>{t.emoji}</span>
-                <p className="text-[11px] font-bold" style={{ color: template === t.id ? DARK : "#555", fontFamily: FONT }}>{t.label}</p>
-              </button>
-            ))}
-          </div>
-          <p className="text-[11px] mt-2" style={{ color: "#BBBBBB", fontFamily: FONT }}>
-            {TEMPLATES.find((t) => t.id === template)?.desc ?? ""}
-          </p>
-        </div>
-
-        <div className="mx-5 mb-4" style={{ height: 1, backgroundColor: DIVIDER }} />
-
-        {/* Mood selector */}
-        <div className="px-5 pb-4">
-          <p className="text-[11px] font-bold mb-2.5" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>
-            오늘의 무드
-          </p>
+          <p className="text-[11px] font-bold mb-2.5" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>오늘의 무드</p>
           <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
             {MOOD_OPTIONS.map((opt) => {
               const isActive = mood === opt.id;
@@ -781,8 +1058,8 @@ function DraftStep({ photoUrl, confirmedItems, dateStr, weather, onSave, onClose
                   onClick={() => setMood(isActive ? null : opt.id)}
                   className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full text-[12px] font-medium transition-all active:opacity-80"
                   style={{
-                    backgroundColor: isActive ? opt.bg    : "#F5F5F5",
-                    color:           isActive ? opt.fg    : "#555",
+                    backgroundColor: isActive ? opt.bg  : "#F5F5F5",
+                    color:           isActive ? opt.fg  : "#555",
                     border:          `1.5px solid ${isActive ? opt.bg : "transparent"}`,
                     fontFamily:      FONT,
                     transform:       isActive ? "scale(1.05)" : "scale(1)",
@@ -796,7 +1073,7 @@ function DraftStep({ photoUrl, confirmedItems, dateStr, weather, onSave, onClose
           </div>
         </div>
 
-        {/* 나만의 무드 */}
+        {/* Custom mood */}
         <div className="px-5 pb-4">
           <p className="text-[11px] font-bold mb-2" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>
             나만의 무드 <span style={{ color: "#CCCCCC", fontWeight: 400 }}>(선택)</span>
@@ -816,9 +1093,7 @@ function DraftStep({ photoUrl, confirmedItems, dateStr, weather, onSave, onClose
         {/* Private memo */}
         <div className="px-5 pb-4">
           <div className="flex items-center gap-2 mb-2">
-            <p className="text-[11px] font-bold" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>
-              나만의 메모
-            </p>
+            <p className="text-[11px] font-bold" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>나만의 메모</p>
             <div className="flex items-center gap-1 px-1.5 py-0.5 rounded" style={{ backgroundColor: "#F0F0F0" }}>
               <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
                 <rect x="1" y="4" width="7" height="5" rx="1" stroke="#AAAAAA" strokeWidth="0.9" />
@@ -837,19 +1112,23 @@ function DraftStep({ photoUrl, confirmedItems, dateStr, weather, onSave, onClose
           />
         </div>
 
-        {/* Public toggle */}
+        <div className="mx-5 mb-4" style={{ height: 1, backgroundColor: DIVIDER }} />
+
+        {/* Public toggle — default private, opt-in to public */}
         <div
-          className="mx-5 mb-6 rounded-2xl px-4 py-3.5 flex items-center justify-between"
-          style={{ backgroundColor: "#F8F8F8", border: `1px solid ${DIVIDER}` }}
+          className="mx-5 mb-6 rounded-2xl px-4 py-4 flex items-center justify-between"
+          style={{
+            backgroundColor: isPublic ? "#FEFCE8" : "#F8F8F8",
+            border: `1px solid ${isPublic ? "#EDD83A" : DIVIDER}`,
+            transition: "all 0.2s",
+          }}
         >
-          <div>
-            <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
-              {isPublic ? "🌐 공개 코디" : "🔒 나만 보기"}
-            </p>
-            <p className="text-[11px] mt-0.5" style={{ color: "#AAAAAA", fontFamily: FONT }}>
+          <div className="flex-1 min-w-0 mr-4">
+            <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>🌐 공개 스타일</p>
+            <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "#AAAAAA", fontFamily: FONT }}>
               {isPublic
-                ? "다른 사람에게 코디가 공개됩니다. 메모는 항상 비공개입니다."
-                : "나만 볼 수 있는 개인 코디입니다."}
+                ? "다른 사람들이 볼 수 있어요. 메모는 항상 비공개입니다."
+                : "선택하시면 다른 사람들이 볼 수 있어요."}
             </p>
           </div>
           <button
@@ -866,14 +1145,14 @@ function DraftStep({ photoUrl, confirmedItems, dateStr, weather, onSave, onClose
 
       </div>
 
-      {/* Save button (also in header but larger here) */}
+      {/* Save CTA */}
       <div className="px-5 pb-8 pt-3 shrink-0" style={{ borderTop: `1px solid ${DIVIDER}` }}>
         <button
-          onClick={handleSave}
+          onClick={() => onSave(selectedDate, buildRecord())}
           className="w-full flex items-center justify-center rounded-2xl font-bold active:opacity-80"
           style={{ height: 56, backgroundColor: YELLOW, color: DARK, fontFamily: FONT, fontSize: 15 }}
         >
-          ⚡ 지금 저장하기
+          ⚡ 저장하기
         </button>
       </div>
     </div>
@@ -965,6 +1244,7 @@ export default function StyleRecordFlow({
   const [step,         setStep]         = useState("photo");
   const [photoUrl,     setPhotoUrl]     = useState(null);
   const [matchResults, setMatchResults] = useState([]);
+  const [savedDateStr, setSavedDateStr] = useState(dateStr); // tracks the date user chose in DraftStep
 
   const { weather } = useWeather();
 
@@ -991,8 +1271,10 @@ export default function StyleRecordFlow({
     setStep("draft");
   }
 
-  function handleDraftSave(draftData) {
-    onSave(dateStr, draftData);
+  // DraftStep now calls onSave(selectedDate, draftData)
+  function handleDraftSave(selectedDate, draftData) {
+    onSave(selectedDate, draftData);
+    setSavedDateStr(selectedDate);
     setStep("done");
   }
 
@@ -1044,7 +1326,7 @@ export default function StyleRecordFlow({
         <DoneStep
           photoUrl={photoUrl}
           confirmedItems={confirmedItems}
-          dateStr={dateStr}
+          dateStr={savedDateStr}
           onClose={onClose}
           onOpenStylebook={onOpenStylebook}
         />

@@ -1812,8 +1812,12 @@ export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandl
   const [showStreak,     setShowStreak]    = useState(false);
   const [stylebooksOpen, setStylebooksOpen] = useState(false);
   const [fullList,       setFullList]      = useState(null);
-  const [styleFlowDate,  setStyleFlowDate] = useState(null);
-  const [stylebookData,  setStylebookData] = useState(null);
+  const [styleFlowDate,  setStyleFlowDate]  = useState(null);
+  const [stylebookData,  setStylebookData]  = useState(null);
+  // Use a ref (not state) so the value is available synchronously on the very
+  // next render triggered by setStyleFlowDate, before React has a chance to
+  // null out the parent prop via onPrefilledHandled.
+  const prefilledItemRef = useRef(null);
 
   // When the home screen's "기록 시작하기" fires
   useEffect(() => {
@@ -1824,9 +1828,12 @@ export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandl
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoOpenFlow]);
 
-  // When "이 아이템으로 스타일 만들기" fires from ClosetItemDetailScreen
+  // When "이 아이템으로 스타일 만들기" fires from ClosetItemDetailScreen.
+  // Write to ref first (synchronous) then trigger the render — the ref is
+  // guaranteed to be set when StyleRecordFlow evaluates its initialStep prop.
   useEffect(() => {
     if (prefilledItem) {
+      prefilledItemRef.current = prefilledItem;
       setStyleFlowDate(TODAY);
       onPrefilledHandled?.();
     }
@@ -1945,7 +1952,7 @@ export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandl
         <StyleRecordFlow
           dateStr={styleFlowDate}
           onSave={handleStyleFlowSave}
-          onClose={() => setStyleFlowDate(null)}
+          onClose={() => { setStyleFlowDate(null); prefilledItemRef.current = null; }}
           onOpenStylebook={(itemIds, photoUrl, dateStr) => {
             setStylebookData({ itemIds, photoUrl, dateStr });
           }}
@@ -1953,8 +1960,8 @@ export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandl
             setStyleFlowDate(null);
             setStylebooksOpen(true);
           }}
-          initialItems={prefilledItem ? [prefilledItem] : []}
-          initialStep={prefilledItem ? "draft" : "photo"}
+          initialItems={prefilledItemRef.current ? [prefilledItemRef.current] : []}
+          initialStep={prefilledItemRef.current ? "draft" : "photo"}
         />
       )}
 

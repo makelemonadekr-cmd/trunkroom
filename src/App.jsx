@@ -11,6 +11,8 @@ import MenuPage from "./pages/menu/MenuPage";
 import PrivacyPolicyScreen from "./pages/legal/PrivacyPolicyScreen";
 import TermsOfServiceScreen from "./pages/legal/TermsOfServiceScreen";
 import BottomNav from "./components/BottomNav";
+import AuthScreen from "./features/auth/AuthScreen";
+import { useAuth } from "./hooks/useAuth";
 
 const ONBOARDING_KEY = "trunkroom_onboarded";
 
@@ -28,6 +30,8 @@ function PlaceholderPage({ title }) {
 }
 
 export default function App() {
+  const { user, loading: authLoading } = useAuth();
+
   const [phase, setPhase] = useState(
     () => (localStorage.getItem(ONBOARDING_KEY) ? "app" : "onboarding")
   );
@@ -144,6 +148,21 @@ export default function App() {
 
         {/* ── [2] Page area ────────────────────────────────────────── */}
         <div className="relative flex-1 min-h-0 overflow-hidden bg-white">
+
+          {/* ── Auth loading state ── */}
+          {authLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white z-50">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style={{ animation: "spin 0.8s linear infinite" }}>
+                <path d="M16 3a13 13 0 1 1-9.19 3.81" stroke="#F5C200" strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+            </div>
+          )}
+
+          {/* ── Not authenticated → show login/signup ── */}
+          {!authLoading && !user && <AuthScreen />}
+
+          {/* ── Authenticated → existing app ── */}
+          {!authLoading && user && <>
           {activeTab === "home"   && (
             <HomePage
               onProductSelect={setCurrentProduct}
@@ -199,10 +218,13 @@ export default function App() {
           {legalScreen === "terms" && (
             <TermsOfServiceScreen onBack={() => setLegalScreen(null)} />
           )}
+          </>}
+          {/* ── end authenticated block ── */}
+
         </div>
 
         {/* ── [3] Bottom navigation — ALWAYS inside the phone ─────── */}
-        <BottomNav active={activeTab} onTabChange={handleTabChange} />
+        {!authLoading && user && <BottomNav active={activeTab} onTabChange={handleTabChange} />}
 
         {/* ── [4] iPhone home indicator ───────────────────────────── */}
         <div

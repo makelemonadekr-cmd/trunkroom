@@ -37,6 +37,7 @@ export default function App() {
   const [legalScreen,      setLegalScreen]       = useState(null);  // null | "privacy" | "terms"
   const [autoOpenFlow,     setAutoOpenFlow]      = useState(false); // trigger StyleRecordFlow in RecordPage
   const [discoverTab,      setDiscoverTab]       = useState(null);  // initial sub-tab for DiscoveryPage
+  const [styleFlowItem,    setStyleFlowItem]     = useState(null);  // prefilled item → StyleRecordFlow draft
 
   // ── Global toast ─────────────────────────────────────────────────────────────
   const [toast,     setToast]     = useState(null);  // { message, type }
@@ -157,6 +158,8 @@ export default function App() {
               onItemSelect={setCurrentItem}
               autoOpenFlow={autoOpenFlow}
               onAutoOpenHandled={() => setAutoOpenFlow(false)}
+              prefilledItem={styleFlowItem}
+              onPrefilledHandled={() => setStyleFlowItem(null)}
             />
           )}
           {activeTab === "closet" && (
@@ -173,6 +176,11 @@ export default function App() {
             <ClosetItemDetailScreen
               item={currentItem}
               onBack={() => setCurrentItem(null)}
+              onMakeStyle={(item) => {
+                setCurrentItem(null);
+                setStyleFlowItem(item);
+                setActiveTab("record");
+              }}
             />
           )}
 

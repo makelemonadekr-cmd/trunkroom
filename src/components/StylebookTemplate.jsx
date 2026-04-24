@@ -71,18 +71,12 @@ function clamp(n, lo, hi) { return Math.max(lo, Math.min(hi, n)); }
 export default function StylebookTemplate({
   photoUrl = null,
   items = [],
-  template = 'A',
   width = 280,
   style: extraStyle = {},
 }) {
-  const height   = Math.round(width * 1.25);
-  const count    = clamp(items.length, 1, 6);
-  const slots    = SLOT_CONFIGS[count] ?? SLOT_CONFIGS[6];
-
-  // Template A: photo at full opacity
-  // Template B: photo heavily faded so item cards pop
-  const photoBgOpacity = template === 'B' ? 0.38 : 1.0;
-  const whiteOverlay   = template === 'B' ? 'rgba(255,255,255,0.42)' : null;
+  const height = Math.round(width * 1.25);
+  const count  = clamp(items.length, 1, 6);
+  const slots  = SLOT_CONFIGS[count] ?? SLOT_CONFIGS[6];
 
   return (
     <div
@@ -109,11 +103,9 @@ export default function StylebookTemplate({
             height:         '100%',
             objectFit:      'cover',
             objectPosition: 'center top',
-            opacity:        photoBgOpacity,
           }}
         />
       ) : (
-        /* placeholder when no photo yet */
         <div
           style={{
             position:       'absolute',
@@ -134,24 +126,11 @@ export default function StylebookTemplate({
         </div>
       )}
 
-      {/* ── Template B: white veil overlay ── */}
-      {whiteOverlay && (
-        <div
-          style={{
-            position:        'absolute',
-            inset:           0,
-            backgroundColor: whiteOverlay,
-            pointerEvents:   'none',
-          }}
-        />
-      )}
-
       {/* ── Item boxes ── */}
       {slots.map((slot, i) => {
         const item = items[i];
         if (!item) return null;
 
-        // Build position style from slot definition (supports left OR right)
         const posStyle = {};
         if (slot.left  !== undefined) posStyle.left  = slot.left;
         if (slot.right !== undefined) posStyle.right = slot.right;
@@ -179,12 +158,7 @@ export default function StylebookTemplate({
               <img
                 src={item.image}
                 alt={item.displayName ?? item.name ?? ''}
-                style={{
-                  width:      '100%',
-                  height:     '100%',
-                  objectFit:  'contain',
-                  padding:    '8%',
-                }}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '8%' }}
               />
             ) : (
               <span style={{ fontSize: 20, opacity: 0.3 }}>👗</span>
@@ -192,37 +166,6 @@ export default function StylebookTemplate({
           </div>
         );
       })}
-
-      {/* ── Template label badge (bottom-center) ── */}
-      <div
-        style={{
-          position:        'absolute',
-          bottom:          8,
-          left:            '50%',
-          transform:       'translateX(-50%)',
-          backgroundColor: 'rgba(0,0,0,0.48)',
-          backdropFilter:  'blur(6px)',
-          borderRadius:    99,
-          paddingLeft:     8,
-          paddingRight:    8,
-          paddingTop:      3,
-          paddingBottom:   3,
-          pointerEvents:   'none',
-        }}
-      >
-        <p
-          style={{
-            fontSize:      8,
-            fontWeight:    700,
-            color:         'rgba(255,255,255,0.85)',
-            fontFamily:    FONT,
-            letterSpacing: '0.1em',
-            whiteSpace:    'nowrap',
-          }}
-        >
-          TEMPLATE {template}
-        </p>
-      </div>
     </div>
   );
 }

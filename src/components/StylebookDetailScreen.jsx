@@ -294,7 +294,6 @@ export default function StylebookDetailScreen({
           <StylebookTemplate
             photoUrl={coordi.photoUrl}
             items={items}
-            template={coordi.templateId}
             width={HERO_W}
             style={{ borderRadius: 0 }}
           />

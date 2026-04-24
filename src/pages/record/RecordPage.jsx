@@ -142,7 +142,6 @@ function StylebookCreatorSheet({ itemIds, dateStr, photoUrl: initPhotoUrl = null
   const [photo,        setPhoto]        = useState(initPhotoUrl);
   const [colors,       setColors]       = useState([]);
   const [colorLoading, setColorLoading] = useState(false);
-  const [templateId,   setTemplateId]   = useState("A"); // 'A' | 'B'
   const photoFileRef = useRef(null);
 
   // Resolve itemIds → ClosetItem objects for template preview
@@ -181,7 +180,7 @@ function StylebookCreatorSheet({ itemIds, dateStr, photoUrl: initPhotoUrl = null
       bgColor:         moodOpt?.bg ?? "#F5F5F5",
       dateStr,
       photoUrl:        photo ?? null,
-      templateId:      templateId,   // 'A' | 'B'
+      templateId:      "A",
       extractedColors: colors,
       updatedAt:       new Date().toISOString(),
     };
@@ -224,7 +223,6 @@ function StylebookCreatorSheet({ itemIds, dateStr, photoUrl: initPhotoUrl = null
             <StylebookTemplate
               photoUrl={photo}
               items={selectedItems}
-              template={templateId}
               width={252}
             />
 
@@ -252,34 +250,6 @@ function StylebookCreatorSheet({ itemIds, dateStr, photoUrl: initPhotoUrl = null
             className="hidden"
             onChange={handlePhotoChange}
           />
-
-          {/* Template A / B selector */}
-          <div className="flex gap-2 mt-3 w-full" style={{ maxWidth: 252 }}>
-            {[
-              { id: "A", label: "Template A", desc: "선명한 배경" },
-              { id: "B", label: "Template B", desc: "부드러운 배경" },
-            ].map((t) => {
-              const active = templateId === t.id;
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => setTemplateId(t.id)}
-                  className="flex-1 py-2.5 rounded-xl flex flex-col items-center gap-0.5 transition-all active:opacity-70"
-                  style={{
-                    backgroundColor: active ? "#FEFCE8" : "#F5F5F5",
-                    border: active ? "1.5px solid #EDD83A" : "1.5px solid transparent",
-                  }}
-                >
-                  <p className="text-[12px] font-bold" style={{ color: active ? "#A07800" : "#888", fontFamily: FONT }}>
-                    {t.label}
-                  </p>
-                  <p className="text-[9px]" style={{ color: active ? "#B8920A" : "#BBBBBB", fontFamily: FONT }}>
-                    {t.desc}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
 
           <p className="text-[10px] mt-2 text-center" style={{ color: "#BBBBBB", fontFamily: FONT }}>
             {photo
@@ -1833,7 +1803,7 @@ function StyleTips({ onTipAction }) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
-export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandled }) {
+export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandled, prefilledItem, onPrefilledHandled }) {
   const TODAY = todayStr();
 
   const [history,        setHistory]       = useState(() => getAllWearHistory());
@@ -1841,19 +1811,27 @@ export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandl
   const [selectedDate,   setSelected]      = useState(null);
   const [showStreak,     setShowStreak]    = useState(false);
   const [stylebooksOpen, setStylebooksOpen] = useState(false);
-  const [fullList,       setFullList]      = useState(null); // { title, items }
-  const [styleFlowDate,  setStyleFlowDate] = useState(null); // non-null → StyleRecordFlow open
-  const [stylebookData,  setStylebookData] = useState(null); // { itemIds, photoUrl, dateStr }
+  const [fullList,       setFullList]      = useState(null);
+  const [styleFlowDate,  setStyleFlowDate] = useState(null);
+  const [stylebookData,  setStylebookData] = useState(null);
 
-  // When the home screen's "기록 시작하기" fires, open today's flow immediately
+  // When the home screen's "기록 시작하기" fires
   useEffect(() => {
     if (autoOpenFlow) {
       openDayRecord(TODAY);
       onAutoOpenHandled?.();
     }
-    // openDayRecord reads history — intentionally omitted from deps to avoid loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoOpenFlow]);
+
+  // When "이 아이템으로 스타일 만들기" fires from ClosetItemDetailScreen
+  useEffect(() => {
+    if (prefilledItem) {
+      setStyleFlowDate(TODAY);
+      onPrefilledHandled?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefilledItem]);
 
   function refresh() {
     setHistory(getAllWearHistory());
@@ -1975,6 +1953,8 @@ export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandl
             setStyleFlowDate(null);
             setStylebooksOpen(true);
           }}
+          initialItems={prefilledItem ? [prefilledItem] : []}
+          initialStep={prefilledItem ? "draft" : "photo"}
         />
       )}
 

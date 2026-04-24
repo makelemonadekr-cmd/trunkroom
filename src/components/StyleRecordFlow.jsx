@@ -14,9 +14,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { CLOSET_ITEMS } from "../constants/mockClosetData";
 import { useWeather }   from "../hooks/useWeather";
-import { getTempPref }  from "../services/weatherRecommendation";
-import OutfitCanvasEditor from "./OutfitCanvasEditor";
-import StylebookTemplate  from "./StylebookTemplate";
+import StylebookTemplateEditor   from "./StylebookTemplateEditor";
 
 const FONT    = "'Spoqa Han Sans Neo', sans-serif";
 const DARK    = "#1a1a1a";
@@ -34,11 +32,6 @@ const MOOD_OPTIONS = [
   { id: "office",  label: "오피스",  emoji: "💼", bg: "#E8EEF8",  fg: "#1A3A7A" },
   { id: "sporty",  label: "스포티",  emoji: "⚡", bg: "#FFF8E1",  fg: "#F57F17" },
   { id: "vintage", label: "빈티지",  emoji: "📷", bg: "#F5ECD8",  fg: "#7A5C1E" },
-];
-
-const TEMPLATES = [
-  { id: "daily",     label: "빠른 기록",          emoji: "⚡", desc: "착용 아이템만 빠르게 기록해요" },
-  { id: "stylebook", label: "스타일북 직접 꾸미기", emoji: "📖", desc: "손가락으로 꾸미는 나만의 스타일북" },
 ];
 
 // ─── Simulate AI analysis ─────────────────────────────────────────────────────
@@ -676,11 +669,333 @@ function MatchingStep({ photoUrl, matchResults, onUpdate, onNext, onClose }) {
   );
 }
 
+// ─── All-items picker sheet ───────────────────────────────────────────────────
+
+function AllItemsPickerSheet({ existingIds, onAdd, onClose }) {
+  const [query, setQuery] = useState("");
+  const items = useMemo(() => {
+    const base = CLOSET_ITEMS.filter((i) => !existingIds.includes(i.id));
+    if (!query.trim()) return base;
+    const q = query.toLowerCase();
+    return base.filter((i) =>
+      (i.displayName ?? i.name).toLowerCase().includes(q) ||
+      (i.brand ?? "").toLowerCase().includes(q) ||
+      (i.mainCategory ?? "").toLowerCase().includes(q)
+    );
+  }, [query, existingIds]);
+
+  return (
+    <div
+      className="absolute inset-0"
+      style={{ backgroundColor: "rgba(0,0,0,0.45)", zIndex: 80 }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="absolute left-0 right-0 bottom-0 flex flex-col bg-white rounded-t-3xl"
+        style={{ maxHeight: "78%" }}
+      >
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-1 shrink-0">
+          <div className="w-10 h-1 rounded-full" style={{ backgroundColor: "#DDD" }} />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-3 shrink-0">
+          <p className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT }}>아이템 추가</p>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full"
+            style={{ backgroundColor: "#F2F2F2" }}
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 2L10 10M10 2L2 10" stroke={DARK} strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="px-5 pb-3 shrink-0">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="아이템 검색"
+            className="w-full px-4 py-2.5 rounded-xl text-[13px] outline-none"
+            style={{ backgroundColor: "#F5F5F5", color: DARK, fontFamily: FONT }}
+          />
+        </div>
+
+        {/* Grid */}
+        <div className="flex-1 overflow-y-auto px-5 pb-5" style={{ scrollbarWidth: "none" }}>
+          {items.length === 0 ? (
+            <p className="text-center py-8 text-[13px]" style={{ color: "#CCC", fontFamily: FONT }}>
+              {query ? "검색 결과가 없어요" : "추가 가능한 아이템이 없어요"}
+            </p>
+          ) : (
+            <div className="grid grid-cols-3 gap-2.5">
+              {items.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => { onAdd(item); onClose(); }}
+                  className="relative rounded-xl overflow-hidden active:opacity-80"
+                  style={{ aspectRatio: "3/4", backgroundColor: "#F5F5F5" }}
+                >
+                  {item.image && (
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
+                    />
+                  )}
+                  <div
+                    className="absolute bottom-0 left-0 right-0 px-1.5 pb-1.5 pt-5"
+                    style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%)" }}
+                  >
+                    <p className="text-[8px] font-bold text-white truncate" style={{ fontFamily: FONT }}>
+                      {item.displayName ?? item.name}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Calendar bottom sheet ────────────────────────────────────────────────────
+
+function CalendarSheet({ selectedDs, onSelect, onClose }) {
+  const D_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
+  const M_NAMES = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
+
+  function parseDs(ds) {
+    const [y, m, d] = ds.split("-").map(Number);
+    return { y, m, d };
+  }
+  const today = new Date();
+  const todayDs = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+
+  const { y: selY, m: selM } = parseDs(selectedDs);
+  const [viewY, setViewY] = useState(selY);
+  const [viewM, setViewM] = useState(selM); // 1-based
+
+  function prevMonth() {
+    if (viewM === 1) { setViewY(y => y - 1); setViewM(12); }
+    else setViewM(m => m - 1);
+  }
+  function nextMonth() {
+    if (viewM === 12) { setViewY(y => y + 1); setViewM(1); }
+    else setViewM(m => m + 1);
+  }
+
+  // Build calendar grid
+  const firstDay = new Date(viewY, viewM - 1, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(viewY, viewM, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  function toDs(y, m, d) {
+    return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  }
+
+  return (
+    <div
+      className="absolute inset-0"
+      style={{ backgroundColor: "rgba(0,0,0,0.45)", zIndex: 80 }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="absolute left-0 right-0 bottom-0 flex flex-col bg-white"
+        style={{ borderRadius: "20px 20px 0 0", paddingBottom: 36 }}
+      >
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-2 shrink-0">
+          <div className="rounded-full" style={{ width: 36, height: 4, backgroundColor: "#E0E0E0" }} />
+        </div>
+
+        {/* Month navigation */}
+        <div className="flex items-center justify-between px-5 pb-4 shrink-0">
+          <button
+            onClick={prevMonth}
+            className="w-9 h-9 flex items-center justify-center rounded-full active:opacity-60"
+            style={{ backgroundColor: "#F2F2F2" }}
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M6.5 2L3.5 5L6.5 8" stroke={DARK} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <p className="text-[16px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>
+            {viewY}년 {M_NAMES[viewM - 1]}
+          </p>
+          <button
+            onClick={nextMonth}
+            className="w-9 h-9 flex items-center justify-center rounded-full active:opacity-60"
+            style={{ backgroundColor: "#F2F2F2" }}
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M3.5 2L6.5 5L3.5 8" stroke={DARK} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Day-of-week header */}
+        <div className="grid grid-cols-7 px-4 pb-2 shrink-0">
+          {D_NAMES.map((n, i) => (
+            <div key={n} className="flex items-center justify-center" style={{ height: 28 }}>
+              <span
+                className="text-[11px] font-bold"
+                style={{ color: i === 0 ? "#EF4444" : i === 6 ? "#3B82F6" : "#AAAAAA", fontFamily: FONT }}
+              >
+                {n}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Date grid */}
+        <div className="grid grid-cols-7 px-4 gap-y-1 shrink-0">
+          {cells.map((day, idx) => {
+            if (!day) return <div key={`e${idx}`} />;
+            const ds = toDs(viewY, viewM, day);
+            const isSelected = ds === selectedDs;
+            const isToday    = ds === todayDs;
+            const dow = (idx) % 7;
+            const isSun = dow === 0;
+            const isSat = dow === 6;
+
+            return (
+              <button
+                key={day}
+                onClick={() => { onSelect(ds); onClose(); }}
+                className="flex flex-col items-center justify-center rounded-full active:opacity-70"
+                style={{ height: 40, position: "relative" }}
+              >
+                <div
+                  className="flex items-center justify-center rounded-full"
+                  style={{
+                    width: 34,
+                    height: 34,
+                    backgroundColor: isSelected ? YELLOW : "transparent",
+                  }}
+                >
+                  <span
+                    className="text-[14px] font-bold"
+                    style={{
+                      fontFamily: FONT,
+                      color: isSelected
+                        ? DARK
+                        : isSun ? "#EF4444"
+                        : isSat ? "#3B82F6"
+                        : DARK,
+                    }}
+                  >
+                    {day}
+                  </span>
+                </div>
+                {isToday && !isSelected && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: 4,
+                      width: 4,
+                      height: 4,
+                      borderRadius: "50%",
+                      backgroundColor: YELLOW,
+                    }}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Background-removal utility (canvas flood-fill) ──────────────────────────
+
+function removeImageBackground(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = () => {
+      const MAX = 800;
+      const scale = Math.min(1, MAX / Math.max(img.naturalWidth || 1, img.naturalHeight || 1));
+      const W = Math.round((img.naturalWidth  || img.width)  * scale);
+      const H = Math.round((img.naturalHeight || img.height) * scale);
+
+      const canvas = document.createElement("canvas");
+      canvas.width  = W;
+      canvas.height = H;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0, W, H);
+
+      let imageData;
+      try {
+        imageData = ctx.getImageData(0, 0, W, H);
+      } catch {
+        reject(new Error("CORS_BLOCKED"));
+        return;
+      }
+
+      const data = imageData.data;
+
+      // Estimate background colour from the four corners
+      function px(x, y) { const i = (y * W + x) * 4; return [data[i], data[i+1], data[i+2]]; }
+      const corners = [px(0,0), px(W-1,0), px(0,H-1), px(W-1,H-1)];
+      const bgR = corners.reduce((s,c) => s+c[0], 0) / 4;
+      const bgG = corners.reduce((s,c) => s+c[1], 0) / 4;
+      const bgB = corners.reduce((s,c) => s+c[2], 0) / 4;
+      const TOL = 40 * 3; // sum of channel diffs threshold
+
+      function isBg(i) {
+        return Math.abs(data[i]-bgR) + Math.abs(data[i+1]-bgG) + Math.abs(data[i+2]-bgB) < TOL;
+      }
+
+      // BFS flood-fill seeded from all edge pixels
+      const visited = new Uint8Array(W * H);
+      const queue   = [];
+
+      for (let x = 0; x < W; x++) {
+        if (!visited[x])             { visited[x] = 1;             queue.push(x); }
+        if (!visited[(H-1)*W + x])   { visited[(H-1)*W+x] = 1;   queue.push((H-1)*W+x); }
+      }
+      for (let y = 1; y < H - 1; y++) {
+        if (!visited[y*W])           { visited[y*W] = 1;           queue.push(y*W); }
+        if (!visited[y*W + (W-1)])   { visited[y*W+(W-1)] = 1;   queue.push(y*W+(W-1)); }
+      }
+
+      let head = 0;
+      while (head < queue.length) {
+        const pos = queue[head++];
+        const di  = pos * 4;
+        if (!isBg(di)) continue;
+        data[di + 3] = 0; // fully transparent
+
+        const x = pos % W;
+        const y = (pos - x) / W;
+        if (y > 0   && !visited[pos-W]) { visited[pos-W] = 1; queue.push(pos-W); }
+        if (y < H-1 && !visited[pos+W]) { visited[pos+W] = 1; queue.push(pos+W); }
+        if (x > 0   && !visited[pos-1]) { visited[pos-1] = 1; queue.push(pos-1); }
+        if (x < W-1 && !visited[pos+1]) { visited[pos+1] = 1; queue.push(pos+1); }
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+      resolve(canvas.toDataURL("image/png"));
+    };
+
+    img.onerror = () => reject(new Error("LOAD_FAILED"));
+    img.src = src;
+  });
+}
+
 // ─── STEP 4: Draft editor ─────────────────────────────────────────────────────
-// Three sub-steps:
-//   "layout"  – square template preview (photo left | items right) + date + template picker
-//   "preview" – polished template card output (daily path only)
-//   "info"    – mood, memo, public toggle → save
 
 // Helper: renders worn-items grid in the right column of the template card
 function ItemsGrid({ items }) {
@@ -723,51 +1038,101 @@ function ItemsGrid({ items }) {
   );
 }
 
-function DraftStep({ photoUrl, confirmedItems, dateStr: initDateStr, weather, onSave, onClose }) {
-  const [subStep,            setSubStep]            = useState("layout");
-  const [template,           setTemplate]           = useState("daily");   // "daily" | "stylebook"
-  const [stylebookTemplateId, setStylobookTemplateId] = useState("A");     // "A" | "B" for quick template
-  const [selectedDate,       setSelectedDate]       = useState(initDateStr);
-  const [mood,               setMood]               = useState(null);
-  const [customMood,         setCustomMood]         = useState("");
-  const [memo,               setMemo]               = useState("");
-  const [isPublic,           setIsPublic]           = useState(false);
-  const [showCanvas,         setShowCanvas]         = useState(false);
-  const dateInputRef = useRef(null);
+function DraftStep({ photoUrl: initPhotoUrl, confirmedItems, dateStr: initDateStr, weather, onSave, onClose }) {
+  const [subStep,      setSubStep]      = useState("layout");
+  const [selectedDate, setSelectedDate] = useState(initDateStr);
+  const [editPhoto,    setEditPhoto]    = useState(initPhotoUrl);
+  const [editItems,    setEditItems]    = useState(confirmedItems);
+  const [mood,         setMood]         = useState(null);
+  const [customMood,   setCustomMood]   = useState("");
+  const [memo,         setMemo]         = useState("");
+  const [isPublic,     setIsPublic]     = useState(false);
+  const [showCalendar,      setShowCalendar]      = useState(false);
+  const [showItemPicker,    setShowItemPicker]    = useState(false);
+  const [selectedEditorIdx, setSelectedEditorIdx] = useState(null);
+  const [bgRemoving,        setBgRemoving]        = useState(false);
+  const [bgRemoveError,     setBgRemoveError]     = useState(null);
+  const [layerOrder,        setLayerOrder]        = useState(() => confirmedItems.map((_, i) => i));
+  const bgFileRef = useRef(null);
+
+  // ── Layer-order helpers ──────────────────────────────────────────────────
+  function bringForward(idx) {
+    setLayerOrder((prev) => {
+      const cur = prev[idx];
+      if (cur >= prev.length - 1) return prev;
+      const swapIdx = prev.findIndex((l) => l === cur + 1);
+      return prev.map((l, i) => i === idx ? cur + 1 : i === swapIdx ? cur : l);
+    });
+  }
+  function sendBackward(idx) {
+    setLayerOrder((prev) => {
+      const cur = prev[idx];
+      if (cur <= 0) return prev;
+      const swapIdx = prev.findIndex((l) => l === cur - 1);
+      return prev.map((l, i) => i === idx ? cur - 1 : i === swapIdx ? cur : l);
+    });
+  }
+  function deleteLayerEntry(idx) {
+    setLayerOrder((prev) => {
+      const deleted = prev[idx];
+      return prev
+        .filter((_, i) => i !== idx)
+        .map((l) => (l > deleted ? l - 1 : l));
+    });
+  }
+  function addLayerEntry() {
+    setLayerOrder((prev) => [...prev, prev.length]);
+  }
 
   const D_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
 
-  function toDs(date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  }
   function fmtDate(ds) {
     const [y, m, d] = ds.split("-").map(Number);
-    return `${m}월 ${d}일 (${D_NAMES[new Date(y, m - 1, d).getDay()]})`;
+    return `${y}년 ${m}월 ${d}일 (${D_NAMES[new Date(y, m - 1, d).getDay()]})`;
   }
-  function offsetDay(n) {
-    const [y, m, d] = selectedDate.split("-").map(Number);
-    const dt = new Date(y, m - 1, d);
-    dt.setDate(dt.getDate() + n);
-    const now = new Date();
-    now.setHours(23, 59, 59, 999);
-    if (dt > now) return;
-    setSelectedDate(toDs(dt));
+
+  function handleBgChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setEditPhoto(ev.target.result);
+    reader.readAsDataURL(file);
+    e.target.value = "";
   }
-  const todayDs = toDs(new Date());
+
+  async function handleRemoveItemBg(idx) {
+    const targetIdx = idx ?? selectedEditorIdx;
+    if (targetIdx === null || targetIdx === undefined) return;
+    const item = editItems[targetIdx];
+    if (!item?.image) return;
+    setBgRemoving(true);
+    setBgRemoveError(null);
+    try {
+      const result = await removeImageBackground(item.image);
+      setEditItems((prev) =>
+        prev.map((it, i) => i === targetIdx ? { ...it, image: result } : it)
+      );
+    } catch (err) {
+      setBgRemoveError(
+        err.message === "CORS_BLOCKED"
+          ? "이미지 접근 권한이 없어요"
+          : "배경 제거에 실패했어요"
+      );
+      setTimeout(() => setBgRemoveError(null), 3000);
+    } finally {
+      setBgRemoving(false);
+    }
+  }
 
   function buildRecord(extra = {}) {
     return {
-      itemIds:         confirmedItems.map((i) => i.id),
-      photoUrl:        photoUrl ?? null,
+      itemIds:         editItems.map((i) => i.id),
+      photoUrl:        editPhoto ?? null,
       mood:            mood ?? null,
       customMood:      customMood.trim() || null,
       note:            "",
       memo,
       isPublic,
-      template,
       weatherSnapshot: weather
         ? { temp: weather.temp, feelsLike: weather.feelsLike, condition: weather.condition, location: weather.location }
         : null,
@@ -776,26 +1141,8 @@ function DraftStep({ photoUrl, confirmedItems, dateStr: initDateStr, weather, on
     };
   }
 
-  // ── Canvas editor overlay (스타일북 직접 꾸미기) ─────────────────────────────
-  if (showCanvas) {
-    return (
-      <OutfitCanvasEditor
-        initialItemIds={confirmedItems.map((i) => i.id)}
-        dateStr={selectedDate}
-        onSave={() => {
-          setShowCanvas(false);
-          // Also save the wear record alongside the coordi that OutfitCanvasEditor already saved
-          onSave(selectedDate, buildRecord({ template: "stylebook", isPublic: false, mood: null, memo: "" }));
-        }}
-        onClose={() => setShowCanvas(false)}
-      />
-    );
-  }
-
-  // ── Sub-step 1: Layout ───────────────────────────────────────────────────────
+  // ── Sub-step 1: 스타일 작성 ──────────────────────────────────────────────────
   if (subStep === "layout") {
-    const isQuick = template === "daily";
-
     return (
       <div className="absolute inset-0 z-50 flex flex-col bg-white overflow-hidden">
         {/* Header */}
@@ -806,231 +1153,95 @@ function DraftStep({ photoUrl, confirmedItems, dateStr: initDateStr, weather, on
             </svg>
             아이템 수정
           </button>
-          <h2 className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>기록 작성</h2>
+          <h2 className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>스타일 작성</h2>
           <div style={{ width: 60 }} />
         </div>
 
         <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
 
-          {/* ── Mode selector ── */}
-          <div className="px-4 pt-4 pb-3 flex gap-2.5">
-            {[
-              { id: "daily",     icon: "⚡", label: "빠른 스타일 생성", desc: "템플릿을 이용해 기록해요" },
-              { id: "stylebook", icon: "✏️", label: "스타일 편집",     desc: "직접 손가락으로 꾸미는 나만의 스타일" },
-            ].map((mode) => {
-              const active = template === mode.id;
-              return (
-                <button
-                  key={mode.id}
-                  onClick={() => setTemplate(mode.id)}
-                  className="flex-1 flex flex-col items-start px-3.5 py-3 rounded-2xl text-left active:opacity-80 transition-all"
-                  style={{
-                    backgroundColor: active ? "#FEFCE8" : "#F8F8F8",
-                    border: `1.5px solid ${active ? "#EDD83A" : "#EEEEEE"}`,
-                  }}
-                >
-                  <span style={{ fontSize: 20, marginBottom: 4 }}>{mode.icon}</span>
-                  <p className="text-[12px] font-bold leading-tight" style={{ color: active ? "#A07800" : DARK, fontFamily: FONT }}>{mode.label}</p>
-                  <p className="text-[9px] mt-1 leading-tight" style={{ color: active ? "#B8920A" : "#AAAAAA", fontFamily: FONT }}>{mode.desc}</p>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* ── Dynamic preview ── */}
-          {isQuick ? (
-            /* 빠른 스타일 생성 — StylebookTemplate 4:5 preview */
-            <div className="px-4 pb-3 flex flex-col items-center">
-              {/* A / B sub-selector */}
-              <div className="flex gap-2 w-full mb-3">
-                {[
-                  { id: "A", label: "Template A", desc: "선명한 배경" },
-                  { id: "B", label: "Template B", desc: "부드러운 배경" },
-                ].map((t) => {
-                  const on = stylebookTemplateId === t.id;
-                  return (
-                    <button
-                      key={t.id}
-                      onClick={() => setStylobookTemplateId(t.id)}
-                      className="flex-1 py-2.5 rounded-xl flex flex-col items-center gap-0.5 transition-all active:opacity-70"
-                      style={{
-                        backgroundColor: on ? "#FEFCE8" : "#F5F5F5",
-                        border: on ? "1.5px solid #EDD83A" : "1.5px solid transparent",
-                      }}
-                    >
-                      <p className="text-[11px] font-bold" style={{ color: on ? "#A07800" : "#888", fontFamily: FONT }}>{t.label}</p>
-                      <p className="text-[9px]" style={{ color: on ? "#B8920A" : "#BBBBBB", fontFamily: FONT }}>{t.desc}</p>
-                    </button>
-                  );
-                })}
-              </div>
-              <StylebookTemplate
-                photoUrl={photoUrl}
-                items={confirmedItems}
-                template={stylebookTemplateId}
-                width={280}
-              />
-            </div>
-          ) : (
-            /* 스타일 편집 — 좌/우 분할 프리뷰 (템플릿 미적용) */
-            <div className="px-4 pb-3">
-              <div
-                className="w-full rounded-2xl overflow-hidden"
-                style={{ aspectRatio: "1 / 1", backgroundColor: "#F0F0F0", display: "flex" }}
-              >
-                <div style={{ width: "50%", height: "100%", overflow: "hidden", flexShrink: 0 }}>
-                  {photoUrl ? (
-                    <img src={photoUrl} alt="outfit" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
-                  ) : (
-                    <div style={{ width: "100%", height: "100%", backgroundColor: "#E8E8E8", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: 36 }}>👗</span>
-                    </div>
-                  )}
-                </div>
-                <div style={{ width: 3, backgroundColor: "white", flexShrink: 0 }} />
-                <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: 3, padding: 3 }}>
-                  <ItemsGrid items={confirmedItems} />
-                </div>
-              </div>
-              <p className="text-[11px] mt-2 text-center" style={{ color: "#CCCCCC", fontFamily: FONT }}>
-                다음에서 직접 꾸밀 수 있어요
-              </p>
-            </div>
-          )}
-
-          {/* ── Worn items (horizontal scroll) ── */}
-          <div className="px-4 pb-4">
-            <p className="text-[11px] font-bold mb-2.5" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>
-              착용 아이템 {confirmedItems.length}개
-            </p>
-            {confirmedItems.length === 0 ? (
-              <p className="text-[12px]" style={{ color: "#CCCCCC", fontFamily: FONT }}>선택된 아이템이 없어요</p>
-            ) : (
-              <div className="flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-                {confirmedItems.map((item) => (
-                  <div key={item.id} className="shrink-0 flex flex-col gap-1" style={{ width: 72 }}>
-                    <div className="rounded-xl overflow-hidden" style={{ width: 72, height: 90, backgroundColor: "#F0F0F0" }}>
-                      {item.image && <img src={item.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />}
-                    </div>
-                    <p className="text-[9px] font-bold truncate" style={{ color: DARK, fontFamily: FONT }}>{item.displayName ?? item.name}</p>
-                    <p className="text-[8px] truncate" style={{ color: "#AAAAAA", fontFamily: FONT }}>{item.brand ?? ""}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* ── Date picker ── */}
-          <div className="px-4 pb-8">
-            <p className="text-[11px] font-bold mb-2" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>날짜</p>
-            <div className="flex items-center gap-2">
-              <button onClick={() => offsetDay(-1)} className="w-9 h-9 flex items-center justify-center rounded-full active:opacity-60 shrink-0" style={{ backgroundColor: "#F2F2F2" }}>
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M6.5 2L3.5 5L6.5 8" stroke={DARK} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              </button>
-              <button onClick={() => dateInputRef.current?.click()} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl active:opacity-80" style={{ backgroundColor: "#F5F5F5" }}>
-                <span style={{ fontSize: 14 }}>📅</span>
-                <span className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>{fmtDate(selectedDate)}</span>
-              </button>
-              <button onClick={() => offsetDay(1)} className="w-9 h-9 flex items-center justify-center rounded-full active:opacity-60 shrink-0" style={{ backgroundColor: "#F2F2F2", opacity: selectedDate >= todayDs ? 0.35 : 1 }} disabled={selectedDate >= todayDs}>
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3.5 2L6.5 5L3.5 8" stroke={DARK} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              </button>
-            </div>
-            <input ref={dateInputRef} type="date" className="hidden" value={selectedDate} max={todayDs} onChange={(e) => { if (e.target.value) setSelectedDate(e.target.value); }} />
-          </div>
-        </div>
-
-        {/* CTA */}
-        <div className="px-5 pb-8 pt-3 shrink-0" style={{ borderTop: `1px solid ${DIVIDER}` }}>
-          <button
-            onClick={() => {
-              if (template === "stylebook") {
-                setShowCanvas(true);
-              } else {
-                setSubStep("preview");
-              }
-            }}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl font-bold active:opacity-80"
-            style={{ height: 56, backgroundColor: YELLOW, color: DARK, fontFamily: FONT, fontSize: 15 }}
-          >
-            {isQuick ? "다음" : "편집 시작하기"}
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M4 8H12M9 5L12 8L9 11" stroke={DARK} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Sub-step 2: Preview ──────────────────────────────────────────────────────
-  if (subStep === "preview") {
-    return (
-      <div className="absolute inset-0 z-50 flex flex-col bg-white overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 shrink-0" style={{ height: 52, borderBottom: `1px solid ${DIVIDER}` }}>
-          <button
-            onClick={() => setSubStep("layout")}
-            className="flex items-center gap-1 active:opacity-60"
-            style={{ color: "#888", fontFamily: FONT, fontSize: 13 }}
-          >
-            <svg width="8" height="12" viewBox="0 0 8 12" fill="none">
-              <path d="M6.5 1.5L2 6L6.5 10.5" stroke="#888" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            뒤로
-          </button>
-          <div className="text-center">
-            <h2 className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>이미지 확인</h2>
-            <p className="text-[10px]" style={{ color: "#CCCCCC", fontFamily: FONT }}>2 / 3</p>
-          </div>
-          <div style={{ width: 36 }} />
-        </div>
-
-        <div className="flex-1 overflow-y-auto flex flex-col items-center" style={{ scrollbarWidth: "none" }}>
-          <div className="px-4 pt-6 pb-2 w-full">
-            {/* Polished template card */}
-            <div
-              className="w-full rounded-2xl overflow-hidden"
-              style={{ aspectRatio: "1 / 1", backgroundColor: "#FAFAFA", display: "flex", boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}
+          {/* ── Date selector ── */}
+          <div className="px-4 pt-4 pb-3">
+            <button
+              onClick={() => setShowCalendar(true)}
+              className="w-full flex items-center gap-3 px-4 rounded-2xl active:opacity-80"
+              style={{ height: 52, backgroundColor: "#FEFCE8", border: "1.5px solid #EDD83A" }}
             >
-              {/* Left: photo with date badge */}
-              <div style={{ width: "50%", height: "100%", overflow: "hidden", flexShrink: 0, position: "relative" }}>
-                {photoUrl ? (
-                  <img src={photoUrl} alt="outfit" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
-                ) : (
-                  <div style={{ width: "100%", height: "100%", backgroundColor: "#DDDDDD", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: 40 }}>👗</span>
-                  </div>
-                )}
-                {/* Date badge */}
-                <div style={{ position: "absolute", bottom: 10, left: 8 }}>
-                  <div style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", borderRadius: 6, padding: "3px 8px", display: "inline-flex" }}>
-                    <span className="text-[9px] font-bold text-white" style={{ fontFamily: FONT }}>{fmtDate(selectedDate)}</span>
-                  </div>
-                </div>
-              </div>
-              {/* Divider */}
-              <div style={{ width: 3, backgroundColor: "white", flexShrink: 0 }} />
-              {/* Right: items */}
-              <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: 3, padding: 3 }}>
-                <ItemsGrid items={confirmedItems} />
-              </div>
-            </div>
-
-            {/* Author row below card */}
-            <div className="flex items-center justify-between mt-3 px-1">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full overflow-hidden shrink-0" style={{ backgroundColor: "#EBEBEB" }}>
-                  <img src="/officiallogo.png" alt="" style={{ width: "100%", height: "100%", objectFit: "contain", opacity: 0.6 }} />
-                </div>
-                <span className="text-[12px] font-bold" style={{ color: DARK, fontFamily: FONT }}>윤킴</span>
-              </div>
-              <span className="text-[11px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>{fmtDate(selectedDate)}</span>
-            </div>
+              <span style={{ fontSize: 18 }}>📅</span>
+              <span className="text-[14px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.01em" }}>
+                {fmtDate(selectedDate)}
+              </span>
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ marginLeft: "auto" }}>
+                <path d="M2 4L5 7L8 4" stroke="#A07800" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
           </div>
 
-          <p className="text-[11px] px-4 pt-1 pb-6 text-center" style={{ color: "#BBBBBB", fontFamily: FONT }}>
-            ⚡ 빠른 기록 템플릿 미리보기예요
-          </p>
+          {/* ── Interactive template editor ── */}
+          <div className="flex justify-center" style={{ paddingLeft: 16, paddingRight: 16, paddingBottom: 8 }}>
+            <StylebookTemplateEditor
+              photoUrl={editPhoto}
+              items={editItems}
+              layerOrders={layerOrder}
+              width={320}
+              onDeleteItem={(idx) => {
+                setEditItems((prev) => prev.filter((_, i) => i !== idx));
+                deleteLayerEntry(idx);
+                setSelectedEditorIdx(null);
+              }}
+              onSelectionChange={setSelectedEditorIdx}
+              onBringForward={bringForward}
+              onSendBackward={sendBackward}
+              onRemoveBg={handleRemoveItemBg}
+              bgRemoving={bgRemoving}
+              bgRemoveError={bgRemoveError}
+            />
+          </div>
+
+          {/* ── Action buttons: 배경 업로드 / 아이템 추가 / 배경 삭제 ── */}
+          <div className="px-4 pt-1 pb-8 flex gap-2">
+            {/* 배경 업로드 */}
+            <button
+              onClick={() => bgFileRef.current?.click()}
+              className="flex-1 flex flex-col items-center justify-center gap-1.5 rounded-2xl py-3.5 active:opacity-75"
+              style={{ backgroundColor: "#F8F8F8", border: "1.5px solid #EEEEEE" }}
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <rect x="2" y="4" width="16" height="13" rx="2.5" stroke={DARK} strokeWidth="1.5" />
+                <circle cx="10" cy="10.5" r="3" stroke={DARK} strokeWidth="1.5" />
+                <path d="M7 4L8.5 1.5H11.5L13 4" stroke={DARK} strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              <span className="text-[10px] font-bold" style={{ color: DARK, fontFamily: FONT }}>배경 업로드</span>
+            </button>
+
+            {/* 아이템 추가 */}
+            <button
+              onClick={() => setShowItemPicker(true)}
+              className="flex-1 flex flex-col items-center justify-center gap-1.5 rounded-2xl py-3.5 active:opacity-75"
+              style={{ backgroundColor: YELLOW }}
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M10 4V16M4 10H16" stroke={DARK} strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              <span className="text-[10px] font-bold" style={{ color: DARK, fontFamily: FONT }}>아이템 추가</span>
+            </button>
+
+            {/* 배경 삭제 */}
+            <button
+              onClick={() => setEditPhoto(null)}
+              disabled={!editPhoto}
+              className="flex-1 flex flex-col items-center justify-center gap-1.5 rounded-2xl py-3.5 active:opacity-75"
+              style={{ backgroundColor: "#F8F8F8", border: "1.5px solid #EEEEEE", opacity: editPhoto ? 1 : 0.35 }}
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M5 7h10M8 7V5h4v2M6 7l1 9h6l1-9" stroke="#FF3B30" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="text-[10px] font-bold" style={{ color: "#FF3B30", fontFamily: FONT }}>배경 삭제</span>
+            </button>
+          </div>
+
+          {/* Hidden file input for background */}
+          <input ref={bgFileRef} type="file" accept="image/*" className="hidden" onChange={handleBgChange} />
+
         </div>
 
         {/* CTA */}
@@ -1046,17 +1257,41 @@ function DraftStep({ photoUrl, confirmedItems, dateStr: initDateStr, weather, on
             </svg>
           </button>
         </div>
+
+        {/* Calendar overlay */}
+        {showCalendar && (
+          <CalendarSheet
+            selectedDs={selectedDate}
+            onSelect={setSelectedDate}
+            onClose={() => setShowCalendar(false)}
+          />
+        )}
+
+        {/* Item picker overlay */}
+        {showItemPicker && (
+          <AllItemsPickerSheet
+            existingIds={editItems.map((i) => i.id)}
+            onAdd={(item) => {
+              setEditItems((prev) => {
+                if (prev.length >= 6) return prev;
+                addLayerEntry();
+                return [...prev, item];
+              });
+            }}
+            onClose={() => setShowItemPicker(false)}
+          />
+        )}
       </div>
     );
   }
 
-  // ── Sub-step 3: Info ────────────────────────────────────────────────────────
+  // ── Sub-step 2: Info ─────────────────────────────────────────────────────────
   return (
     <div className="absolute inset-0 z-50 flex flex-col bg-white overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-5 shrink-0" style={{ height: 52, borderBottom: `1px solid ${DIVIDER}` }}>
         <button
-          onClick={() => setSubStep("preview")}
+          onClick={() => setSubStep("layout")}
           className="flex items-center gap-1 active:opacity-60"
           style={{ color: "#888", fontFamily: FONT, fontSize: 13 }}
         >
@@ -1067,7 +1302,7 @@ function DraftStep({ photoUrl, confirmedItems, dateStr: initDateStr, weather, on
         </button>
         <div className="text-center">
           <h2 className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>정보 입력</h2>
-          <p className="text-[10px]" style={{ color: "#CCCCCC", fontFamily: FONT }}>3 / 3</p>
+          <p className="text-[10px]" style={{ color: "#CCCCCC", fontFamily: FONT }}>2 / 2</p>
         </div>
         <button
           onClick={() => onSave(selectedDate, buildRecord())}
@@ -1265,18 +1500,20 @@ export default function StyleRecordFlow({
   onClose,
   onOpenStylebook,
   onGoToStylebook,
+  initialItems = [],      // pre-filled items → skip directly to draft step
+  initialStep  = "photo", // "photo" | "draft"
 }) {
-  const [step,         setStep]         = useState("photo");
+  const [step,         setStep]         = useState(initialStep);
   const [photoUrl,     setPhotoUrl]     = useState(null);
   const [matchResults, setMatchResults] = useState([]);
-  const [savedDateStr, setSavedDateStr] = useState(dateStr); // tracks the date user chose in DraftStep
+  const [savedDateStr, setSavedDateStr] = useState(dateStr);
 
   const { weather } = useWeather();
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
   function handlePhotoChosen(dataUrl) {
-    setPhotoUrl(dataUrl);  // may be null ("skip photo")
+    setPhotoUrl(dataUrl);
     const results = simulateAnalysis();
     setMatchResults(results);
     setStep("analyzing");
@@ -1296,17 +1533,18 @@ export default function StyleRecordFlow({
     setStep("draft");
   }
 
-  // DraftStep now calls onSave(selectedDate, draftData)
   function handleDraftSave(selectedDate, draftData) {
     onSave(selectedDate, draftData);
     setSavedDateStr(selectedDate);
     setStep("done");
   }
 
-  // Items confirmed in matching step
-  const confirmedItems = matchResults
-    .filter((r) => r.status === "confirmed" && r.confirmedItem)
-    .map((r) => r.confirmedItem);
+  // Items confirmed in matching step — or pre-filled when skipping straight to draft
+  const confirmedItems = initialStep === "draft" && matchResults.length === 0
+    ? initialItems
+    : matchResults
+        .filter((r) => r.status === "confirmed" && r.confirmedItem)
+        .map((r) => r.confirmedItem);
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
@@ -1343,7 +1581,7 @@ export default function StyleRecordFlow({
           dateStr={dateStr}
           weather={weather}
           onSave={handleDraftSave}
-          onClose={() => setStep("matching")}
+          onClose={initialStep === "draft" ? onClose : () => setStep("matching")}
         />
       )}
 

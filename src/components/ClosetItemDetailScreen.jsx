@@ -393,7 +393,7 @@ function StylebookCard({ outfit, onTap }) {
 }
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
-export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap }) {
+export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMakeStyle }) {
   const [activeOutfit,    setActiveOutfit]    = useState(null);
   const [openCanvas,      setOpenCanvas]      = useState(false);
   const [memo,            setMemo]            = useState(item.memo ?? "");
@@ -670,12 +670,12 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap }) {
         <button
           className="w-full h-12 rounded-xl text-[14px] font-bold flex items-center justify-center gap-2"
           style={{ backgroundColor: DARK, color: "white", fontFamily: FONT }}
-          onClick={() => setOpenCanvas(true)}
+          onClick={() => onMakeStyle ? onMakeStyle(item) : setOpenCanvas(true)}
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M8 3V13M3 8H13" stroke="white" strokeWidth="2" strokeLinecap="round" />
           </svg>
-          이 아이템으로 스타일북 만들기
+          이 아이템으로 스타일 만들기
         </button>
       </div>
 

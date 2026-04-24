@@ -171,13 +171,40 @@ const NotionIcon = () => (
   </svg>
 );
 
+// ─── Logout icon ─────────────────────────────────────────────────────────────
+
+const LogoutIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <path d="M7 3H4C3.45 3 3 3.45 3 4V14C3 14.55 3.45 15 4 15H7" stroke="#E84040" strokeWidth="1.4" strokeLinecap="round" />
+    <path d="M12 6L15 9L12 12" stroke="#E84040" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M15 9H7" stroke="#E84040" strokeWidth="1.4" strokeLinecap="round" />
+  </svg>
+);
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
-export default function MenuPage() {
+/**
+ * @param {{ user: import('../../types/index').AuthUser|null, onSignOut: () => void }} props
+ */
+export default function MenuPage({ user, onSignOut }) {
   const [screen,       setScreen]       = useState(null);  // null | "privacy" | "terms"
   const [accountOpen,  setAccountOpen]  = useState(false);
   const [appInfoOpen,  setAppInfoOpen]  = useState(false);
   const [supportOpen,  setSupportOpen]  = useState(false);
+  const [signingOut,   setSigningOut]   = useState(false);
+
+  // Derive display values from auth user object
+  const displayName = user?.user_metadata?.display_name
+    || user?.user_metadata?.nickname
+    || user?.email?.split("@")[0]
+    || "내 계정";
+  const displayEmail = user?.email || "";
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    await onSignOut?.();
+    setSigningOut(false);
+  }
 
   return (
     <div className="relative flex flex-col h-full overflow-hidden" style={{ backgroundColor: LIGHT }}>
@@ -228,12 +255,12 @@ export default function MenuPage() {
                 <path d="M3 20C3 15.58 6.58 12 11 12C15.42 12 19 15.58 19 20" stroke="rgba(255,255,255,0.7)" strokeWidth="1.6" strokeLinecap="round" />
               </svg>
             </div>
-            <div className="flex-1">
-              <p className="text-[14px] font-bold text-white" style={{ fontFamily: FONT }}>
-                내 계정
+            <div className="flex-1 min-w-0">
+              <p className="text-[14px] font-bold text-white truncate" style={{ fontFamily: FONT }}>
+                {displayName}
               </p>
-              <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.45)", fontFamily: FONT }}>
-                트렁크룸 회원
+              <p className="text-[11px] mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.45)", fontFamily: FONT }}>
+                {displayEmail}
               </p>
             </div>
             <div className="flex items-center gap-2.5 shrink-0">
@@ -355,6 +382,32 @@ export default function MenuPage() {
               ))}
             </div>
           )}
+        </RowGroup>
+
+        {/* ── 계정 ── */}
+        <SectionLabel>계정</SectionLabel>
+        <RowGroup>
+          <button
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:opacity-60 transition-opacity"
+          >
+            <div
+              className="flex items-center justify-center rounded-xl shrink-0"
+              style={{ width: 34, height: 34, backgroundColor: "#FFF0F0" }}
+            >
+              {signingOut ? (
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ animation: "spin 0.8s linear infinite" }}>
+                  <path d="M9 2a7 7 0 1 1-4.95 2.05" stroke="#E84040" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              ) : (
+                <LogoutIcon />
+              )}
+            </div>
+            <p className="text-[14px] font-medium" style={{ color: "#E84040", fontFamily: FONT }}>
+              {signingOut ? "로그아웃 중…" : "로그아웃"}
+            </p>
+          </button>
         </RowGroup>
 
         {/* ── Brand footer ── */}

@@ -13,6 +13,7 @@ import TermsOfServiceScreen from "./pages/legal/TermsOfServiceScreen";
 import BottomNav from "./components/BottomNav";
 import AuthScreen from "./features/auth/AuthScreen";
 import { useAuth } from "./hooks/useAuth";
+import { signOut } from "./services/authService";
 
 const ONBOARDING_KEY = "trunkroom_onboarded";
 
@@ -188,7 +189,7 @@ export default function App() {
             />
           )}
           {activeTab === "discover" && <DiscoveryPage initialTab={discoverTab} />}
-          {activeTab === "menu"   && <MenuPage />}
+          {activeTab === "menu"   && <MenuPage user={user} onSignOut={signOut} />}
 
           {/* Closet item detail overlay — for any closet item tapped in the app */}
           {currentItem && !currentProduct && (

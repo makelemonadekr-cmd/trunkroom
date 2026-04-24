@@ -16,6 +16,7 @@ import { CLOSET_ITEMS } from "../constants/mockClosetData";
 import { useWeather }   from "../hooks/useWeather";
 import { getTempPref }  from "../services/weatherRecommendation";
 import OutfitCanvasEditor from "./OutfitCanvasEditor";
+import StylebookTemplate  from "./StylebookTemplate";
 
 const FONT    = "'Spoqa Han Sans Neo', sans-serif";
 const DARK    = "#1a1a1a";
@@ -95,10 +96,11 @@ function CloseBtn({ onClose, light = false }) {
 // ─── STEP 1: Photo picker ──────────────────────────────────────────────────────
 
 function PhotoStep({ onPhotoChosen, onClose }) {
-  const [source,  setSource]  = useState(null);  // "camera" | "gallery"
-  const fileInputRef          = useRef(null);
+  const [source,     setSource]     = useState(null);   // "camera" | "gallery"
+  const [showPicker, setShowPicker] = useState(false);  // bottom sheet
+  const fileInputRef                = useRef(null);
 
-  // Trigger file input after source is chosen (300ms delay for animation)
+  // Trigger file input after source is chosen (300ms delay for sheet close animation)
   useEffect(() => {
     if (!source) return;
     const t = setTimeout(() => fileInputRef.current?.click(), 300);
@@ -113,6 +115,11 @@ function PhotoStep({ onPhotoChosen, onClose }) {
     reader.readAsDataURL(file);
   }
 
+  function pickSource(src) {
+    setShowPicker(false);
+    setSource(src);
+  }
+
   return (
     <div className="absolute inset-0 z-50 flex flex-col bg-white">
 
@@ -120,75 +127,36 @@ function PhotoStep({ onPhotoChosen, onClose }) {
       <div className="flex items-center justify-between px-5 shrink-0" style={{ height: 52 }}>
         <CloseBtn onClose={onClose} />
         <h2 className="text-[16px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>
-          오늘의 착장 기록
+          오늘의 스타일 기록
         </h2>
         <div style={{ width: 36 }} />
       </div>
 
-      {/* Hero illustration */}
+      {/* Hero — tap to open picker */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 gap-6">
-        {/* Visual placeholder */}
-        <div
-          className="rounded-3xl flex items-center justify-center"
+        <button
+          onClick={() => setShowPicker(true)}
+          className="flex flex-col items-center justify-center rounded-3xl active:opacity-75 transition-opacity"
           style={{
             width: 200, height: 240,
             background: "linear-gradient(145deg, #FEFCE8 0%, #FFF8D6 100%)",
             border: "2px dashed #EDD83A",
           }}
         >
-          <div className="flex flex-col items-center gap-3">
-            <span style={{ fontSize: 56 }}>📸</span>
-            <p className="text-[12px] font-bold text-center" style={{ color: "#A07800", fontFamily: FONT }}>
-              오늘 착장 사진을<br />올려주세요
-            </p>
-          </div>
-        </div>
+          <span style={{ fontSize: 56 }}>📸</span>
+          <p className="text-[13px] font-bold text-center mt-3" style={{ color: "#A07800", fontFamily: FONT, lineHeight: 1.5 }}>
+            오늘 스타일 사진을<br />올려주세요
+          </p>
+        </button>
 
         <div className="text-center">
           <p className="text-[14px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.015em" }}>
             사진 한 장으로 시작해요
           </p>
-          <p className="text-[12px] mt-1" style={{ color: "#888", fontFamily: FONT, lineHeight: 1.6 }}>
+          <p className="text-[12px] mt-1.5" style={{ color: "#888", fontFamily: FONT, lineHeight: 1.65 }}>
             전신 착장 사진을 올리면<br />AI가 아이템을 자동으로 찾아줄게요
           </p>
         </div>
-      </div>
-
-      {/* CTA buttons */}
-      <div className="px-5 pb-8 flex flex-col gap-3 shrink-0">
-        <button
-          onClick={() => setSource("camera")}
-          className="w-full flex items-center justify-center gap-3 rounded-2xl font-bold active:opacity-80 transition-opacity"
-          style={{ height: 56, backgroundColor: YELLOW, color: DARK, fontFamily: FONT, fontSize: 15 }}
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <rect x="2" y="5" width="16" height="12" rx="2.5" stroke={DARK} strokeWidth="1.6" />
-            <circle cx="10" cy="11" r="3.2" stroke={DARK} strokeWidth="1.6" />
-            <path d="M7 5L8.5 2.5H11.5L13 5" stroke={DARK} strokeWidth="1.6" strokeLinecap="round" />
-          </svg>
-          사진 촬영하기
-        </button>
-
-        <button
-          onClick={() => setSource("gallery")}
-          className="w-full flex items-center justify-center gap-3 rounded-2xl font-bold active:opacity-80 transition-opacity"
-          style={{ height: 56, backgroundColor: "#F5F5F5", color: DARK, fontFamily: FONT, fontSize: 15 }}
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <rect x="2" y="2" width="16" height="16" rx="3" stroke={DARK} strokeWidth="1.6" />
-            <circle cx="7" cy="7" r="1.5" stroke={DARK} strokeWidth="1.4" />
-            <path d="M2 13L6.5 9L9.5 12L13 8.5L18 13" stroke={DARK} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          갤러리에서 불러오기
-        </button>
-
-        <button
-          onClick={() => onPhotoChosen(null)}
-          className="w-full text-center py-2 active:opacity-60"
-          style={{ color: "#AAAAAA", fontFamily: FONT, fontSize: 13 }}
-        >
-          사진 없이 기록하기
-        </button>
       </div>
 
       {/* Hidden file input */}
@@ -200,6 +168,74 @@ function PhotoStep({ onPhotoChosen, onClose }) {
         className="hidden"
         onChange={handleFileChange}
       />
+
+      {/* ── Photo source picker bottom sheet ── */}
+      {showPicker && (
+        <>
+          {/* Scrim */}
+          <div
+            className="absolute inset-0"
+            style={{ backgroundColor: "rgba(0,0,0,0.4)", zIndex: 60 }}
+            onClick={() => setShowPicker(false)}
+          />
+          {/* Sheet */}
+          <div
+            className="absolute left-0 right-0 bottom-0 flex flex-col"
+            style={{
+              zIndex:          61,
+              backgroundColor: "white",
+              borderRadius:    "20px 20px 0 0",
+              padding:         "8px 20px 36px",
+            }}
+          >
+            {/* Handle */}
+            <div className="flex justify-center pt-2 pb-5">
+              <div className="rounded-full" style={{ width: 36, height: 4, backgroundColor: "#E0E0E0" }} />
+            </div>
+
+            <p className="text-[13px] font-bold mb-4" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>
+              사진 선택
+            </p>
+
+            {/* 촬영하기 */}
+            <button
+              onClick={() => pickSource("camera")}
+              className="w-full flex items-center gap-4 rounded-2xl active:opacity-75 mb-3"
+              style={{ height: 58, backgroundColor: YELLOW, paddingLeft: 20, paddingRight: 20 }}
+            >
+              <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+                <rect x="2" y="5" width="16" height="12" rx="2.5" stroke={DARK} strokeWidth="1.6" />
+                <circle cx="10" cy="11" r="3.2" stroke={DARK} strokeWidth="1.6" />
+                <path d="M7 5L8.5 2.5H11.5L13 5" stroke={DARK} strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+              <span className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT }}>사진 촬영하기</span>
+            </button>
+
+            {/* 갤러리 */}
+            <button
+              onClick={() => pickSource("gallery")}
+              className="w-full flex items-center gap-4 rounded-2xl active:opacity-75 mb-3"
+              style={{ height: 58, backgroundColor: "#F5F5F5", paddingLeft: 20, paddingRight: 20 }}
+            >
+              <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+                <rect x="2" y="2" width="16" height="16" rx="3" stroke={DARK} strokeWidth="1.6" />
+                <circle cx="7" cy="7" r="1.5" stroke={DARK} strokeWidth="1.4" />
+                <path d="M2 13L6.5 9L9.5 12L13 8.5L18 13" stroke={DARK} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT }}>갤러리에서 불러오기</span>
+            </button>
+
+            {/* 사진 없이 */}
+            <button
+              onClick={() => { setShowPicker(false); onPhotoChosen(null); }}
+              className="w-full text-center py-3 active:opacity-60"
+              style={{ color: "#AAAAAA", fontFamily: FONT, fontSize: 13 }}
+            >
+              사진 없이 기록하기
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -596,30 +632,33 @@ function MatchingStep({ photoUrl, matchResults, onUpdate, onNext, onClose }) {
           })}
         </div>
 
-        {/* Manual add hint */}
-        <p className="text-center text-[11px] pb-6" style={{ color: "#CCCCCC", fontFamily: FONT }}>
-          가방·액세서리는 다음 단계에서 추가할 수 있어요
-        </p>
       </div>
 
       {/* CTA */}
-      <div className="px-5 pb-8 pt-3 shrink-0" style={{ borderTop: `1px solid ${DIVIDER}` }}>
+      <div className="px-5 pb-8 pt-3 shrink-0 flex flex-col gap-2" style={{ borderTop: `1px solid ${DIVIDER}` }}>
         <button
           onClick={onNext}
-          disabled={confirmedCount === 0}
           className="w-full flex items-center justify-center rounded-2xl font-bold active:opacity-80 transition-all"
           style={{
-            height: 56,
-            backgroundColor: confirmedCount > 0 ? YELLOW : "#F2F2F2",
-            color:           confirmedCount > 0 ? DARK   : "#BBBBBB",
+            height:          56,
+            backgroundColor: YELLOW,
+            color:           DARK,
             fontFamily:      FONT,
             fontSize:        15,
           }}
         >
-          {confirmedCount > 0
-            ? `${confirmedCount}개 아이템으로 기록 만들기 →`
-            : "아이템을 하나 이상 확인해주세요"}
+          {`${confirmedCount}개 아이템으로 스타일 만들기 →`}
         </button>
+
+        {confirmedCount === 0 && (
+          <button
+            onClick={onClose}
+            className="w-full text-center py-2 active:opacity-60"
+            style={{ color: "#AAAAAA", fontFamily: FONT, fontSize: 13 }}
+          >
+            원하는 아이템이 없어요. 추가 먼저 하러가기
+          </button>
+        )}
       </div>
 
       {/* Category item picker */}
@@ -685,14 +724,15 @@ function ItemsGrid({ items }) {
 }
 
 function DraftStep({ photoUrl, confirmedItems, dateStr: initDateStr, weather, onSave, onClose }) {
-  const [subStep,      setSubStep]      = useState("layout");
-  const [template,     setTemplate]     = useState("daily");
-  const [selectedDate, setSelectedDate] = useState(initDateStr);
-  const [mood,         setMood]         = useState(null);
-  const [customMood,   setCustomMood]   = useState("");
-  const [memo,         setMemo]         = useState("");
-  const [isPublic,     setIsPublic]     = useState(false);
-  const [showCanvas,   setShowCanvas]   = useState(false);
+  const [subStep,            setSubStep]            = useState("layout");
+  const [template,           setTemplate]           = useState("daily");   // "daily" | "stylebook"
+  const [stylebookTemplateId, setStylobookTemplateId] = useState("A");     // "A" | "B" for quick template
+  const [selectedDate,       setSelectedDate]       = useState(initDateStr);
+  const [mood,               setMood]               = useState(null);
+  const [customMood,         setCustomMood]         = useState("");
+  const [memo,               setMemo]               = useState("");
+  const [isPublic,           setIsPublic]           = useState(false);
+  const [showCanvas,         setShowCanvas]         = useState(false);
   const dateInputRef = useRef(null);
 
   const D_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
@@ -754,6 +794,8 @@ function DraftStep({ photoUrl, confirmedItems, dateStr: initDateStr, weather, on
 
   // ── Sub-step 1: Layout ───────────────────────────────────────────────────────
   if (subStep === "layout") {
+    const isQuick = template === "daily";
+
     return (
       <div className="absolute inset-0 z-50 flex flex-col bg-white overflow-hidden">
         {/* Header */}
@@ -764,41 +806,99 @@ function DraftStep({ photoUrl, confirmedItems, dateStr: initDateStr, weather, on
             </svg>
             아이템 수정
           </button>
-          <div className="text-center">
-            <h2 className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>기록 작성</h2>
-            <p className="text-[10px]" style={{ color: "#CCCCCC", fontFamily: FONT }}>1 / 3</p>
-          </div>
+          <h2 className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>기록 작성</h2>
           <div style={{ width: 60 }} />
         </div>
 
         <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
 
-          {/* ── Template card preview: photo (left) │ items (right) ── */}
-          <div className="px-4 pt-4 pb-3">
-            <div
-              className="w-full rounded-2xl overflow-hidden"
-              style={{ aspectRatio: "1 / 1", backgroundColor: "#F0F0F0", display: "flex" }}
-            >
-              {/* Left: photo */}
-              <div style={{ width: "50%", height: "100%", overflow: "hidden", flexShrink: 0 }}>
-                {photoUrl ? (
-                  <img src={photoUrl} alt="outfit" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
-                ) : (
-                  <div style={{ width: "100%", height: "100%", backgroundColor: "#E8E8E8", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: 36 }}>👗</span>
-                  </div>
-                )}
-              </div>
-              {/* Divider */}
-              <div style={{ width: 3, backgroundColor: "white", flexShrink: 0 }} />
-              {/* Right: items grid */}
-              <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: 3, padding: 3 }}>
-                <ItemsGrid items={confirmedItems} />
-              </div>
-            </div>
+          {/* ── Mode selector ── */}
+          <div className="px-4 pt-4 pb-3 flex gap-2.5">
+            {[
+              { id: "daily",     icon: "⚡", label: "빠른 스타일 생성", desc: "템플릿을 이용해 기록해요" },
+              { id: "stylebook", icon: "✏️", label: "스타일 편집",     desc: "직접 손가락으로 꾸미는 나만의 스타일" },
+            ].map((mode) => {
+              const active = template === mode.id;
+              return (
+                <button
+                  key={mode.id}
+                  onClick={() => setTemplate(mode.id)}
+                  className="flex-1 flex flex-col items-start px-3.5 py-3 rounded-2xl text-left active:opacity-80 transition-all"
+                  style={{
+                    backgroundColor: active ? "#FEFCE8" : "#F8F8F8",
+                    border: `1.5px solid ${active ? "#EDD83A" : "#EEEEEE"}`,
+                  }}
+                >
+                  <span style={{ fontSize: 20, marginBottom: 4 }}>{mode.icon}</span>
+                  <p className="text-[12px] font-bold leading-tight" style={{ color: active ? "#A07800" : DARK, fontFamily: FONT }}>{mode.label}</p>
+                  <p className="text-[9px] mt-1 leading-tight" style={{ color: active ? "#B8920A" : "#AAAAAA", fontFamily: FONT }}>{mode.desc}</p>
+                </button>
+              );
+            })}
           </div>
 
-          {/* ── Worn items list — larger cards ── */}
+          {/* ── Dynamic preview ── */}
+          {isQuick ? (
+            /* 빠른 스타일 생성 — StylebookTemplate 4:5 preview */
+            <div className="px-4 pb-3 flex flex-col items-center">
+              {/* A / B sub-selector */}
+              <div className="flex gap-2 w-full mb-3">
+                {[
+                  { id: "A", label: "Template A", desc: "선명한 배경" },
+                  { id: "B", label: "Template B", desc: "부드러운 배경" },
+                ].map((t) => {
+                  const on = stylebookTemplateId === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => setStylobookTemplateId(t.id)}
+                      className="flex-1 py-2.5 rounded-xl flex flex-col items-center gap-0.5 transition-all active:opacity-70"
+                      style={{
+                        backgroundColor: on ? "#FEFCE8" : "#F5F5F5",
+                        border: on ? "1.5px solid #EDD83A" : "1.5px solid transparent",
+                      }}
+                    >
+                      <p className="text-[11px] font-bold" style={{ color: on ? "#A07800" : "#888", fontFamily: FONT }}>{t.label}</p>
+                      <p className="text-[9px]" style={{ color: on ? "#B8920A" : "#BBBBBB", fontFamily: FONT }}>{t.desc}</p>
+                    </button>
+                  );
+                })}
+              </div>
+              <StylebookTemplate
+                photoUrl={photoUrl}
+                items={confirmedItems}
+                template={stylebookTemplateId}
+                width={280}
+              />
+            </div>
+          ) : (
+            /* 스타일 편집 — 좌/우 분할 프리뷰 (템플릿 미적용) */
+            <div className="px-4 pb-3">
+              <div
+                className="w-full rounded-2xl overflow-hidden"
+                style={{ aspectRatio: "1 / 1", backgroundColor: "#F0F0F0", display: "flex" }}
+              >
+                <div style={{ width: "50%", height: "100%", overflow: "hidden", flexShrink: 0 }}>
+                  {photoUrl ? (
+                    <img src={photoUrl} alt="outfit" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
+                  ) : (
+                    <div style={{ width: "100%", height: "100%", backgroundColor: "#E8E8E8", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ fontSize: 36 }}>👗</span>
+                    </div>
+                  )}
+                </div>
+                <div style={{ width: 3, backgroundColor: "white", flexShrink: 0 }} />
+                <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: 3, padding: 3 }}>
+                  <ItemsGrid items={confirmedItems} />
+                </div>
+              </div>
+              <p className="text-[11px] mt-2 text-center" style={{ color: "#CCCCCC", fontFamily: FONT }}>
+                다음에서 직접 꾸밀 수 있어요
+              </p>
+            </div>
+          )}
+
+          {/* ── Worn items (horizontal scroll) ── */}
           <div className="px-4 pb-4">
             <p className="text-[11px] font-bold mb-2.5" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>
               착용 아이템 {confirmedItems.length}개
@@ -810,9 +910,7 @@ function DraftStep({ photoUrl, confirmedItems, dateStr: initDateStr, weather, on
                 {confirmedItems.map((item) => (
                   <div key={item.id} className="shrink-0 flex flex-col gap-1" style={{ width: 72 }}>
                     <div className="rounded-xl overflow-hidden" style={{ width: 72, height: 90, backgroundColor: "#F0F0F0" }}>
-                      {item.image && (
-                        <img src={item.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
-                      )}
+                      {item.image && <img src={item.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />}
                     </div>
                     <p className="text-[9px] font-bold truncate" style={{ color: DARK, fontFamily: FONT }}>{item.displayName ?? item.name}</p>
                     <p className="text-[8px] truncate" style={{ color: "#AAAAAA", fontFamily: FONT }}>{item.brand ?? ""}</p>
@@ -823,85 +921,21 @@ function DraftStep({ photoUrl, confirmedItems, dateStr: initDateStr, weather, on
           </div>
 
           {/* ── Date picker ── */}
-          <div className="px-4 pb-4">
+          <div className="px-4 pb-8">
             <p className="text-[11px] font-bold mb-2" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>날짜</p>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => offsetDay(-1)}
-                className="w-9 h-9 flex items-center justify-center rounded-full active:opacity-60 shrink-0"
-                style={{ backgroundColor: "#F2F2F2" }}
-              >
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path d="M6.5 2L3.5 5L6.5 8" stroke={DARK} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+              <button onClick={() => offsetDay(-1)} className="w-9 h-9 flex items-center justify-center rounded-full active:opacity-60 shrink-0" style={{ backgroundColor: "#F2F2F2" }}>
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M6.5 2L3.5 5L6.5 8" stroke={DARK} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </button>
-              <button
-                onClick={() => dateInputRef.current?.click()}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl active:opacity-80"
-                style={{ backgroundColor: "#F5F5F5" }}
-              >
+              <button onClick={() => dateInputRef.current?.click()} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl active:opacity-80" style={{ backgroundColor: "#F5F5F5" }}>
                 <span style={{ fontSize: 14 }}>📅</span>
                 <span className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>{fmtDate(selectedDate)}</span>
               </button>
-              <button
-                onClick={() => offsetDay(1)}
-                className="w-9 h-9 flex items-center justify-center rounded-full active:opacity-60 shrink-0"
-                style={{ backgroundColor: "#F2F2F2", opacity: selectedDate >= todayDs ? 0.35 : 1 }}
-                disabled={selectedDate >= todayDs}
-              >
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path d="M3.5 2L6.5 5L3.5 8" stroke={DARK} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+              <button onClick={() => offsetDay(1)} className="w-9 h-9 flex items-center justify-center rounded-full active:opacity-60 shrink-0" style={{ backgroundColor: "#F2F2F2", opacity: selectedDate >= todayDs ? 0.35 : 1 }} disabled={selectedDate >= todayDs}>
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3.5 2L6.5 5L3.5 8" stroke={DARK} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </button>
             </div>
-            <input
-              ref={dateInputRef}
-              type="date"
-              className="hidden"
-              value={selectedDate}
-              max={todayDs}
-              onChange={(e) => { if (e.target.value) setSelectedDate(e.target.value); }}
-            />
-          </div>
-
-          {/* ── Template selector ── */}
-          <div className="px-4 pb-8">
-            <p className="text-[11px] font-bold mb-2.5" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>기록 템플릿</p>
-            <div className="flex flex-col gap-2.5">
-              {TEMPLATES.map((t) => {
-                const isActive  = template === t.id;
-                const activeBg  = t.id === "stylebook" ? DARK  : YELLOW;
-                const activeFg  = t.id === "stylebook" ? "white" : DARK;
-                const activeSubFg = t.id === "stylebook" ? "rgba(255,255,255,0.55)" : "rgba(26,26,26,0.5)";
-                return (
-                  <button
-                    key={t.id}
-                    onClick={() => setTemplate(t.id)}
-                    className="flex items-center gap-3 px-4 py-4 rounded-2xl text-left active:opacity-80 transition-all"
-                    style={{
-                      backgroundColor: isActive ? activeBg  : "#F8F8F8",
-                      border: `1.5px solid ${isActive ? activeBg : "#EEEEEE"}`,
-                    }}
-                  >
-                    <span style={{ fontSize: 24 }}>{t.emoji}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-bold" style={{ color: isActive ? activeFg : DARK, fontFamily: FONT }}>{t.label}</p>
-                      <p className="text-[11px] mt-0.5" style={{ color: isActive ? activeSubFg : "#AAAAAA", fontFamily: FONT }}>{t.desc}</p>
-                    </div>
-                    {isActive && (
-                      <div
-                        className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: t.id === "stylebook" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)" }}
-                      >
-                        <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                          <path d="M2 5.5L4.5 8L9 3" stroke={activeFg} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+            <input ref={dateInputRef} type="date" className="hidden" value={selectedDate} max={todayDs} onChange={(e) => { if (e.target.value) setSelectedDate(e.target.value); }} />
           </div>
         </div>
 
@@ -918,7 +952,7 @@ function DraftStep({ photoUrl, confirmedItems, dateStr: initDateStr, weather, on
             className="w-full flex items-center justify-center gap-2 rounded-2xl font-bold active:opacity-80"
             style={{ height: 56, backgroundColor: YELLOW, color: DARK, fontFamily: FONT, fontSize: 15 }}
           >
-            다음
+            {isQuick ? "다음" : "편집 시작하기"}
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M4 8H12M9 5L12 8L9 11" stroke={DARK} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -1161,27 +1195,19 @@ function DraftStep({ photoUrl, confirmedItems, dateStr: initDateStr, weather, on
 
 // ─── STEP 5: Done ─────────────────────────────────────────────────────────────
 
-function DoneStep({ photoUrl, confirmedItems, dateStr, onClose, onOpenStylebook }) {
-  const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
+function DoneStep({ photoUrl, confirmedItems, dateStr, onClose, onGoToStylebook }) {
   const [yr, mo, dy] = dateStr.split("-").map(Number);
-  const dow = new Date(yr, mo - 1, dy).getDay();
-  const dateLabel = `${mo}월 ${dy}일 (${DAY_NAMES[dow]})`;
 
   return (
     <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white px-6">
-      {/* Success icon */}
-      <div
-        className="w-20 h-20 rounded-3xl flex items-center justify-center mb-6"
-        style={{ backgroundColor: "#FEFCE8", border: "2px solid #EDD83A" }}
-      >
-        <span style={{ fontSize: 40 }}>✅</span>
-      </div>
+      {/* Success icon — no background */}
+      <span style={{ fontSize: 56 }} className="mb-5">✅</span>
 
       <h2 className="text-[22px] font-bold text-center mb-2" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.03em" }}>
         기록 완료!
       </h2>
-      <p className="text-[13px] text-center mb-6" style={{ color: "#888", fontFamily: FONT }}>
-        {dateLabel} 착장이 기록됐어요
+      <p className="text-[13px] text-center mb-8" style={{ color: "#888", fontFamily: FONT }}>
+        {mo}월 {dy}일 스타일북을 기록했어요
       </p>
 
       {/* Item thumbnails */}
@@ -1203,24 +1229,22 @@ function DoneStep({ photoUrl, confirmedItems, dateStr, onClose, onOpenStylebook 
         )}
       </div>
 
-      {/* Stylebook CTA */}
-      {onOpenStylebook && (
-        <button
-          onClick={() => onOpenStylebook(confirmedItems.map((i) => i.id), photoUrl, dateStr)}
-          className="w-full flex items-center justify-center gap-2.5 rounded-2xl mb-3 active:opacity-80"
-          style={{
-            height: 56,
-            background: "linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)",
-            fontFamily: FONT,
-          }}
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <rect x="2" y="1" width="12" height="14" rx="2.5" stroke="white" strokeWidth="1.4" />
-            <path d="M5 5H11M5 8H11M5 11H8.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-          </svg>
-          <span className="text-[14px] font-bold text-white">스타일북으로 꾸미기</span>
-        </button>
-      )}
+      {/* 나의 스타일북 보러 가기 */}
+      <button
+        onClick={() => { onGoToStylebook?.(); onClose(); }}
+        className="w-full flex items-center justify-center gap-2.5 rounded-2xl mb-3 active:opacity-80"
+        style={{
+          height: 56,
+          background: "linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)",
+          fontFamily: FONT,
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="2" y="1" width="12" height="14" rx="2.5" stroke="white" strokeWidth="1.4" />
+          <path d="M5 5H11M5 8H11M5 11H8.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+        </svg>
+        <span className="text-[14px] font-bold text-white">나의 스타일북 보러 가기</span>
+      </button>
 
       <button
         onClick={onClose}
@@ -1240,6 +1264,7 @@ export default function StyleRecordFlow({
   onSave,
   onClose,
   onOpenStylebook,
+  onGoToStylebook,
 }) {
   const [step,         setStep]         = useState("photo");
   const [photoUrl,     setPhotoUrl]     = useState(null);
@@ -1328,7 +1353,7 @@ export default function StyleRecordFlow({
           confirmedItems={confirmedItems}
           dateStr={savedDateStr}
           onClose={onClose}
-          onOpenStylebook={onOpenStylebook}
+          onGoToStylebook={onGoToStylebook}
         />
       )}
     </div>

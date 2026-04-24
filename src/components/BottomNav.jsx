@@ -99,6 +99,8 @@ function ClosetLogoTab({ active, onClick }) {
           marginTop: -14,
           boxShadow: active ? "0 2px 12px rgba(245,194,0,0.35)" : "0 2px 12px rgba(0,0,0,0.13)",
           transition: "background-color 0.2s",
+          position: "relative",
+          zIndex: 101,
         }}
       >
         <img
@@ -141,8 +143,8 @@ export default function BottomNav({ active, onTabChange }) {
 
   return (
     <div
-      className="flex items-end justify-around bg-white border-t border-[#EEEEEE] shrink-0"
-      style={{ height: 60, paddingBottom: 4 }}
+      className="flex items-end justify-around bg-white border-t border-[#EEEEEE] shrink-0 relative"
+      style={{ height: 60, paddingBottom: 4, zIndex: 100, overflow: "visible" }}
     >
       {leftTabs.map(({ id, label, Icon }) => {
         const isActive = active === id;

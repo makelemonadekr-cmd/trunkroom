@@ -17,6 +17,7 @@ import {
 } from "../../lib/laundryStore";
 import { saveCoordi, getAllCoordi, deleteCoordi } from "../../lib/coordiStore";
 import StylebookDetailScreen from "../../components/StylebookDetailScreen";
+import StylebookTemplate from "../../components/StylebookTemplate";
 import { extractColors } from "../../lib/colorExtractor";
 import OutfitCanvasEditor from "../../components/OutfitCanvasEditor";
 import StyleRecordFlow from "../../components/StyleRecordFlow";
@@ -141,7 +142,13 @@ function StylebookCreatorSheet({ itemIds, dateStr, photoUrl: initPhotoUrl = null
   const [photo,        setPhoto]        = useState(initPhotoUrl);
   const [colors,       setColors]       = useState([]);
   const [colorLoading, setColorLoading] = useState(false);
+  const [templateId,   setTemplateId]   = useState("A"); // 'A' | 'B'
   const photoFileRef = useRef(null);
+
+  // Resolve itemIds → ClosetItem objects for template preview
+  const selectedItems = itemIds
+    .map((id) => CLOSET_ITEMS.find((i) => i.id === id))
+    .filter(Boolean);
 
   // Auto-extract colors whenever the photo changes
   useEffect(() => {
@@ -174,6 +181,7 @@ function StylebookCreatorSheet({ itemIds, dateStr, photoUrl: initPhotoUrl = null
       bgColor:         moodOpt?.bg ?? "#F5F5F5",
       dateStr,
       photoUrl:        photo ?? null,
+      templateId:      templateId,   // 'A' | 'B'
       extractedColors: colors,
       updatedAt:       new Date().toISOString(),
     };
@@ -208,27 +216,23 @@ function StylebookCreatorSheet({ itemIds, dateStr, photoUrl: initPhotoUrl = null
 
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
 
-        {/* ── Hero visual — photo or item grid ── */}
-        <div className="px-5 pt-5 pb-3 flex flex-col items-center">
-          <div
-            className="relative rounded-2xl overflow-hidden"
-            style={{ width: 220, height: 220, backgroundColor: "#F2F2F2" }}
-          >
-            {photo ? (
-              <img
-                src={photo}
-                alt="outfit"
-                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
-              />
-            ) : (
-              <StyleBoardView itemIds={itemIds} size={220} />
-            )}
+        {/* ── Template preview ── */}
+        <div className="pt-5 pb-2 flex flex-col items-center px-5">
 
-            {/* Camera button overlay */}
+          {/* 4:5 preview with camera overlay */}
+          <div className="relative" style={{ width: 252 }}>
+            <StylebookTemplate
+              photoUrl={photo}
+              items={selectedItems}
+              template={templateId}
+              width={252}
+            />
+
+            {/* Camera / photo change button */}
             <button
               onClick={() => photoFileRef.current?.click()}
-              className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full active:opacity-70"
-              style={{ backgroundColor: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)" }}
+              className="absolute bottom-10 right-2.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full active:opacity-70"
+              style={{ backgroundColor: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", zIndex: 10 }}
             >
               <svg width="11" height="11" viewBox="0 0 20 20" fill="none">
                 <rect x="2" y="5" width="16" height="12" rx="2" stroke="white" strokeWidth="1.6" />
@@ -240,6 +244,7 @@ function StylebookCreatorSheet({ itemIds, dateStr, photoUrl: initPhotoUrl = null
               </span>
             </button>
           </div>
+
           <input
             ref={photoFileRef}
             type="file"
@@ -247,10 +252,39 @@ function StylebookCreatorSheet({ itemIds, dateStr, photoUrl: initPhotoUrl = null
             className="hidden"
             onChange={handlePhotoChange}
           />
+
+          {/* Template A / B selector */}
+          <div className="flex gap-2 mt-3 w-full" style={{ maxWidth: 252 }}>
+            {[
+              { id: "A", label: "Template A", desc: "선명한 배경" },
+              { id: "B", label: "Template B", desc: "부드러운 배경" },
+            ].map((t) => {
+              const active = templateId === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setTemplateId(t.id)}
+                  className="flex-1 py-2.5 rounded-xl flex flex-col items-center gap-0.5 transition-all active:opacity-70"
+                  style={{
+                    backgroundColor: active ? "#FEFCE8" : "#F5F5F5",
+                    border: active ? "1.5px solid #EDD83A" : "1.5px solid transparent",
+                  }}
+                >
+                  <p className="text-[12px] font-bold" style={{ color: active ? "#A07800" : "#888", fontFamily: FONT }}>
+                    {t.label}
+                  </p>
+                  <p className="text-[9px]" style={{ color: active ? "#B8920A" : "#BBBBBB", fontFamily: FONT }}>
+                    {t.desc}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+
           <p className="text-[10px] mt-2 text-center" style={{ color: "#BBBBBB", fontFamily: FONT }}>
             {photo
-              ? "착장 사진이 추가됐어요"
-              : `선택한 ${itemIds.length}개 아이템으로 만든 코디 보드`}
+              ? `착장 사진 · ${selectedItems.length}개 아이템`
+              : "착장 사진을 추가하면 템플릿이 완성돼요"}
           </p>
         </div>
 
@@ -785,11 +819,14 @@ function CalendarSection({ history, onDayTap }) {
 
   return (
     <div className="mx-4 mb-3 rounded-2xl overflow-hidden" style={{ backgroundColor: "#FAFAFA", border: `1px solid ${DIVIDER}` }}>
-      {/* Title + toggle row */}
-      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: `1px solid ${DIVIDER}` }}>
-        {/* 왼쪽: 제목 (월간이면 월 네비게이터도) */}
-        <div className="flex items-center gap-2">
+      {/* Title + toggle row — 3-column layout */}
+      <div className="flex items-center px-4 py-3" style={{ borderBottom: `1px solid ${DIVIDER}` }}>
+        {/* 왼쪽: 제목 */}
+        <div className="flex-1">
           <h3 className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>스타일 캘린더</h3>
+        </div>
+        {/* 가운데: 월 네비게이터 (월간 모드일 때만) */}
+        <div className="flex-1 flex items-center justify-center">
           {mode === "monthly" && (
             <div className="flex items-center gap-1.5">
               <button onClick={prevMonth} className="w-6 h-6 flex items-center justify-center rounded-full" style={{ backgroundColor: "#EEEEEE" }}>
@@ -797,7 +834,10 @@ function CalendarSection({ history, onDayTap }) {
                   <path d="M7.5 2L4.5 6L7.5 10" stroke={DARK} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
-              <p className="text-[12px] font-semibold" style={{ color: "#666", fontFamily: FONT }}>{year}년 {MONTH_NAMES[month]}</p>
+              <div className="flex flex-col items-center leading-none" style={{ minWidth: 28 }}>
+                <span className="text-[9px] font-semibold" style={{ color: "#999", fontFamily: FONT }}>{year}년</span>
+                <span className="text-[12px] font-bold" style={{ color: DARK, fontFamily: FONT }}>{MONTH_NAMES[month]}</span>
+              </div>
               <button onClick={nextMonth} className="w-6 h-6 flex items-center justify-center rounded-full" style={{ backgroundColor: isFutureMonth ? "#F5F5F5" : "#EEEEEE", opacity: isFutureMonth ? 0.4 : 1 }} disabled={isFutureMonth}>
                 <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
                   <path d="M4.5 2L7.5 6L4.5 10" stroke={DARK} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
@@ -807,22 +847,24 @@ function CalendarSection({ history, onDayTap }) {
           )}
         </div>
         {/* 오른쪽: 주간/월간 토글 */}
-        <div className="flex gap-1 rounded-lg overflow-hidden" style={{ backgroundColor: "#EEEEEE", padding: 2 }}>
-          {["weekly", "monthly"].map((m) => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              className="px-3 py-1 rounded-md text-[11px] font-bold transition-all"
-              style={{
-                backgroundColor: mode === m ? "white" : "transparent",
-                color:           mode === m ? DARK    : "#AAAAAA",
-                fontFamily:      FONT,
-                boxShadow:       mode === m ? "0 1px 3px rgba(0,0,0,0.10)" : "none",
-              }}
-            >
-              {m === "weekly" ? "주간" : "월간"}
-            </button>
-          ))}
+        <div className="flex-1 flex justify-end">
+          <div className="flex gap-1 rounded-lg overflow-hidden" style={{ backgroundColor: "#EEEEEE", padding: 2 }}>
+            {["weekly", "monthly"].map((m) => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className="px-3 py-1 rounded-md text-[11px] font-bold transition-all"
+                style={{
+                  backgroundColor: mode === m ? "white" : "transparent",
+                  color:           mode === m ? DARK    : "#AAAAAA",
+                  fontFamily:      FONT,
+                  boxShadow:       mode === m ? "0 1px 3px rgba(0,0,0,0.10)" : "none",
+                }}
+              >
+                {m === "weekly" ? "주간" : "월간"}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -959,6 +1001,90 @@ function StatsRow({ stats, onStatTap }) {
   );
 }
 
+// ─── CarbonFootprintCard ──────────────────────────────────────────────────────
+// 착용 기록 기반 CO₂ 절감량 추정 카드
+// 근거: 새 의류 1벌 생산 평균 약 2.1kg CO₂ 대비, 기존 옷 1회 착용 시 ~0.5kg 절감 (simplified model)
+
+function CarbonFootprintCard({ totalItems = 0, totalDays = 0 }) {
+  const co2Saved   = Math.round(totalItems * 0.5 * 10) / 10;        // kg (0.5kg per item-wear)
+  const treeDays   = Math.round(co2Saved / 0.06);                   // 1 tree absorbs ~0.06kg CO₂/day
+  const bottles    = Math.round(co2Saved * 2);                       // ~0.5L PET bottle = 0.5kg CO₂ equiv.
+  const pct        = Math.min(100, Math.round((totalDays / 30) * 100)); // 30일 목표 대비 진행률
+
+  return (
+    <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid #C8E6C9` }}>
+      {/* Header */}
+      <div className="px-4 py-3 flex items-center gap-2" style={{ backgroundColor: "#F1F8F1", borderBottom: "1px solid #C8E6C9" }}>
+        <span style={{ fontSize: 15 }}>🌿</span>
+        <div>
+          <p className="text-[12px] font-bold" style={{ color: "#2E7D32", fontFamily: FONT }}>탄소발자국 절감 현황</p>
+          <p className="text-[10px] mt-0.5" style={{ color: "#66BB6A", fontFamily: FONT }}>기존 옷을 입을수록 지구가 가벼워져요</p>
+        </div>
+      </div>
+
+      <div className="px-4 py-4" style={{ backgroundColor: "white" }}>
+
+        {/* Main CO₂ metric */}
+        <div className="flex items-end gap-2 mb-3">
+          <p className="text-[36px] font-bold leading-none" style={{ color: "#2E7D32", fontFamily: FONT, letterSpacing: "-0.04em" }}>
+            {co2Saved.toFixed(1)}
+          </p>
+          <div className="pb-1">
+            <p className="text-[13px] font-bold" style={{ color: "#2E7D32", fontFamily: FONT }}>kg CO₂</p>
+            <p className="text-[10px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>절감 추정량</p>
+          </div>
+          <div className="ml-auto flex flex-col items-end gap-0.5 pb-1">
+            <p className="text-[11px] font-bold" style={{ color: "#888", fontFamily: FONT }}>나무 {treeDays}일치 흡수량</p>
+            <p className="text-[10px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>페트병 {bottles}개 생산 절약</p>
+          </div>
+        </div>
+
+        {/* Progress bar toward 30-day goal */}
+        <div className="mb-2">
+          <div className="flex justify-between mb-1.5">
+            <p className="text-[10px] font-bold" style={{ color: "#555", fontFamily: FONT }}>30일 목표 달성률</p>
+            <p className="text-[10px] font-bold" style={{ color: "#2E7D32", fontFamily: FONT }}>{pct}%</p>
+          </div>
+          <div className="w-full rounded-full overflow-hidden" style={{ height: 7, backgroundColor: "#EEF7EE" }}>
+            <div
+              className="h-full rounded-full transition-all"
+              style={{ width: `${pct}%`, background: "linear-gradient(90deg, #81C784, #2E7D32)" }}
+            />
+          </div>
+        </div>
+
+        {/* Badges row */}
+        <div className="flex gap-2 mt-3">
+          {[
+            { threshold: 5,  label: "첫 절감",   emoji: "🌱" },
+            { threshold: 20, label: "나무 한 그루", emoji: "🌳" },
+            { threshold: 50, label: "지구 지킴이", emoji: "🌍" },
+          ].map((b) => {
+            const done = totalItems >= b.threshold;
+            return (
+              <div
+                key={b.threshold}
+                className="flex-1 flex flex-col items-center gap-1 py-2 rounded-xl"
+                style={{
+                  backgroundColor: done ? "#F1F8F1" : "#F8F8F8",
+                  border: done ? "1px solid #C8E6C9" : "1px solid transparent",
+                }}
+              >
+                <span style={{ fontSize: 20, opacity: done ? 1 : 0.25 }}>{b.emoji}</span>
+                <p className="text-[9px] font-bold text-center" style={{ color: done ? "#2E7D32" : "#CCCCCC", fontFamily: FONT }}>{b.label}</p>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="text-[9px] mt-3 leading-relaxed" style={{ color: "#CCCCCC", fontFamily: FONT }}>
+          * 절감량은 패션 산업 평균 데이터 기반 추정치로 실제와 다를 수 있어요.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ─── StreakDetailScreen ────────────────────────────────────────────────────────
 
 function StreakDetailScreen({ stats, history, onBack }) {
@@ -994,7 +1120,7 @@ function StreakDetailScreen({ stats, history, onBack }) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-5 flex flex-col gap-4" style={{ scrollbarWidth: "none" }}>
+      <div className="flex-1 overflow-y-auto px-4 py-5 space-y-4" style={{ scrollbarWidth: "none" }}>
 
         {/* Streak hero */}
         <div className="rounded-2xl px-6 py-8 flex flex-col items-center text-center" style={{ backgroundColor: "#FEFCE8", border: "1.5px solid #EDD83A" }}>
@@ -1066,6 +1192,10 @@ function StreakDetailScreen({ stats, history, onBack }) {
           </div>
         </div>
 
+        {/* Carbon footprint */}
+        <CarbonFootprintCard totalItems={stats.totalItems} totalDays={stats.totalDays} />
+
+        <div style={{ height: 16 }} />
       </div>
     </div>
   );
@@ -1088,7 +1218,7 @@ function SectionHeader({ title, subtitle, emoji }) {
 // ─── Style Insights Banner ────────────────────────────────────────────────────
 // Wraps StatsRow with a section header + subtitle.
 
-function StyleInsightsBanner({ stats, onStatTap }) {
+function StyleInsightsBanner({ stats, onStatTap, onStylebookOpen }) {
   return (
     <div className="mx-4 mb-3 mt-2 rounded-2xl overflow-hidden" style={{ backgroundColor: "#F7F7F7", border: "1px solid #EEEEEE" }}>
       <div className="px-4 pt-4 pb-2">
@@ -1103,6 +1233,30 @@ function StyleInsightsBanner({ stats, onStatTap }) {
         </p>
       </div>
       <StatsRow stats={stats} onStatTap={onStatTap} />
+
+      {/* 나의 스타일북 */}
+      <div style={{ height: 1, backgroundColor: "#EEEEEE", margin: "0 12px" }} />
+      <button
+        onClick={onStylebookOpen}
+        className="w-full flex items-center gap-3 px-4 py-3.5 active:opacity-75 transition-opacity"
+      >
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+          style={{ backgroundColor: DARK }}
+        >
+          <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+            <rect x="3" y="2" width="12" height="14" rx="2" stroke="white" strokeWidth="1.4" />
+            <path d="M6 6H12M6 9H12M6 12H9" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+          </svg>
+        </div>
+        <div className="flex-1 min-w-0 text-left">
+          <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>나의 스타일북 모두 보기</p>
+          <p className="text-[11px] mt-0.5" style={{ color: "#AAAAAA", fontFamily: FONT }}>저장한 코디를 한눈에 확인해보세요</p>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="shrink-0">
+          <path d="M6 3L11 8L6 13" stroke="#CCCCCC" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
     </div>
   );
 }
@@ -1516,10 +1670,13 @@ function NotWornSection({ onItemTap }) {
 // A. ❄️  오래 안 입은 옷 N개 발견! 팔아서 돈을 버는 것은 어때요?
 // B. 🧺  세탁 타임! N개 아이템이 세탁 타임. 완료 표시로 착용 횟수를 리셋하세요
 
-function WardrobeTips({ onTipAction }) {
-  const { longUnwornItems, laundryCount, laundryItems } = useMemo(() => {
-    const lastWorn = getItemLastWornDates();
-    const today    = localDateStr(new Date());
+function StyleTips({ onTipAction }) {
+  const [open, setOpen] = useState(false);
+
+  const { longUnwornItems, laundryCount, laundryItems, topItems, wornCount } = useMemo(() => {
+    const lastWorn  = getItemLastWornDates();
+    const freqMap   = getItemWearFrequency();
+    const today     = localDateStr(new Date());
 
     const longUnwornItems = CLOSET_ITEMS.filter((item) => {
       const lw = lastWorn.get(item.id);
@@ -1532,62 +1689,144 @@ function WardrobeTips({ onTipAction }) {
       .map(({ itemId }) => CLOSET_ITEMS.find((i) => i.id === itemId))
       .filter(Boolean);
 
-    return { longUnwornItems, laundryCount: laundryRaw.length, laundryItems };
+    // Top worn items (≥5 times) — good for new outfit combos
+    const topItems = CLOSET_ITEMS
+      .filter((i) => (freqMap.get(i.id) ?? 0) >= 5)
+      .sort((a, b) => (freqMap.get(b.id) ?? 0) - (freqMap.get(a.id) ?? 0))
+      .slice(0, 10);
+
+    // Total items worn at least once
+    const wornCount = CLOSET_ITEMS.filter((i) => (freqMap.get(i.id) ?? 0) > 0).length;
+
+    return { longUnwornItems, laundryCount: laundryRaw.length, laundryItems, topItems, wornCount };
   }, []); // eslint-disable-line
 
+  const tipCount = (longUnwornItems.length > 0 ? 1 : 0) + (laundryCount > 0 ? 1 : 0);
+
+  const TIP_CHEVRON = ({ color = "#AAAAAA" }) => (
+    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M5 3L9 7L5 11" stroke={color} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+
   return (
-    <div className="pb-4 px-4">
-      <div className="flex items-center gap-2 mb-3">
-        <span style={{ fontSize: 18 }}>💡</span>
-        <h2 className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>내 옷장 관리 팁</h2>
-      </div>
-      <div className="flex flex-col gap-2.5">
-
-        {/* A. Long-unworn items → sell suggestion */}
-        <button
-          onClick={() => onTipAction?.({ title: "오래 안 입은 아이템", items: longUnwornItems })}
-          className="rounded-2xl px-4 py-4 flex gap-3 items-start w-full text-left active:opacity-80"
-          style={{ backgroundColor: "#F0F5FF", border: "1px solid #C8D8F5" }}
+    <div className="mx-4 mb-4 rounded-2xl overflow-hidden" style={{ border: "1px solid #EEEEEE" }}>
+      {/* Toggle header */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-4 py-3.5 active:opacity-80 bg-white"
+      >
+        <div className="flex items-center gap-2">
+          <span style={{ fontSize: 20, lineHeight: 1 }}>💡</span>
+          <p className="text-[14px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>내 스타일 관리 팁</p>
+          {tipCount > 0 && (
+            <span
+              className="text-[10px] font-bold text-white flex items-center justify-center rounded-full"
+              style={{ backgroundColor: "#E84040", minWidth: 18, height: 18, paddingInline: 4 }}
+            >
+              {tipCount}
+            </span>
+          )}
+        </div>
+        <svg
+          width="14" height="14" viewBox="0 0 14 14" fill="none"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
         >
-          <span style={{ fontSize: 24, lineHeight: 1.2, flexShrink: 0 }}>❄️</span>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
-                오래 안 입은 옷 {longUnwornItems.length}개 발견!
-              </p>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
-                <path d="M5 3L9 7L5 11" stroke="#8899CC" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "#6677AA", fontFamily: FONT }}>
-              팔아서 돈을 버는 것은 어때요?
-            </p>
-          </div>
-        </button>
+          <path d="M3 5L7 9L11 5" stroke="#BBBBBB" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
 
-        {/* B. Laundry tip */}
-        <button
-          onClick={() => onTipAction?.({ title: "세탁이 필요한 아이템", items: laundryItems })}
-          className="rounded-2xl px-4 py-4 flex gap-3 items-start w-full text-left active:opacity-80"
-          style={{ backgroundColor: "#FFF8F0", border: "1px solid #FFD8AA" }}
-        >
-          <span style={{ fontSize: 24, lineHeight: 1.2, flexShrink: 0 }}>🧺</span>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
-                세탁 타임! {laundryCount}개 아이템이 세탁 타임.
-              </p>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
-                <path d="M5 3L9 7L5 11" stroke="#CC9955" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "#AA7733", fontFamily: FONT }}>
-              완료 표시로 착용 횟수를 리셋하세요
-            </p>
-          </div>
-        </button>
+      {open && (
+        <div className="flex flex-col gap-2.5 px-3 pb-3" style={{ borderTop: "1px solid #F0F0F0" }}>
 
-      </div>
+          {/* A. 오래 안 입은 옷 */}
+          <button
+            onClick={() => onTipAction?.({ title: "오래 안 입은 아이템", items: longUnwornItems })}
+            className="mt-2.5 rounded-2xl px-4 py-3.5 flex gap-3 items-center w-full text-left active:opacity-80"
+            style={{ backgroundColor: "#F0F5FF", border: "1px solid #C8D8F5" }}
+          >
+            <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>❄️</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
+                오래 안 입은 옷 {longUnwornItems.length}개 발견
+              </p>
+              <p className="text-[11px] mt-0.5" style={{ color: "#6677AA", fontFamily: FONT }}>
+                팔거나 기부하는 건 어떨까요?
+              </p>
+            </div>
+            <TIP_CHEVRON color="#8899CC" />
+          </button>
+
+          {/* B. 세탁 타임 */}
+          <button
+            onClick={() => onTipAction?.({ title: "세탁이 필요한 아이템", items: laundryItems })}
+            className="rounded-2xl px-4 py-3.5 flex gap-3 items-center w-full text-left active:opacity-80"
+            style={{ backgroundColor: "#FFF8F0", border: "1px solid #FFD8AA" }}
+          >
+            <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>🧺</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
+                세탁 필요 아이템 {laundryCount}개
+              </p>
+              <p className="text-[11px] mt-0.5" style={{ color: "#AA7733", fontFamily: FONT }}>
+                완료 표시로 착용 횟수를 리셋하세요
+              </p>
+            </div>
+            <TIP_CHEVRON color="#CC9955" />
+          </button>
+
+          {/* C. 자주 입는 아이템으로 새 코디 */}
+          <button
+            onClick={() => onTipAction?.({ title: "많이 착용한 아이템", items: topItems })}
+            className="rounded-2xl px-4 py-3.5 flex gap-3 items-center w-full text-left active:opacity-80"
+            style={{ backgroundColor: "#F3FFF0", border: "1px solid #BBE8B0" }}
+          >
+            <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>✨</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
+                자주 입는 아이템으로 새 코디 도전
+              </p>
+              <p className="text-[11px] mt-0.5" style={{ color: "#4A8A3A", fontFamily: FONT }}>
+                {topItems.length}개 아이템으로 새로운 조합을 찾아보세요
+              </p>
+            </div>
+            <TIP_CHEVRON color="#6BAA5A" />
+          </button>
+
+          {/* D. 옷장 활용률 */}
+          <div
+            className="rounded-2xl px-4 py-3.5 flex gap-3 items-center"
+            style={{ backgroundColor: "#FAF0FF", border: "1px solid #DDB8F5" }}
+          >
+            <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>📊</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
+                옷장 활용률 {Math.round((wornCount / Math.max(CLOSET_ITEMS.length, 1)) * 100)}%
+              </p>
+              <p className="text-[11px] mt-0.5" style={{ color: "#8855BB", fontFamily: FONT }}>
+                총 {CLOSET_ITEMS.length}개 중 {wornCount}개를 착용했어요
+              </p>
+            </div>
+          </div>
+
+          {/* E. 계절 체크 */}
+          <div
+            className="rounded-2xl px-4 py-3.5 flex gap-3 items-center"
+            style={{ backgroundColor: "#FFF5F0", border: "1px solid #FFCAB0" }}
+          >
+            <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>🌦️</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
+                계절 아이템 점검
+              </p>
+              <p className="text-[11px] mt-0.5" style={{ color: "#BB6633", fontFamily: FONT }}>
+                다음 계절을 대비해 옷장을 미리 정리해보세요
+              </p>
+            </div>
+          </div>
+
+        </div>
+      )}
     </div>
   );
 }
@@ -1702,46 +1941,21 @@ export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandl
           onTap={() => openDayRecord(TODAY)}
         />
 
-        {/* 2. 스타일 인사이트 */}
-        <StyleInsightsBanner stats={stats} onStatTap={handleStatTap} />
+        {/* 2. 스타일 인사이트 + 스타일북 */}
+        <StyleInsightsBanner
+          stats={stats}
+          onStatTap={handleStatTap}
+          onStylebookOpen={() => setStylebooksOpen(true)}
+        />
 
-        {/* 3. 스타일 캘린더 (title + toggle inside card) */}
+        {/* 3. 스타일 캘린더 */}
         <CalendarSection history={history} onDayTap={openDayRecord} />
 
         {/* 4. 연속 기록 streak banner */}
         <StreakBanner stats={stats} onTap={() => setShowStreak(true)} />
 
-        {/* 5. 나의 스타일북 모두 보기 */}
-        <div className="px-4 mb-4">
-          <button
-            onClick={() => setStylebooksOpen(true)}
-            className="w-full rounded-2xl px-4 py-4 flex items-center justify-between active:opacity-80"
-            style={{ backgroundColor: "#FAFAFA", border: `1px solid ${DIVIDER}` }}
-          >
-            <div className="flex items-center gap-3">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                style={{ backgroundColor: "#1a1a1a" }}
-              >
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <rect x="3" y="2" width="12" height="14" rx="2" stroke="white" strokeWidth="1.4" />
-                  <path d="M6 6H12M6 9H12M6 12H9" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-                </svg>
-              </div>
-              <div className="text-left">
-                <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>나의 스타일북 모두 보기</p>
-                <p className="text-[11px] mt-0.5" style={{ color: "#AAAAAA", fontFamily: FONT }}>저장한 코디를 한눈에 확인해보세요</p>
-              </div>
-            </div>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M6 3L11 8L6 13" stroke="#CCCCCC" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-        </div>
-
-        {/* 6. 내 옷장 관리 팁 */}
-        <div className="mx-4 mb-4" style={{ height: 1, backgroundColor: DIVIDER }} />
-        <WardrobeTips onTipAction={(data) => setFullList(data)} />
+        {/* 5. 내 스타일 관리 팁 (토글) */}
+        <StyleTips onTipAction={(data) => setFullList(data)} />
 
         <div style={{ height: 24 }} />
       </div>
@@ -1756,6 +1970,10 @@ export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandl
           onClose={() => setStyleFlowDate(null)}
           onOpenStylebook={(itemIds, photoUrl, dateStr) => {
             setStylebookData({ itemIds, photoUrl, dateStr });
+          }}
+          onGoToStylebook={() => {
+            setStyleFlowDate(null);
+            setStylebooksOpen(true);
           }}
         />
       )}

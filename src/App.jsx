@@ -36,6 +36,7 @@ export default function App() {
   const [currentItem,      setCurrentItem]       = useState(null);  // closet items → ClosetItemDetailScreen
   const [legalScreen,      setLegalScreen]       = useState(null);  // null | "privacy" | "terms"
   const [autoOpenFlow,     setAutoOpenFlow]      = useState(false); // trigger StyleRecordFlow in RecordPage
+  const [discoverTab,      setDiscoverTab]       = useState(null);  // initial sub-tab for DiscoveryPage
 
   // ── Global toast ─────────────────────────────────────────────────────────────
   const [toast,     setToast]     = useState(null);  // { message, type }
@@ -63,7 +64,15 @@ export default function App() {
   function handleTabChange(tab) {
     setCurrentProduct(null);
     setCurrentItem(null);
+    setDiscoverTab(null);
     setActiveTab(tab);
+  }
+
+  function handleGoToDiscover(tab) {
+    setCurrentProduct(null);
+    setCurrentItem(null);
+    setDiscoverTab(tab);
+    setActiveTab("discover");
   }
 
   // Called from HomePage's "기록 시작하기" — switch to record tab and open flow directly
@@ -140,6 +149,7 @@ export default function App() {
               onItemTap={setCurrentItem}
               onLegalOpen={(type) => setLegalScreen(type)}
               onGoToRecord={handleStartStyleFlow}
+              onGoToDiscover={handleGoToDiscover}
             />
           )}
           {activeTab === "record" && (
@@ -155,7 +165,7 @@ export default function App() {
               onItemTap={setCurrentItem}
             />
           )}
-          {activeTab === "discover" && <DiscoveryPage />}
+          {activeTab === "discover" && <DiscoveryPage initialTab={discoverTab} />}
           {activeTab === "menu"   && <MenuPage />}
 
           {/* Closet item detail overlay — for any closet item tapped in the app */}

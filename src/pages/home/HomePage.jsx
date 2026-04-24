@@ -125,72 +125,91 @@ function TodayRecordCard({ onRecordToday }) {
     <div className="px-4 pt-4 pb-1">
       <button
         className="relative w-full overflow-hidden rounded-2xl active:opacity-90"
-        style={{ aspectRatio: "1 / 1", display: "block" }}
+        style={{ aspectRatio: "1 / 1", display: "block", border: "1.5px solid #E8E8E8" }}
         onClick={onRecordToday}
       >
         {hasRecord ? (
           /* ── Recorded state ── */
           <>
-            {/* Background: dark gradient */}
-            <div
-              className="absolute inset-0"
-              style={{ background: "linear-gradient(135deg, #1a1a1a 0%, #2e2e2e 100%)" }}
-            />
-            {/* Item grid */}
-            <div className="absolute inset-0 p-5 flex flex-col gap-3">
-              {/* 완료 badge */}
-              <div className="flex items-center gap-2">
-                <div
-                  className="flex items-center gap-1.5 px-3 py-1 rounded-full"
-                  style={{ backgroundColor: "#F5C200" }}
-                >
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                    <path d="M1.5 5L3.8 7.5L8.5 2.5" stroke="#1a1a1a" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <span className="text-[11px] font-bold" style={{ color: "#1a1a1a", fontFamily: FONT }}>오늘의 코디 완성!</span>
-                </div>
-              </div>
-              {/* Item thumbnails */}
-              {recordedItems.length > 0 ? (
-                <div className="flex-1 grid gap-2" style={{ gridTemplateColumns: recordedItems.length === 1 ? "1fr" : "1fr 1fr" }}>
-                  {recordedItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="rounded-xl overflow-hidden"
-                      style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                    >
-                      {item.image ? (
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span style={{ fontSize: 32 }}>👗</span>
+            {/* Beige background */}
+            <div className="absolute inset-0" style={{ background: "linear-gradient(160deg, #FAF7F2 0%, #F3EDE3 100%)" }} />
+
+            {/* Date — centered top */}
+            <div className="absolute left-0 right-0 flex justify-center" style={{ top: 18 }}>
+              <span style={{ fontSize: 11, color: "rgba(0,0,0,0.3)", fontFamily: FONT, letterSpacing: "0.1em" }}>
+                {(() => { const [y, m, d] = todayStr().split("-"); return `${y}.${m}.${d}`; })()}
+              </span>
+            </div>
+
+            {/* Center: [ photos ] */}
+            <div className="absolute" style={{
+              top: 42, bottom: 52, left: 0, right: 0,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+            }}>
+              {/* Left bracket */}
+              <svg width="22" height="184" viewBox="0 0 22 184" fill="none" style={{ flexShrink: 0 }}>
+                <path d="M20 3 H3 V181 H20" stroke="#F5C200" strokeWidth="5" strokeLinecap="square" strokeLinejoin="miter"/>
+              </svg>
+
+              {/* Photos */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {recordedItems.length > 0 ? (
+                  recordedItems.slice(0, 2).map((item, idx) => (
+                    <div key={item.id} className="relative" style={{
+                      width: 132, height: 176,
+                      borderRadius: 10, overflow: "hidden",
+                      backgroundColor: "#E8E2D8",
+                      flexShrink: 0,
+                    }}>
+                      {item.image && (
+                        <img src={item.image} alt={item.name}
+                          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
+                      )}
+                      {idx === 1 && recordedItems.length > 2 && (
+                        <div className="absolute inset-0 flex items-end justify-center pb-2"
+                          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)" }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.85)", fontFamily: FONT }}>
+                            +{recordedItems.length - 2}개 더
+                          </span>
                         </div>
                       )}
                     </div>
-                  ))}
-                </div>
-              ) : todayRecord.photoUrl ? (
-                <div className="flex-1 rounded-xl overflow-hidden">
-                  <img
-                    src={todayRecord.photoUrl}
-                    alt="오늘의 코디"
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
-                </div>
-              ) : (
-                <div className="flex-1 flex items-center justify-center">
-                  <span style={{ fontSize: 64 }}>👗</span>
-                </div>
-              )}
-              {/* Bottom label */}
-              <p className="text-[12px] font-medium" style={{ color: "rgba(255,255,255,0.55)", fontFamily: FONT }}>
-                기록 수정하기 →
-              </p>
+                  ))
+                ) : todayRecord.photoUrl ? (
+                  <div style={{ width: 132, height: 176, borderRadius: 10, overflow: "hidden", flexShrink: 0 }}>
+                    <img src={todayRecord.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  </div>
+                ) : (
+                  <span style={{ fontSize: 52 }}>👗</span>
+                )}
+              </div>
+
+              {/* Right bracket */}
+              <svg width="22" height="184" viewBox="0 0 22 184" fill="none" style={{ flexShrink: 0 }}>
+                <path d="M2 3 H19 V181 H2" stroke="#F5C200" strokeWidth="5" strokeLinecap="square" strokeLinejoin="miter"/>
+              </svg>
             </div>
+
+            {/* Bottom: 등록 완료 centered + 수정하기 absolute right */}
+            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-center">
+              <div className="flex items-center gap-2">
+                <div style={{
+                  width: 17, height: 17, borderRadius: 4,
+                  backgroundColor: "#F5C200",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                }}>
+                  <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
+                    <path d="M1.5 5L3.8 7.5L8.5 2.5" stroke="#1a1a1a" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#1a1a1a", fontFamily: FONT }}>
+                  오늘의 스타일 등록 완료!
+                </span>
+              </div>
+            </div>
+            <span className="absolute" style={{ bottom: 18, right: 16, fontSize: 10, color: "rgba(0,0,0,0.25)", fontFamily: FONT }}>
+              수정하기 →
+            </span>
           </>
         ) : (
           /* ── Not recorded state ── */
@@ -498,7 +517,7 @@ function ClosetItemsByPiece({ piece, onItemTap }) {
   return (
     <div
       className="mt-4 pt-4"
-      style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}
+      style={{ borderTop: "1px solid #F0F0F0" }}
     >
       {/* Panel header */}
       <div className="flex items-center justify-between mb-3">
@@ -506,14 +525,14 @@ function ClosetItemsByPiece({ piece, onItemTap }) {
           <span style={{ fontSize: 14 }}>{piece.emoji}</span>
           <p
             className="text-[12px] font-bold"
-            style={{ color: "white", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+            style={{ color: "#1a1a1a", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
           >
             내 옷장 속 {piece.label}
           </p>
         </div>
         <span
           className="text-[10px] px-2 py-0.5 rounded-full"
-          style={{ backgroundColor: items.length > 0 ? "rgba(245,194,0,0.2)" : "rgba(255,255,255,0.1)", color: items.length > 0 ? "#F5C200" : "rgba(255,255,255,0.35)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+          style={{ backgroundColor: items.length > 0 ? "rgba(245,194,0,0.2)" : "#F5F5F5", color: items.length > 0 ? "#A07800" : "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
         >
           {items.length > 0 ? `${items.length}개 보유` : "미보유"}
         </span>
@@ -523,21 +542,21 @@ function ClosetItemsByPiece({ piece, onItemTap }) {
         /* Empty state */
         <div
           className="rounded-xl px-4 py-4 flex items-center gap-3"
-          style={{ backgroundColor: "rgba(255,255,255,0.05)", border: "1px dashed rgba(255,255,255,0.12)" }}
+          style={{ backgroundColor: "#F8F8F8", border: "1px dashed #E0E0E0" }}
         >
           <div
             className="flex items-center justify-center rounded-full shrink-0"
-            style={{ width: 32, height: 32, backgroundColor: "rgba(255,255,255,0.08)" }}
+            style={{ width: 32, height: 32, backgroundColor: "#EEEEEE" }}
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M7 3V11M3 7H11" stroke="rgba(255,255,255,0.35)" strokeWidth="1.6" strokeLinecap="round" />
+              <path d="M7 3V11M3 7H11" stroke="#AAAAAA" strokeWidth="1.6" strokeLinecap="round" />
             </svg>
           </div>
           <div>
-            <p className="text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.5)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+            <p className="text-[11px] font-medium" style={{ color: "#888888", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
               아직 등록된 아이템이 없어요
             </p>
-            <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.28)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+            <p className="text-[10px] mt-0.5" style={{ color: "#BBBBBB", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
               옷장에서 {piece.label}을(를) 추가해 보세요
             </p>
           </div>
@@ -549,7 +568,7 @@ function ClosetItemsByPiece({ piece, onItemTap }) {
           style={{ scrollbarWidth: "none", msOverflowStyle: "none", scrollSnapType: "x mandatory" }}
         >
           {items.map((item) => (
-            <ClosetMiniCardDark key={item.id} item={item} onTap={onItemTap} />
+            <ClosetMiniCard key={item.id} item={item} onSelect={onItemTap} />
           ))}
           <div className="shrink-0 w-2" />
         </div>
@@ -615,7 +634,7 @@ function WeatherSection({ onExpand, onItemTap }) {
 
       {/* ── Weather card (taps → weather detail) ── */}
       <button
-        className="mx-6 rounded-2xl overflow-hidden mb-4 w-[calc(100%-3rem)] text-left"
+        className="mx-6 rounded-2xl overflow-hidden mb-4 w-[calc(100%-3rem)] text-left relative"
         style={{ backgroundColor: cond.bg }}
         onClick={onExpand}
       >
@@ -650,16 +669,16 @@ function WeatherSection({ onExpand, onItemTap }) {
           <span className="text-[11px]" style={{ color: "#999", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>체감 {weather.feelsLike}°</span>
           <div className="flex-1 h-px" style={{ backgroundColor: "rgba(0,0,0,0.07)" }} />
           <div className="flex items-center gap-0.5">
-            <span className="text-[10px]" style={{ color: "#BBBBBB", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>자세히</span>
+            <span className="text-[11px] font-semibold" style={{ color: "#888", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>자세히</span>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M4 2.5L7.5 6L4 9.5" stroke="#CCCCCC" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M4 2.5L7.5 6L4 9.5" stroke="#999" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
         </div>
       </button>
 
       {/* ── 오늘의 트렁크룸 추천 스타일 card ── */}
-      <div className="mx-6 rounded-2xl overflow-hidden" style={{ backgroundColor: "#313439" }}>
+      <div className="mx-6 rounded-2xl overflow-hidden" style={{ backgroundColor: "white", border: "1px solid #EEEEEE" }}>
 
         {/* Editorial outfit image — aligned to recommendation theme */}
         <div className="relative" style={{ height: 158 }}>
@@ -669,10 +688,10 @@ function WeatherSection({ onExpand, onItemTap }) {
             style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 20%" }}
             priority
           />
-          {/* Gradient overlay — dark at bottom so text is readable */}
+          {/* Gradient overlay — subtle bottom scrim for text readability */}
           <div
             className="absolute inset-0"
-            style={{ background: "linear-gradient(to bottom, rgba(49,52,57,0.15) 0%, rgba(49,52,57,0.62) 60%, rgba(49,52,57,1) 100%)" }}
+            style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.18) 50%, rgba(0,0,0,0.55) 100%)" }}
           />
           {/* Temp badge — top right */}
           <div className="absolute top-4 right-4">
@@ -701,15 +720,15 @@ function WeatherSection({ onExpand, onItemTap }) {
         </div>
 
         {/* Content area */}
-        <div className="px-5 pt-4 pb-5">
+        <div className="px-5 pt-4 pb-5" style={{ backgroundColor: "white" }}>
           {/* Keyword badge */}
           <div
             className="inline-flex items-center px-3 py-1 rounded-sm mb-3"
-            style={{ backgroundColor: "rgba(245,194,0,0.14)", border: "1px solid rgba(245,194,0,0.28)" }}
+            style={{ backgroundColor: "#FFF8E1", border: "1px solid #F5C200" }}
           >
             <span
               className="text-[12px] font-bold"
-              style={{ color: "#F5C200", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+              style={{ color: "#A07800", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
             >
               {outfit.keyword}
             </span>
@@ -718,7 +737,7 @@ function WeatherSection({ onExpand, onItemTap }) {
           {/* Weather-aware recommendation copy */}
           <p
             className="text-[13px] leading-relaxed"
-            style={{ color: "rgba(255,255,255,0.72)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+            style={{ color: "#555555", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
           >
             {outfit.desc}
           </p>
@@ -726,35 +745,35 @@ function WeatherSection({ onExpand, onItemTap }) {
           {/* ── Piece chips (tappable → filters closet) ── */}
           <div
             className="mt-4 pt-4"
-            style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}
+            style={{ borderTop: "1px solid #F0F0F0" }}
           >
             <div className="flex items-center justify-between mb-2.5">
               <p
                 className="text-[11px] font-bold"
-                style={{ color: "rgba(255,255,255,0.55)", fontFamily: "'Spoqa Han Sans Neo', sans-serif", letterSpacing: "0.04em" }}
+                style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif", letterSpacing: "0.04em" }}
               >
                 오늘의 추천 아이템
               </p>
               <p
                 className="text-[10px]"
-                style={{ color: "rgba(255,255,255,0.28)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+                style={{ color: "#CCCCCC", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
               >
                 탭하면 내 옷장에서 찾아드려요
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {outfit.pieces.map((piece) => {
+            <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+              {outfit.pieces.slice(0, 3).map((piece) => {
                 const isActive = selectedPiece?.label === piece.label;
                 return (
                   <button
                     key={piece.label}
                     onClick={() => handlePieceTap(piece)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all"
+                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all"
                     style={{
-                      backgroundColor: isActive ? "#F5C200"                    : "rgba(255,255,255,0.09)",
-                      color:           isActive ? "#1a1a1a"                    : "rgba(255,255,255,0.78)",
-                      border:          isActive ? "1.5px solid #F5C200"        : "1.5px solid rgba(255,255,255,0.14)",
+                      backgroundColor: isActive ? "#F5C200"             : "rgba(255,255,255,0.09)",
+                      color:           isActive ? "#1a1a1a"             : "#444444",
+                      border:          isActive ? "1.5px solid #F5C200" : "1.5px solid #EEEEEE",
                       fontFamily:      "'Spoqa Han Sans Neo', sans-serif",
                       transform:       isActive ? "scale(1.04)" : "scale(1)",
                     }}
@@ -1038,7 +1057,7 @@ function CommunityStyleDetailScreen({ post, onBack, onItemTap }) {
   );
 }
 
-function CommunityTodaySection({ onItemTap }) {
+function CommunityTodaySection({ onItemTap, onGoToDiscover }) {
   const FONT = "'Spoqa Han Sans Neo', sans-serif";
   const [activePost, setActivePost] = useState(null);
 
@@ -1058,7 +1077,7 @@ function CommunityTodaySection({ onItemTap }) {
 
         {/* 2-column grid */}
         <div className="px-4 grid grid-cols-2 gap-3">
-          {COMMUNITY_TODAY_POSTS.map((post) => (
+          {COMMUNITY_TODAY_POSTS.slice(0, 4).map((post) => (
             <button
               key={post.id}
               onClick={() => setActivePost(post)}
@@ -1120,10 +1139,11 @@ function CommunityTodaySection({ onItemTap }) {
         {/* 더보기 button */}
         <div className="px-4 mt-4">
           <button
+            onClick={() => onGoToDiscover?.("codebook")}
             className="w-full py-3 rounded-xl flex items-center justify-center gap-2"
             style={{ backgroundColor: "white", border: "1px solid #E8E8E8" }}
           >
-            <span className="text-[13px] font-medium" style={{ color: "#444", fontFamily: FONT }}>커뮤니티 코디 더보기</span>
+            <span className="text-[13px] font-medium" style={{ color: "#444", fontFamily: FONT }}>커뮤니티 스타일 더보기</span>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M5 3L9 7L5 11" stroke="#888" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -1392,7 +1412,6 @@ function ProductCard({ item, wide = false, onSelect }) {
       <div className="px-2 pt-2 pb-3">
         <p className="text-[10px] uppercase tracking-wide truncate" style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{item.brand}</p>
         <p className="text-[12px] font-medium mt-0.5 truncate" style={{ color: "#222", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{item.name}</p>
-        <p className="text-[13px] font-bold mt-1" style={{ color: "#333", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{item.price}원</p>
       </div>
     </div>
   );
@@ -1435,67 +1454,68 @@ function ClosetMiniCard({ item, onSelect }) {
 }
 
 // ─── Categories component ─────────────────────────────────────────────────────
-function Categories({ onMorePress, onItemSelect }) {
-  const [selected,  setSelected]  = useState(null);
+function Categories({ onMorePress, onItemSelect, onItemTap }) {
+  const FONT = "'Spoqa Han Sans Neo', sans-serif";
+  const DARK = "#1a1a1a";
+  const [selected, setSelected] = useState(null);
   const [activeSub, setActiveSub] = useState(null);
 
   function handleCatClick(cat) {
-    if (selected === cat.label) {
-      setSelected(null);
-      setActiveSub(null);
-    } else {
-      setSelected(cat.label);
-      setActiveSub(SUBCATEGORIES[cat.label]?.[0] ?? null);
-    }
+    if (selected === cat.label) { setSelected(null); setActiveSub(null); }
+    else { setSelected(cat.label); setActiveSub(SUBCATEGORIES[cat.label]?.[0] ?? null); }
   }
 
-  const subs      = selected ? SUBCATEGORIES[selected] : null;
-  const subItems  = activeSub ? getItemsBySubcategory(activeSub) : [];
+  const subs     = selected ? SUBCATEGORIES[selected] : null;
+  const subItems = activeSub ? getItemsBySubcategory(activeSub) : [];
 
   return (
-    <div className="py-6 bg-white">
-      <SectionHeader en="CATEGORIES" ko="내 옷장 속 카테고리" />
-      <div className="grid grid-cols-4 gap-3 px-6">
+    <div className="pt-3 pb-6 bg-white">
+      {/* Header */}
+      <div className="px-6 mb-4">
+        <p className="text-[11px] font-bold tracking-[0.12em] uppercase" style={{ color: "#AAAAAA", fontFamily: FONT }}>MY CLOSET</p>
+        <h2 className="text-[17px] font-bold leading-tight" style={{ color: DARK, fontFamily: FONT }}>뭘 입을까? 🤔</h2>
+        <p className="text-[12px] mt-0.5" style={{ color: "#AAAAAA", fontFamily: FONT }}>카테고리를 눌러 내 옷장에서 찾아보세요</p>
+      </div>
+
+      {/* Category chips — horizontal scroll row */}
+      <div
+        className="flex overflow-x-auto px-6 gap-2 pb-1"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
         {MAIN_CATEGORIES.map((cat) => {
           const isActive = selected === cat.label;
           return (
             <button
               key={cat.id}
               onClick={() => handleCatClick(cat)}
-              className="flex flex-col items-center gap-2 py-3 rounded-xl transition-all"
+              className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full transition-all"
               style={{
-                backgroundColor: isActive ? "#1a1a1a" : "#F5F5F5",
-                transform: isActive ? "scale(0.97)" : "scale(1)",
+                backgroundColor: isActive ? DARK : "#F5F5F5",
+                border: isActive ? `1.5px solid ${DARK}` : "1.5px solid #EEEEEE",
               }}
             >
-              <span className="text-2xl">{cat.emoji}</span>
+              <span style={{ fontSize: 14 }}>{cat.emoji}</span>
               <span
-                className="text-[11px] font-medium"
-                style={{ color: isActive ? "white" : "#444", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+                className="text-[12px] font-semibold whitespace-nowrap"
+                style={{ color: isActive ? "white" : "#444", fontFamily: FONT }}
               >
                 {cat.label}
               </span>
             </button>
           );
         })}
+        <div className="shrink-0 w-2" />
       </div>
 
       {/* Sub-category panel */}
       {subs && (
         <div className="mt-4 px-5">
           <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "#F8F8F8" }}>
-            {/* Sub-category chip row */}
             <div className="pt-3 pb-2">
-              <p
-                className="text-[10px] font-bold tracking-widest uppercase mb-2.5 px-3"
-                style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-              >
+              <p className="text-[10px] font-bold tracking-widest uppercase mb-2.5 px-3" style={{ color: "#AAAAAA", fontFamily: FONT }}>
                 {selected} 세부 카테고리
               </p>
-              <div
-                className="flex overflow-x-auto px-3 gap-2"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-              >
+              <div className="flex overflow-x-auto px-3 gap-2" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                 {subs.map((sub) => {
                   const isSubActive = activeSub === sub;
                   return (
@@ -1504,11 +1524,11 @@ function Categories({ onMorePress, onItemSelect }) {
                       onClick={() => setActiveSub(sub)}
                       className="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all"
                       style={{
-                        backgroundColor: isSubActive ? "#1a1a1a" : "white",
-                        color:           isSubActive ? "white"   : "#555",
-                        fontFamily:      "'Spoqa Han Sans Neo', sans-serif",
-                        border:          isSubActive ? "1.5px solid #1a1a1a" : "1.5px solid #E8E8E8",
-                        whiteSpace:      "nowrap",
+                        backgroundColor: isSubActive ? DARK : "white",
+                        color: isSubActive ? "white" : "#555",
+                        fontFamily: FONT,
+                        border: isSubActive ? `1.5px solid ${DARK}` : "1.5px solid #E8E8E8",
+                        whiteSpace: "nowrap",
                       }}
                     >
                       {sub}
@@ -1517,39 +1537,23 @@ function Categories({ onMorePress, onItemSelect }) {
                 })}
               </div>
             </div>
-
-            {/* Horizontal item carousel for selected subcategory */}
             {activeSub && (
               <div className="pb-3">
                 {subItems.length === 0 ? (
-                  <p
-                    className="text-[12px] px-4 py-3"
-                    style={{ color: "#CCCCCC", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-                  >
-                    등록된 아이템이 없어요
-                  </p>
+                  <p className="text-[12px] px-4 py-3" style={{ color: "#CCCCCC", fontFamily: FONT }}>등록된 아이템이 없어요</p>
                 ) : (
                   <>
-                    <div
-                      className="flex overflow-x-auto pl-3 pr-2 pb-1 pt-2"
-                      style={{ scrollbarWidth: "none", msOverflowStyle: "none", scrollSnapType: "x mandatory" }}
-                    >
+                    <div className="flex overflow-x-auto pl-3 pr-2 pb-1 pt-2" style={{ scrollbarWidth: "none", msOverflowStyle: "none", scrollSnapType: "x mandatory" }}>
                       {subItems.map((item) => (
                         <ClosetMiniCard key={item.id} item={item} onSelect={onItemSelect} />
                       ))}
                       <div className="shrink-0 w-2" />
                     </div>
-                    {/* 더보기 */}
                     <button
-                      onClick={() => onMorePress({
-                        title: `${selected} · ${activeSub}`,
-                        items: subItems,
-                      })}
+                      onClick={() => onMorePress({ title: `${selected} · ${activeSub}`, items: subItems })}
                       className="mx-3 mt-1 flex items-center gap-1"
                     >
-                      <span className="text-[11px] font-medium" style={{ color: "#888", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
-                        {activeSub} 더보기 ({subItems.length})
-                      </span>
+                      <span className="text-[11px] font-medium" style={{ color: "#888", fontFamily: FONT }}>{activeSub} 더보기 ({subItems.length})</span>
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                         <path d="M4 2.5L7.5 6L4 9.5" stroke="#888" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
@@ -1696,7 +1700,7 @@ function Footer({ onLegalOpen }) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
-export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGoToRecord }) {
+export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGoToRecord, onGoToDiscover }) {
   const [activeDetail,    setActiveDetail]    = useState(null);
   const [weatherOpen,     setWeatherOpen]     = useState(false);
   const [fullList,        setFullList]        = useState(null); // { title, items }
@@ -1822,7 +1826,7 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
           title={fullList.title}
           items={fullList.items}
           onBack={() => setFullList(null)}
-          onItemSelect={onProductSelect}
+          onItemSelect={onItemTap}
         />
       )}
 
@@ -1866,21 +1870,21 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
         {/* ③ Weather + outfit recommendation (tap pieces to find closet items) */}
         <WeatherSection
           onExpand={() => setWeatherOpen(true)}
-          onItemTap={onProductSelect}
+          onItemTap={onItemTap}
         />
 
         {/* ④ My closet by category */}
         <Categories
           onMorePress={(data) => setFullList(data)}
-          onItemSelect={onProductSelect}
+          onItemSelect={onItemTap}
         />
 
         {/* ⑤ Community — what others wore today / this week */}
-        <CommunityTodaySection onItemTap={onItemTap} />
+        <CommunityTodaySection onItemTap={onProductSelect} onGoToDiscover={onGoToDiscover} />
 
         {/* ⑥ Trending items from others' closets */}
         <div className="py-6 bg-white">
-          <SectionHeader en="HOT LISTINGS" ko="남의 옷장 가장 인기있는 아이템" onMore={() => {}} />
+          <SectionHeader en="HOT LISTINGS" ko="남의 옷장 가장 인기있는 아이템" onMore={() => onGoToDiscover?.("items")} />
           <HorizontalScroll>
             {HOT_LISTINGS.map((item) => <ProductCard key={item.id} item={item} wide onSelect={onProductSelect} />)}
           </HorizontalScroll>

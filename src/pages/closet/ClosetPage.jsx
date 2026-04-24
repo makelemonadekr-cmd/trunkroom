@@ -176,10 +176,11 @@ function ClothingItemCard({ item, onSelect }) {
         {/* Sale badge */}
         {item.isForSale && (
           <div
-            className="absolute bottom-1.5 right-8 px-1.5 py-0.5 rounded-md"
-            style={{ backgroundColor: YELLOW }}
+            className="absolute bottom-1.5 left-1.5 flex items-center gap-1 px-2 py-1 rounded-full"
+            style={{ backgroundColor: "rgba(26,26,26,0.72)", backdropFilter: "blur(6px)" }}
           >
-            <span className="text-[8px] font-bold" style={{ color: DARK, fontFamily: FONT }}>판매중</span>
+            <div className="rounded-full shrink-0" style={{ width: 5, height: 5, backgroundColor: YELLOW }} />
+            <span className="text-[9px] font-bold text-white" style={{ fontFamily: FONT }}>판매중</span>
           </div>
         )}
 

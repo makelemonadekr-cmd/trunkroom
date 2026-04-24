@@ -3,6 +3,7 @@ import PrivacyPolicyScreen from "../legal/PrivacyPolicyScreen";
 import TermsOfServiceScreen from "../legal/TermsOfServiceScreen";
 import AccountSettingsScreen from "./AccountSettingsScreen";
 import CustomerSupportPage from "../support/CustomerSupportPage";
+import { showToast } from "../../lib/toastUtils";
 import {
   COMPANY_NAME, COMPANY_CEO, BUSINESS_NUMBER, TELECOM_REG_NUMBER,
   COMPANY_URL, SUPPORT_EMAIL, PARTNERSHIP_EMAIL,
@@ -154,6 +155,22 @@ const InfoIcon = () => (
   </svg>
 );
 
+const ExcelIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <rect x="2" y="2" width="14" height="14" rx="2" stroke="#555" strokeWidth="1.4" />
+    <path d="M2 6H16M2 10H16M2 14H16M6 6V16M10 6V16" stroke="#555" strokeWidth="1.1" strokeLinecap="round" />
+  </svg>
+);
+
+const NotionIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <rect x="3" y="2" width="12" height="14" rx="2" stroke="#555" strokeWidth="1.4" />
+    <path d="M6 6H12M6 9H12M6 12H9" stroke="#555" strokeWidth="1.2" strokeLinecap="round" />
+    <circle cx="14" cy="14" r="3" fill="white" stroke="#555" strokeWidth="1.3" />
+    <path d="M13 14L14.2 15L15.5 13" stroke="#555" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function MenuPage() {
@@ -233,32 +250,44 @@ export default function MenuPage() {
           </div>
         </button>
 
-        {/* ── 서비스 ── */}
-        <SectionLabel>서비스</SectionLabel>
+        {/* ── 회사소개 ── */}
+        <SectionLabel>회사소개</SectionLabel>
         <RowGroup>
           <Row
             label="회사 소개"
             icon={<BuildingIcon />}
             subValue="메이크레모네이드 공식 웹사이트"
             onPress={() => openExternalUrl(COMPANY_URL)}
-          />
-          <Row
-            label="제휴문의"
-            icon={<MailIcon />}
-            subValue={PARTNERSHIP_EMAIL}
-            onPress={() => openMailTo(PARTNERSHIP_EMAIL, "[제휴문의] 트렁크룸")}
             last
           />
         </RowGroup>
 
-        {/* ── 고객지원 (new combined entry point) ── */}
-        <SectionLabel>고객지원</SectionLabel>
+        {/* ── 고객지원 · 제휴문의 ── */}
+        <SectionLabel>고객지원 · 제휴문의</SectionLabel>
         <RowGroup>
           <Row
-            label="고객지원 센터"
+            label="고객지원 · 제휴문의"
             icon={<PhoneIcon />}
-            subValue="제휴문의 · 전화 · 이메일"
+            subValue="전화 · 이메일 · 제휴문의"
             onPress={() => setSupportOpen(true)}
+            last
+          />
+        </RowGroup>
+
+        {/* ── 서비스 ── */}
+        <SectionLabel>서비스</SectionLabel>
+        <RowGroup>
+          <Row
+            label="내 아이템 엑셀로 추출하기"
+            icon={<ExcelIcon />}
+            subValue="옷장 전체 아이템을 .xlsx 파일로"
+            onPress={() => showToast("준비 중인 기능이에요 🛠️", "info")}
+          />
+          <Row
+            label="내 아이템 노션으로 추출하기"
+            icon={<NotionIcon />}
+            subValue="노션 데이터베이스에 바로 내보내기"
+            onPress={() => showToast("준비 중인 기능이에요 🛠️", "info")}
             last
           />
         </RowGroup>

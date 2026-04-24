@@ -12,7 +12,7 @@
  * the "내 옷장" (closet) tab → 스타일북 sub-tab.
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import LazyImage             from "../../components/LazyImage";
 import OutfitDetailScreen    from "../../components/OutfitDetailScreen";
 import ProductDetailPage     from "../product/ProductDetailPage";
@@ -36,6 +36,20 @@ const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
 const YELLOW = "#F5C200";
 
+// ─── Color map (for public items filter) ──────────────────────────────────────
+const COLOR_HEX = {
+  "블랙":"#1a1a1a","화이트":"#F8F8F8","그레이":"#888888","라이트그레이":"#CCCCCC",
+  "네이비":"#1B2A5E","베이지":"#D4B896","브라운":"#7B4F2E","카키":"#6B6B3A",
+  "블루":"#2060CC","스카이블루":"#87CEEB","레드":"#CC2020","핑크":"#F4A0B0",
+  "옐로우":"#F5C200","그린":"#3A8A3A","민트":"#5EC8C0","퍼플":"#7B4FA0",
+  "바이올렛":"#8B6FBF","오렌지":"#E87020","아이보리":"#F5F0E0","크림":"#F8F4E8",
+  "와인":"#722020","머스타드":"#C89B20","올리브":"#7A7A30","코랄":"#F07060","라벤더":"#B0A0D0",
+};
+function isLightColor(hex) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return (r*299+g*587+b*114)/1000 > 155;
+}
+
 // ─── Shared sub-components ────────────────────────────────────────────────────
 
 function SellerAvatar({ seller, size = 24 }) {
@@ -50,33 +64,6 @@ function SellerAvatar({ seller, size = 24 }) {
         alt={seller.displayName}
         style={{ width: "100%", height: "100%", objectFit: "cover" }}
       />
-    </div>
-  );
-}
-
-/** Filter chip row — horizontal scroll */
-function FilterRow({ options, active, onChange, accent = DARK }) {
-  return (
-    <div className="flex overflow-x-auto gap-2 px-4" style={{ scrollbarWidth: "none" }}>
-      {options.map((f) => {
-        const isAct = active === f;
-        return (
-          <button
-            key={f}
-            onClick={() => onChange(f)}
-            className="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all"
-            style={{
-              backgroundColor: isAct ? accent : "#F2F2F2",
-              color: isAct ? (accent === YELLOW ? DARK : "white") : "#555",
-              fontFamily: FONT,
-              border: isAct ? `1.5px solid ${accent}` : "1.5px solid transparent",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {f}
-          </button>
-        );
-      })}
     </div>
   );
 }
@@ -107,10 +94,11 @@ function PublicItemCard({ item, onTap, onSellerTap }) {
           />
           {item.isForSale && (
             <div
-              className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-md"
-              style={{ backgroundColor: YELLOW }}
+              className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-1 rounded-full"
+              style={{ backgroundColor: "rgba(26,26,26,0.72)", backdropFilter: "blur(6px)" }}
             >
-              <span className="text-[8px] font-bold" style={{ color: DARK, fontFamily: FONT }}>판매중</span>
+              <div className="rounded-full shrink-0" style={{ width: 5, height: 5, backgroundColor: YELLOW }} />
+              <span className="text-[9px] font-bold text-white" style={{ fontFamily: FONT }}>판매중</span>
             </div>
           )}
         </div>
@@ -122,15 +110,9 @@ function PublicItemCard({ item, onTap, onSellerTap }) {
           <p className="text-[12px] font-medium truncate" style={{ color: DARK, fontFamily: FONT }}>
             {item.displayName ?? item.name}
           </p>
-          {item.isForSale && item.price > 0 ? (
-            <p className="text-[12px] font-bold mt-0.5" style={{ color: DARK, fontFamily: FONT }}>
-              {item.price.toLocaleString()}원
-            </p>
-          ) : (
-            <p className="text-[11px] mt-0.5" style={{ color: "#BBBBBB", fontFamily: FONT }}>
-              {item.color} · {item.size}
-            </p>
-          )}
+          <p className="text-[11px] mt-0.5" style={{ color: "#BBBBBB", fontFamily: FONT }}>
+            {item.color} · {item.size}
+          </p>
           {/* Seller row */}
           {item.seller && (
             <button
@@ -156,28 +138,131 @@ function PublicItemCard({ item, onTap, onSellerTap }) {
 }
 
 const CAT_LIST = [
-  { label: "전체",    emoji: "✨" },
-  { label: "상의",    emoji: "👕" },
-  { label: "하의",    emoji: "👖" },
-  { label: "아우터",  emoji: "🧥" },
-  { label: "원피스",  emoji: "👗" },
-  { label: "신발",    emoji: "👟" },
-  { label: "가방",    emoji: "👜" },
-  { label: "액세서리",emoji: "💍" },
-  { label: "스포츠",  emoji: "🎽" },
+  { label: "전체",     emoji: "✨" },
+  { label: "상의",     emoji: "👕" },
+  { label: "하의",     emoji: "👖" },
+  { label: "아우터",   emoji: "🧥" },
+  { label: "원피스",   emoji: "👗" },
+  { label: "신발",     emoji: "👟" },
+  { label: "가방",     emoji: "👜" },
+  { label: "액세서리", emoji: "💍" },
+  { label: "스포츠",   emoji: "🎽" },
 ];
 
+const SEASONS_PUB = ["봄", "여름", "가을", "겨울"];
+
 function PublicItemsTab({ onItemTap, onSellerTap, saleFilterActive, onSaleFilterClear }) {
-  const [catFilter, setCatFilter] = useState("전체");
+  const [itemView,      setItemView]     = useState("all"); // "all" | "following"
+  const [followRev,     setFollowRev]    = useState(0);
+  const [openPanel,     setOpenPanel]    = useState(null);
+  const [catFilters,    setCatFilters]   = useState([]);
+  const [colorFilters,  setColorFilters] = useState([]);
+  const [seasonFilters, setSeasonFilters] = useState([]);
+  const [brandFilters,  setBrandFilters] = useState([]);
+  void followRev;
 
-  const source = saleFilterActive ? getAllForSaleItems() : getAllPublicItems();
+  // IDs of sellers the user follows
+  const followedSellerIds = useMemo(
+    () => SELLER_PROFILES.filter((s) => isFollowing(s.id)).map((s) => s.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [followRev]
+  );
 
-  const filtered = catFilter === "전체"
-    ? source
-    : source.filter((i) => (i.mainCategory ?? i.category) === catFilter);
+  const source = useMemo(() => {
+    const base = saleFilterActive ? getAllForSaleItems() : getAllPublicItems();
+    if (itemView === "following") return base.filter((i) => followedSellerIds.includes(i.sellerId));
+    return base;
+  }, [saleFilterActive, itemView, followedSellerIds]);
+
+  function togglePanel(key) { setOpenPanel((p) => p === key ? null : p === null ? key : key); }
+  function toggle(setter, val) {
+    setter((prev) => prev.includes(val) ? prev.filter((x) => x !== val) : [...prev, val]);
+  }
+  function resetAll() {
+    setCatFilters([]); setColorFilters([]); setSeasonFilters([]); setBrandFilters([]);
+    setOpenPanel(null);
+  }
+
+  const colorOptions = useMemo(() => {
+    const base = catFilters.length === 0 ? source : source.filter((i) => catFilters.includes(i.mainCategory ?? i.category));
+    return [...new Set(base.map((i) => i.color).filter(Boolean))].sort();
+  }, [source, catFilters]);
+
+  const brandOptions = useMemo(() => {
+    const counts = {};
+    source.forEach((i) => { if (i.brand) counts[i.brand] = (counts[i.brand] ?? 0) + 1; });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([b]) => b);
+  }, [source]);
+
+  const filtered = useMemo(() => {
+    let items = source;
+    if (catFilters.length    > 0) items = items.filter((i) => catFilters.includes(i.mainCategory ?? i.category));
+    if (colorFilters.length  > 0) items = items.filter((i) => colorFilters.includes(i.color));
+    if (seasonFilters.length > 0) items = items.filter((i) => (i.season ?? []).some((s) => seasonFilters.includes(s)));
+    if (brandFilters.length  > 0) items = items.filter((i) => brandFilters.includes(i.brand));
+    return items;
+  }, [source, catFilters, colorFilters, seasonFilters, brandFilters]);
+
+  const totalActive = catFilters.length + colorFilters.length + seasonFilters.length + brandFilters.length;
+
+  function chipLabel(key) {
+    if (key === "category") {
+      if (catFilters.length === 0) return "카테고리";
+      return catFilters.length === 1 ? catFilters[0] : `카테고리 ${catFilters.length}`;
+    }
+    if (key === "color")  return colorFilters.length  ? `색상 ${colorFilters.length}`   : "색상";
+    if (key === "season") return seasonFilters.length ? `계절 ${seasonFilters.length}`  : "계절";
+    if (key === "brand")  return brandFilters.length  ? `브랜드 ${brandFilters.length}` : "브랜드";
+  }
+  function chipActive(key) {
+    if (key === "category") return catFilters.length > 0;
+    if (key === "color")    return colorFilters.length > 0;
+    if (key === "season")   return seasonFilters.length > 0;
+    if (key === "brand")    return brandFilters.length > 0;
+  }
+
+  const CHIPS = ["category", "color", "season", "brand"];
 
   return (
     <div>
+      {/* ── Segmented control: 전체 / 팔로우 중 ── */}
+      <div className="px-4 pt-3 pb-1" style={{ borderBottom: "1px solid #F0F0F0" }}>
+        <div className="flex rounded-xl p-1" style={{ backgroundColor: "#F0F0F0" }}>
+          {[
+            { id: "following", label: "팔로우 중" },
+            { id: "all",       label: "전체"      },
+          ].map(({ id, label }) => {
+            const isAct = itemView === id;
+            const followingCount = (() => {
+              const base = saleFilterActive ? getAllForSaleItems() : getAllPublicItems();
+              return base.filter((i) => followedSellerIds.includes(i.sellerId)).length;
+            })();
+            const showBadge = id === "following" && followingCount > 0;
+            return (
+              <button
+                key={id}
+                onClick={() => { setItemView(id); setFollowRev((n) => n + 1); }}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all active:opacity-80"
+                style={{
+                  backgroundColor: isAct ? "white" : "transparent",
+                  boxShadow: isAct ? "0 1px 4px rgba(0,0,0,0.10)" : "none",
+                }}
+              >
+                <span className="text-[13px]" style={{ color: isAct ? DARK : "#888", fontWeight: isAct ? 700 : 500, fontFamily: FONT }}>
+                  {label}
+                </span>
+                {showBadge && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full"
+                    style={{ backgroundColor: isAct ? DARK : "rgba(0,0,0,0.12)", color: isAct ? "white" : "#666", fontFamily: FONT, fontWeight: 700 }}>
+                    {followingCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Sale mode banner */}
       {saleFilterActive && (
         <div
@@ -190,54 +275,144 @@ function PublicItemsTab({ onItemTap, onSellerTap, saleFilterActive, onSaleFilter
               판매중인 상품만 보는 중
             </span>
           </div>
-          <button
-            onClick={onSaleFilterClear}
-            className="text-[11px] font-medium active:opacity-70"
-            style={{ color: "#9A7B00", fontFamily: FONT }}
-          >
+          <button onClick={onSaleFilterClear} className="text-[11px] font-medium active:opacity-70" style={{ color: "#9A7B00", fontFamily: FONT }}>
             전체 보기
           </button>
         </div>
       )}
 
-      {/* Category filter — emoji square buttons (horizontal scroll) */}
-      <div
-        className="flex overflow-x-auto gap-2.5 py-3"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none", paddingLeft: 16, paddingRight: 16 }}
-      >
-        {CAT_LIST.map((cat) => {
-          const isActive = catFilter === cat.label;
+      {/* ── 필터 칩 row ── */}
+      <div className="flex gap-2 px-4 pt-3 pb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+        {totalActive > 0 && (
+          <button
+            onClick={resetAll}
+            className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full active:opacity-70"
+            style={{ backgroundColor: "#F2F2F2" }}
+          >
+            <span className="text-[11px] font-medium" style={{ color: "#888", fontFamily: FONT }}>초기화</span>
+            <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+              <path d="M1.5 1.5L7.5 7.5M7.5 1.5L1.5 7.5" stroke="#888" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+          </button>
+        )}
+        {CHIPS.map((key) => {
+          const active = chipActive(key);
+          const open   = openPanel === key;
           return (
             <button
-              key={cat.label}
-              onClick={() => setCatFilter(cat.label)}
-              className="shrink-0 flex flex-col items-center justify-center gap-1.5 rounded-xl transition-all active:scale-95"
-              style={{
-                width: 62,
-                height: 62,
-                backgroundColor: isActive ? DARK : "#F5F5F5",
-                transform: isActive ? "scale(0.96)" : "scale(1)",
-              }}
+              key={key}
+              onClick={() => togglePanel(key)}
+              className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full active:opacity-75"
+              style={{ backgroundColor: active || open ? DARK : "#F2F2F2" }}
             >
-              <span style={{ fontSize: 22, lineHeight: 1 }}>{cat.emoji}</span>
-              <span
-                className="text-[10px] font-medium"
-                style={{ color: isActive ? "white" : "#555", fontFamily: FONT }}
-              >
-                {cat.label}
+              <span className="text-[12px] font-medium whitespace-nowrap" style={{ color: active || open ? "white" : "#555", fontFamily: FONT }}>
+                {chipLabel(key)}
               </span>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
+                style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.18s" }}>
+                <path d="M2.5 4.5L6 8L9.5 4.5" stroke={active || open ? "white" : "#888"} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
           );
         })}
-        <div className="shrink-0 w-1" />
       </div>
 
+      {/* ── 카테고리 패널 ── */}
+      {openPanel === "category" && (
+        <div className="px-4 pb-4 pt-3" style={{ borderTop: "1px solid #F0F0F0" }}>
+          <div className="grid grid-cols-4 gap-2">
+            <button
+              onClick={() => { setCatFilters([]); setOpenPanel(null); }}
+              className="flex flex-col items-center justify-center gap-1.5 rounded-xl active:opacity-70"
+              style={{ aspectRatio: "1", backgroundColor: catFilters.length === 0 ? DARK : "#F2F2F2" }}
+            >
+              <span style={{ fontSize: 20 }}>✨</span>
+              <span className="text-[10px] font-medium" style={{ color: catFilters.length === 0 ? "white" : "#555", fontFamily: FONT }}>전체</span>
+            </button>
+            {CAT_LIST.slice(1).map((cat) => {
+              const isActive = catFilters.includes(cat.label);
+              return (
+                <button key={cat.label}
+                  onClick={() => toggle(setCatFilters, cat.label)}
+                  className="flex flex-col items-center justify-center gap-1.5 rounded-xl active:opacity-70"
+                  style={{ aspectRatio: "1", backgroundColor: isActive ? DARK : "#F2F2F2" }}
+                >
+                  <span style={{ fontSize: 20 }}>{cat.emoji}</span>
+                  <span className="text-[10px] font-medium" style={{ color: isActive ? "white" : "#555", fontFamily: FONT }}>{cat.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── 색상 패널 ── */}
+      {openPanel === "color" && (
+        <div className="flex gap-4 px-4 pb-4 pt-3 overflow-x-auto" style={{ borderTop: "1px solid #F0F0F0", scrollbarWidth: "none" }}>
+          {colorOptions.map((color) => {
+            const isActive = colorFilters.includes(color);
+            const hex      = COLOR_HEX[color] ?? "#CCCCCC";
+            const light    = isLightColor(hex);
+            return (
+              <button key={color} onClick={() => toggle(setColorFilters, color)}
+                className="shrink-0 flex flex-col items-center gap-1.5 active:opacity-70">
+                <div className="rounded-full flex items-center justify-center" style={{
+                  width: 32, height: 32, backgroundColor: hex,
+                  border: isActive ? `2.5px solid ${DARK}` : light ? "1.5px solid rgba(0,0,0,0.15)" : "1.5px solid rgba(255,255,255,0.2)",
+                  boxShadow: isActive ? "0 0 0 1.5px white inset" : "none",
+                }}>
+                  {isActive && (
+                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                      <path d="M2 5.5L4.5 8L9 3" stroke={light ? "#1a1a1a" : "white"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </div>
+                <span className="text-[9px]" style={{ color: isActive ? DARK : "#AAAAAA", fontFamily: FONT, fontWeight: isActive ? 700 : 400 }}>{color}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── 계절 패널 ── */}
+      {openPanel === "season" && (
+        <div className="flex gap-2 px-4 pb-4 pt-3" style={{ borderTop: "1px solid #F0F0F0" }}>
+          {SEASONS_PUB.map((s) => {
+            const isActive = seasonFilters.includes(s);
+            const emoji    = s === "봄" ? "🌸" : s === "여름" ? "☀️" : s === "가을" ? "🍂" : "❄️";
+            return (
+              <button key={s} onClick={() => toggle(setSeasonFilters, s)}
+                className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl active:opacity-70"
+                style={{ backgroundColor: isActive ? DARK : "#F2F2F2" }}>
+                <span style={{ fontSize: 20 }}>{emoji}</span>
+                <span className="text-[11px] font-medium" style={{ color: isActive ? "white" : "#555", fontFamily: FONT }}>{s}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── 브랜드 패널 ── */}
+      {openPanel === "brand" && (
+        <div className="flex gap-2.5 px-4 pb-4 pt-3 overflow-x-auto flex-wrap" style={{ borderTop: "1px solid #F0F0F0", scrollbarWidth: "none" }}>
+          {brandOptions.map((brand) => {
+            const isActive = brandFilters.includes(brand);
+            return (
+              <button key={brand} onClick={() => toggle(setBrandFilters, brand)}
+                className="shrink-0 px-3 py-1.5 rounded-full text-[12px] font-medium active:opacity-70"
+                style={{ backgroundColor: isActive ? DARK : "#F2F2F2", color: isActive ? "white" : "#555", fontFamily: FONT }}>
+                {brand}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Count */}
-      <div className="px-4 pb-2">
+      <div className="px-4 py-2">
         <p className="text-[11px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>
-          {catFilter !== "전체" ? `${catFilter} · ` : ""}
-          {filtered.length}개 아이템
-          {saleFilterActive ? " (판매중)" : ""}
+          {totalActive > 0 ? `필터 적용 중 · ` : ""}
+          {filtered.length}개 아이템{saleFilterActive ? " (판매중)" : ""}
         </p>
       </div>
 
@@ -245,7 +420,9 @@ function PublicItemsTab({ onItemTap, onSellerTap, saleFilterActive, onSaleFilter
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-14 gap-2">
           <span style={{ fontSize: 36 }}>🔍</span>
-          <p className="text-[13px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>해당 카테고리 아이템이 없어요</p>
+          <p className="text-[13px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>해당 조건의 아이템이 없어요</p>
+          <button onClick={resetAll} className="mt-1 px-4 py-1.5 rounded-full text-[12px] font-medium"
+            style={{ backgroundColor: "#F2F2F2", color: "#555", fontFamily: FONT }}>필터 초기화</button>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 px-4 pb-6">
@@ -343,10 +520,29 @@ function CodibookOutfitCard({ outfit, onTap, onSellerTap }) {
 }
 
 function CodibookDiscoveryTab({ onOutfitTap, onSellerTap }) {
+  const [outfitView,   setOutfitView]   = useState("all"); // "all" | "following"
+  const [followRev,    setFollowRev]    = useState(0);
   const [styleFilter,  setStyleFilter]  = useState("전체");
   const [seasonFilter, setSeasonFilter] = useState("전체");
+  const [openPanel,    setOpenPanel]    = useState(null); // "style" | "season"
+  void followRev;
 
-  const allOutfits = getAllPublicOutfits();
+  const followedSellerIds = useMemo(
+    () => SELLER_PROFILES.filter((s) => isFollowing(s.id)).map((s) => s.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [followRev]
+  );
+
+  const allOutfits = useMemo(() => {
+    const base = getAllPublicOutfits();
+    if (outfitView === "following") return base.filter((o) => followedSellerIds.includes(o.seller?.id));
+    return base;
+  }, [outfitView, followedSellerIds]);
+
+  const followingCount = useMemo(
+    () => getAllPublicOutfits().filter((o) => followedSellerIds.includes(o.seller?.id)).length,
+    [followedSellerIds]
+  );
 
   const filtered = allOutfits.filter((o) => {
     const styleOk  = styleFilter  === "전체" || o.style === styleFilter;
@@ -354,26 +550,130 @@ function CodibookDiscoveryTab({ onOutfitTap, onSellerTap }) {
     return styleOk && seasonOk;
   });
 
+  const styleActive  = styleFilter  !== "전체";
+  const seasonActive = seasonFilter !== "전체";
+  const totalActive  = (styleActive ? 1 : 0) + (seasonActive ? 1 : 0);
+
+  function togglePanel(key) { setOpenPanel((p) => p === key ? null : key); }
+
   return (
     <div>
-      {/* Style filter */}
-      <div className="pt-3 pb-2">
-        <p className="px-4 text-[10px] font-bold tracking-[0.12em] uppercase mb-2" style={{ color: "#AAAAAA", fontFamily: FONT }}>스타일</p>
-        <FilterRow options={STYLE_FILTER_OPTIONS} active={styleFilter} onChange={setStyleFilter} />
+      {/* ── Segmented control: 팔로우 중 / 전체 ── */}
+      <div className="px-4 pt-3 pb-1" style={{ borderBottom: "1px solid #F0F0F0" }}>
+        <div className="flex rounded-xl p-1" style={{ backgroundColor: "#F0F0F0" }}>
+          {[
+            { id: "following", label: "팔로우 중" },
+            { id: "all",       label: "전체"      },
+          ].map(({ id, label }) => {
+            const isAct = outfitView === id;
+            const showBadge = id === "following" && followingCount > 0;
+            return (
+              <button
+                key={id}
+                onClick={() => { setOutfitView(id); setFollowRev((n) => n + 1); }}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all active:opacity-80"
+                style={{
+                  backgroundColor: isAct ? "white" : "transparent",
+                  boxShadow: isAct ? "0 1px 4px rgba(0,0,0,0.10)" : "none",
+                }}
+              >
+                <span className="text-[13px]" style={{ color: isAct ? DARK : "#888", fontWeight: isAct ? 700 : 500, fontFamily: FONT }}>
+                  {label}
+                </span>
+                {showBadge && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full"
+                    style={{ backgroundColor: isAct ? DARK : "rgba(0,0,0,0.12)", color: isAct ? "white" : "#666", fontFamily: FONT, fontWeight: 700 }}>
+                    {followingCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
-      {/* Season filter */}
-      <div className="pt-1 pb-3" style={{ borderBottom: "1px solid #F0F0F0" }}>
-        <p className="px-4 text-[10px] font-bold tracking-[0.12em] uppercase mb-2" style={{ color: "#AAAAAA", fontFamily: FONT }}>시즌</p>
-        <FilterRow options={SEASON_FILTER_OPTIONS} active={seasonFilter} onChange={setSeasonFilter} accent={YELLOW} />
+
+      {/* ── 필터 칩 row ── */}
+      <div className="flex gap-2 px-4 pt-3 pb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+        {totalActive > 0 && (
+          <button
+            onClick={() => { setStyleFilter("전체"); setSeasonFilter("전체"); setOpenPanel(null); }}
+            className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full active:opacity-70"
+            style={{ backgroundColor: "#F2F2F2" }}
+          >
+            <span className="text-[11px] font-medium" style={{ color: "#888", fontFamily: FONT }}>초기화</span>
+            <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+              <path d="M1.5 1.5L7.5 7.5M7.5 1.5L1.5 7.5" stroke="#888" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+          </button>
+        )}
+
+        {/* 스타일 chip */}
+        {[
+          { key: "style",  label: styleActive  ? styleFilter  : "스타일", active: styleActive },
+          { key: "season", label: seasonActive ? seasonFilter : "시즌",   active: seasonActive },
+        ].map(({ key, label, active }) => {
+          const open = openPanel === key;
+          return (
+            <button key={key} onClick={() => togglePanel(key)}
+              className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full active:opacity-75"
+              style={{ backgroundColor: active || open ? DARK : "#F2F2F2" }}>
+              <span className="text-[12px] font-medium whitespace-nowrap" style={{ color: active || open ? "white" : "#555", fontFamily: FONT }}>
+                {label}
+              </span>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
+                style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.18s" }}>
+                <path d="M2.5 4.5L6 8L9.5 4.5" stroke={active || open ? "white" : "#888"} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          );
+        })}
       </div>
+
+      {/* ── 스타일 패널 ── */}
+      {openPanel === "style" && (
+        <div className="px-4 pb-4 pt-3 flex flex-wrap gap-2" style={{ borderTop: "1px solid #F0F0F0" }}>
+          {STYLE_FILTER_OPTIONS.map((s) => {
+            const isActive = styleFilter === s;
+            return (
+              <button key={s}
+                onClick={() => { setStyleFilter(s); setOpenPanel(null); }}
+                className="px-3.5 py-1.5 rounded-full text-[12px] font-medium active:opacity-70"
+                style={{ backgroundColor: isActive ? DARK : "#F2F2F2", color: isActive ? "white" : "#555", fontFamily: FONT }}>
+                {s}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── 시즌 패널 ── */}
+      {openPanel === "season" && (
+        <div className="flex gap-2 px-4 pb-4 pt-3" style={{ borderTop: "1px solid #F0F0F0" }}>
+          {SEASON_FILTER_OPTIONS.map((s) => {
+            const isActive = seasonFilter === s;
+            const emoji    = s === "봄" ? "🌸" : s === "여름" ? "☀️" : s === "가을" ? "🍂" : s === "겨울" ? "❄️" : "✨";
+            return (
+              <button key={s}
+                onClick={() => { setSeasonFilter(s); setOpenPanel(null); }}
+                className="flex-1 flex flex-col items-center gap-1.5 py-2.5 rounded-xl active:opacity-70"
+                style={{ backgroundColor: isActive ? DARK : "#F2F2F2" }}>
+                <span style={{ fontSize: 18 }}>{emoji}</span>
+                <span className="text-[11px] font-medium" style={{ color: isActive ? "white" : "#555", fontFamily: FONT }}>{s}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Count */}
       <div className="px-4 py-2">
         <p className="text-[11px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>
-          {styleFilter !== "전체" ? `${styleFilter} · ` : ""}
-          {seasonFilter !== "전체" ? `${seasonFilter} · ` : ""}
+          {styleActive  ? `${styleFilter} · `  : ""}
+          {seasonActive ? `${seasonFilter} · ` : ""}
           {filtered.length}개 스타일
         </p>
       </div>
+
       {/* Grid */}
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-14 gap-2">
@@ -398,11 +698,24 @@ function CodibookDiscoveryTab({ onOutfitTap, onSellerTap }) {
 
 // ─── 3. 셀러 tab ──────────────────────────────────────────────────────────────
 
-function SellerCard({ seller, onTap, onFollowChange }) {
+function SellerCard({ seller, onTap, onFollowChange, onOutfitPreviewTap, onItemPreviewTap }) {
   const [following,      setFollowing]      = useState(() => isFollowing(seller.id));
   const [localFollowers, setLocalFollowers] = useState(seller.followers);
 
-  const previewItems = getSellerItems(seller.id).slice(0, 3);
+  const sellerItems   = useMemo(() => getSellerItems(seller.id),   [seller.id]);
+  const sellerOutfits = useMemo(() => getSellerOutfits(seller.id), [seller.id]);
+
+  // Most-liked outfit (sort descending by likes)
+  const topOutfit = useMemo(
+    () => [...sellerOutfits].sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0))[0] ?? null,
+    [sellerOutfits]
+  );
+  // Top 2 items
+  const topItems = sellerItems.slice(0, 2);
+
+  // Aggregate stats
+  const totalHearts  = sellerOutfits.reduce((sum, o) => sum + (o.likes ?? 0), 0);
+  const forSaleCount = sellerItems.filter((i) => i.isForSale).length;
 
   function handleFollow(e) {
     e.stopPropagation();
@@ -422,19 +735,9 @@ function SellerCard({ seller, onTap, onFollowChange }) {
 
         {/* ── Row 1: profile header ── */}
         <div className="flex items-center gap-3 mb-3">
-          {/* Avatar */}
-          <div
-            className="rounded-full overflow-hidden shrink-0"
-            style={{ width: 46, height: 46, border: "2px solid #F0F0F0" }}
-          >
-            <LazyImage
-              src={seller.profileImage}
-              alt={seller.displayName}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
+          <div className="rounded-full overflow-hidden shrink-0" style={{ width: 46, height: 46, border: "2px solid #F0F0F0" }}>
+            <LazyImage src={seller.profileImage} alt={seller.displayName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
-
-          {/* Name + username */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
               <p className="text-[15px] font-bold leading-tight" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>
@@ -447,12 +750,8 @@ function SellerCard({ seller, onTap, onFollowChange }) {
                 </svg>
               )}
             </div>
-            <p className="text-[12px] mt-0.5" style={{ color: "#AAAAAA", fontFamily: FONT }}>
-              @{seller.username}
-            </p>
+            <p className="text-[12px] mt-0.5" style={{ color: "#AAAAAA", fontFamily: FONT }}>@{seller.username}</p>
           </div>
-
-          {/* Follow button */}
           <button
             onClick={handleFollow}
             className="shrink-0 px-4 py-1.5 rounded-lg text-[12px] font-bold active:opacity-70 transition-opacity"
@@ -460,8 +759,7 @@ function SellerCard({ seller, onTap, onFollowChange }) {
               backgroundColor: following ? "#F5F5F5" : DARK,
               color:           following ? "#555"    : "white",
               border:          following ? "1.5px solid #E0E0E0" : "none",
-              fontFamily:      FONT,
-              minWidth: 72,
+              fontFamily: FONT, minWidth: 72,
             }}
           >
             {following ? "팔로잉" : "팔로우"}
@@ -469,111 +767,144 @@ function SellerCard({ seller, onTap, onFollowChange }) {
         </div>
 
         {/* ── Row 2: bio ── */}
-        <p
-          className="text-[13px] leading-snug mb-3"
-          style={{
-            color: "#444",
-            fontFamily: FONT,
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-          }}
-        >
+        <p className="text-[13px] leading-snug mb-3"
+          style={{ color: "#444", fontFamily: FONT, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
           {seller.bio}
         </p>
 
-        {/* ── Row 3: item thumbnail strip ── */}
+        {/* ── Row 3: [top outfit] [item1] [item2] ── */}
         <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden mb-3" style={{ height: 130 }}>
-          {previewItems.map((item) => {
-            const src = item.image?.includes("unsplash.com")
-              ? unsplashUrl(item.image, 240)
-              : item.image;
+          {/* Most-liked outfit */}
+          {topOutfit ? (
+            <button
+              className="relative overflow-hidden active:opacity-75"
+              style={{ backgroundColor: "#F5F5F5" }}
+              onClick={(e) => { e.stopPropagation(); onOutfitPreviewTap?.(topOutfit); }}
+            >
+              <LazyImage
+                src={topOutfit.previewImage?.includes("unsplash.com") ? unsplashUrl(topOutfit.previewImage, 240) : topOutfit.previewImage}
+                alt={topOutfit.title}
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
+                responsive={topOutfit.previewImage?.includes("unsplash.com")}
+              />
+              {/* Gradient overlay */}
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)" }} />
+              {/* "스타일" badge */}
+              <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md" style={{ backgroundColor: "rgba(0,0,0,0.50)" }}>
+                <span className="text-[7px] font-bold text-white" style={{ fontFamily: FONT }}>스타일</span>
+              </div>
+              {/* Heart count */}
+              <div className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5">
+                <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
+                  <path d="M5 8.5L1 4.7C0.6 4.3 0.6 3.7 0.6 3.3C0.6 2.2 1.6 1.5 2.8 1.5C3.4 1.5 4 1.8 4.4 2.3L5 2.9L5.6 2.3C6 1.8 6.6 1.5 7.2 1.5C8.4 1.5 9.4 2.2 9.4 3.3C9.4 3.7 9.3 4.3 9 4.7L5 8.5Z"
+                    fill="rgba(255,120,120,0.9)" />
+                </svg>
+                <span className="text-[8px] font-bold" style={{ color: "rgba(255,255,255,0.9)", fontFamily: FONT }}>{topOutfit.likes ?? 0}</span>
+              </div>
+            </button>
+          ) : (
+            <div style={{ backgroundColor: "#F0F0F0" }} />
+          )}
+
+          {/* Top 2 items */}
+          {topItems.map((item) => {
+            const src = item.image?.includes("unsplash.com") ? unsplashUrl(item.image, 240) : item.image;
             return (
-              <div key={item.id} className="overflow-hidden" style={{ backgroundColor: "#F5F5F5" }}>
+              <button
+                key={item.id}
+                className="relative overflow-hidden active:opacity-75"
+                style={{ backgroundColor: "#F5F5F5" }}
+                onClick={(e) => { e.stopPropagation(); onItemPreviewTap?.(toProductShape(item)); }}
+              >
                 <LazyImage
                   src={src}
                   alt={item.displayName ?? item.name}
                   style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
                   responsive={item.image?.includes("unsplash.com")}
                 />
-              </div>
+              </button>
             );
           })}
-          {previewItems.length < 3 &&
-            Array(3 - previewItems.length).fill(0).map((_, i) => (
-              <div key={`ph-${i}`} style={{ backgroundColor: "#F0F0F0" }} />
-            ))
-          }
+          {topItems.length < 2 && Array(2 - topItems.length).fill(0).map((_, i) => (
+            <div key={`ph-${i}`} style={{ backgroundColor: "#F0F0F0" }} />
+          ))}
         </div>
 
-        {/* ── Row 4: stats row ── */}
-        <div className="flex items-center gap-4">
-          <span
-            className="text-[9px] px-2 py-0.5 rounded-full font-bold"
-            style={{ backgroundColor: "rgba(245,194,0,0.14)", color: "#9A7B00", fontFamily: FONT }}
-          >
-            {seller.styleLabel}
-          </span>
+        {/* ── Row 4: stats ── */}
+        <div className="flex items-center gap-3 flex-wrap">
           <span className="text-[11px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>
             팔로워 <span style={{ color: "#555", fontWeight: 700 }}>{localFollowers.toLocaleString()}</span>
           </span>
           <span className="text-[11px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>
-            아이템 <span style={{ color: "#555", fontWeight: 700 }}>{previewItems.length > 0 ? getSellerItems(seller.id).length : 0}</span>
+            아이템 <span style={{ color: "#555", fontWeight: 700 }}>{sellerItems.length}</span>
           </span>
-          <div className="flex items-center gap-1 ml-auto">
-            <span style={{ fontSize: 11 }}>⭐</span>
-            <span className="text-[11px] font-bold" style={{ color: DARK, fontFamily: FONT }}>{seller.rating}</span>
-          </div>
+          <span className="text-[11px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>
+            하트 <span style={{ color: "#555", fontWeight: 700 }}>{totalHearts.toLocaleString()}</span>
+          </span>
+          <span className="text-[11px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>
+            판매중 <span style={{ color: forSaleCount > 0 ? DARK : "#AAAAAA", fontWeight: 700 }}>{forSaleCount}</span>
+          </span>
         </div>
       </div>
     </button>
   );
 }
 
-function SellerListTab({ onSellerTap }) {
+function SellerListTab({ onSellerTap, onOutfitPreviewTap, onItemPreviewTap }) {
   const [sellerView,     setSellerView]     = useState("all"); // "all" | "following"
-  const [followRevision, setFollowRevision] = useState(0);     // bumped on any follow toggle
+  const [followRevision, setFollowRevision] = useState(0);
 
-  // Re-read localStorage on each revision so the "팔로우 중" list stays current
-  const followed   = SELLER_PROFILES.filter((s) => isFollowing(s.id));
-  // followRevision is read in the filter call above — eslint might warn but it is intentional
-  void followRevision;
+  const followed  = SELLER_PROFILES.filter((s) => isFollowing(s.id));
+  void followRevision; // intentional — forces re-render on follow toggle
 
-  const displayed  = sellerView === "all" ? SELLER_PROFILES : followed;
+  const displayed = sellerView === "all" ? SELLER_PROFILES : followed;
 
   return (
     <div>
-      {/* all / following toggle */}
-      <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: "1px solid #F0F0F0" }}>
-        {[
-          { id: "all",       label: "전체 셀러",   count: SELLER_PROFILES.length },
-          { id: "following", label: "팔로우 중",   count: followed.length },
-        ].map(({ id, label, count }) => {
-          const isAct = sellerView === id;
-          return (
-            <button
-              key={id}
-              onClick={() => setSellerView(id)}
-              className="px-4 py-1.5 rounded-full text-[12px] font-bold transition-all"
-              style={{
-                backgroundColor: isAct ? DARK    : "#F2F2F2",
-                color:           isAct ? "white" : "#777",
-                fontFamily:      FONT,
-              }}
-            >
-              {label}
-              {count > 0 && (
+      {/* ── Segmented control ── */}
+      <div className="px-4 py-3" style={{ borderBottom: "1px solid #F0F0F0" }}>
+        <div
+          className="flex rounded-xl p-1"
+          style={{ backgroundColor: "#F0F0F0" }}
+        >
+          {[
+            { id: "following", label: "팔로우 중", count: followed.length },
+            { id: "all",       label: "전체 셀러", count: null            },
+          ].map(({ id, label, count }) => {
+            const isAct = sellerView === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setSellerView(id)}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all active:opacity-80"
+                style={{
+                  backgroundColor: isAct ? "white" : "transparent",
+                  boxShadow: isAct ? "0 1px 4px rgba(0,0,0,0.10)" : "none",
+                }}
+              >
                 <span
-                  className="ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full"
-                  style={{ backgroundColor: isAct ? "rgba(255,255,255,0.25)" : "#E0E0E0", color: isAct ? "white" : "#888" }}
+                  className="text-[13px]"
+                  style={{ color: isAct ? DARK : "#888", fontWeight: isAct ? 700 : 500, fontFamily: FONT }}
                 >
-                  {count}
+                  {label}
                 </span>
-              )}
-            </button>
-          );
-        })}
+                {count !== null && count > 0 && (
+                  <span
+                    className="text-[10px] px-1.5 py-0.5 rounded-full"
+                    style={{
+                      backgroundColor: isAct ? DARK : "rgba(0,0,0,0.12)",
+                      color: isAct ? "white" : "#666",
+                      fontFamily: FONT,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {displayed.length === 0 ? (
@@ -594,6 +925,8 @@ function SellerListTab({ onSellerTap }) {
               seller={seller}
               onTap={onSellerTap}
               onFollowChange={() => setFollowRevision((n) => n + 1)}
+              onOutfitPreviewTap={onOutfitPreviewTap}
+              onItemPreviewTap={onItemPreviewTap}
             />
           ))}
         </div>
@@ -640,9 +973,13 @@ function SubTabBar({ active, onChange }) {
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
-export default function DiscoveryPage() {
-  const [subTab,          setSubTab]          = useState("sellers"); // "sellers" | "items" | "codebook"
+export default function DiscoveryPage({ initialTab }) {
+  const [subTab,          setSubTab]          = useState(initialTab ?? "sellers"); // "sellers" | "items" | "codebook"
   const [saleFilterActive, setSaleFilterActive] = useState(false);
+
+  useEffect(() => {
+    if (initialTab) setSubTab(initialTab);
+  }, [initialTab]);
 
   // Overlay state
   const [selectedItem,    setSelectedItem]    = useState(null);  // product shape
@@ -660,8 +997,12 @@ export default function DiscoveryPage() {
   }, []);
 
   function handleSaleFilterActivate() {
-    setSaleFilterActive(true);
-    setSubTab("items");
+    if (saleFilterActive) {
+      setSaleFilterActive(false); // 이미 활성 상태면 해제 → 전체로 복귀
+    } else {
+      setSaleFilterActive(true);
+      setSubTab("items");
+    }
   }
 
   return (
@@ -713,14 +1054,17 @@ export default function DiscoveryPage() {
         <button
           onClick={handleSaleFilterActivate}
           className="flex items-center gap-1.5 px-3 py-2 rounded-xl active:opacity-70"
-          style={{ backgroundColor: "rgba(245,194,0,0.12)", border: "1.5px solid rgba(245,194,0,0.4)" }}
+          style={{
+            backgroundColor: saleFilterActive ? YELLOW       : "rgba(245,194,0,0.12)",
+            border:          saleFilterActive ? "1.5px solid #D4A800" : "1.5px solid rgba(245,194,0,0.4)",
+          }}
         >
           <span style={{ fontSize: 13 }}>🛍️</span>
           <span
             className="text-[11px] font-bold"
-            style={{ color: "#9A7B00", fontFamily: FONT, lineHeight: 1.2 }}
+            style={{ color: saleFilterActive ? DARK : "#9A7B00", fontFamily: FONT, lineHeight: 1.2 }}
           >
-            판매중
+            판매중인 상품
           </span>
         </button>
       </div>
@@ -745,7 +1089,11 @@ export default function DiscoveryPage() {
           />
         )}
         {subTab === "sellers" && (
-          <SellerListTab onSellerTap={openSeller} />
+          <SellerListTab
+            onSellerTap={openSeller}
+            onOutfitPreviewTap={setSelectedOutfit}
+            onItemPreviewTap={setSelectedItem}
+          />
         )}
       </div>
     </div>

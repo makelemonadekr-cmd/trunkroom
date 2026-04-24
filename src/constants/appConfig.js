@@ -15,6 +15,7 @@ export const APP_VERSION             = "1.0.0";
 
 // ─── URLs & contact ──────────────────────────────────────────────────────────
 export const COMPANY_URL             = "https://makelemonade.kr";
+export const KAKAO_CHANNEL_URL       = "https://pf.kakao.com/_trunkroom"; // 카카오 채널 주소
 export const SUPPORT_EMAIL           = "hello@makelemonade.kr";
 export const PARTNERSHIP_EMAIL       = "hello@makelemonade.kr";
 export const CUSTOMER_SERVICE_PHONE  = "1800-8474";

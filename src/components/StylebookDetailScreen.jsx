@@ -17,6 +17,7 @@
 import { useState } from "react";
 import { CLOSET_ITEMS } from "../constants/mockClosetData";
 import SimilarClosetScreen from "./SimilarClosetScreen";
+import StylebookTemplate from "./StylebookTemplate";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
@@ -276,15 +277,28 @@ export default function StylebookDetailScreen({
   const hasColors    = (coordi.extractedColors ?? []).length > 0;
   const hasMemo      = !!coordi.memo?.trim?.();
   const hasItems     = items.length > 0;
+  const hasTemplate  = !!coordi.templateId;
+
+  // Hero height: 4:5 ratio for template view, fixed 310 otherwise
+  const HERO_W      = 375;
+  const heroHeight  = hasTemplate ? Math.round(HERO_W * 1.25) : 310;
 
   return (
     <div className="absolute inset-0 z-[80] flex flex-col overflow-hidden bg-white">
 
       {/* ══ HERO ══════════════════════════════════════════════════════════════ */}
-      <div className="relative shrink-0" style={{ height: 310 }}>
+      <div className="relative shrink-0" style={{ height: heroHeight }}>
 
-        {/* Background image or mood-board grid */}
-        {hasPhoto ? (
+        {/* Template canvas (when templateId is saved) */}
+        {hasTemplate ? (
+          <StylebookTemplate
+            photoUrl={coordi.photoUrl}
+            items={items}
+            template={coordi.templateId}
+            width={HERO_W}
+            style={{ borderRadius: 0 }}
+          />
+        ) : hasPhoto ? (
           <img
             src={coordi.photoUrl}
             alt={coordi.title}
@@ -306,7 +320,7 @@ export default function StylebookDetailScreen({
           style={{
             position:   "absolute",
             inset:      0,
-            background: "linear-gradient(to top, rgba(0,0,0,0.90) 0%, rgba(0,0,0,0.42) 48%, transparent 100%)",
+            background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.28) 45%, transparent 100%)",
             pointerEvents: "none",
           }}
         />

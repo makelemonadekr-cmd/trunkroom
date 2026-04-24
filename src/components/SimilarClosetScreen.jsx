@@ -10,11 +10,12 @@
  *   onItemTap   (item) => void — opens ClosetItemDetailScreen
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   findSimilarClosetItems,
   groupItemsByCategory,
 } from "../lib/styleMatchUtils";
+import ClosetItemDetailScreen from "./ClosetItemDetailScreen";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
@@ -119,6 +120,8 @@ function CategorySection({ category, items, onItemTap }) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 export default function SimilarClosetScreen({ wornItems = [], onBack, onItemTap }) {
+  const [selectedItem, setSelectedItem] = useState(null);
+
   const similar = useMemo(
     () => findSimilarClosetItems(wornItems),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -201,13 +204,21 @@ export default function SimilarClosetScreen({ wornItems = [], onBack, onItemTap 
                 key={category}
                 category={category}
                 items={items}
-                onItemTap={onItemTap}
+                onItemTap={(item) => setSelectedItem(item)}
               />
             ))}
             <div style={{ height: 32 }} />
           </>
         )}
       </div>
+
+      {/* ── ClosetItemDetailScreen overlay ── */}
+      {selectedItem && (
+        <ClosetItemDetailScreen
+          item={selectedItem}
+          onBack={() => setSelectedItem(null)}
+        />
+      )}
     </div>
   );
 }

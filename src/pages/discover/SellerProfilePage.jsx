@@ -10,14 +10,15 @@
  *   onBack  : () => void
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import LazyImage         from "../../components/LazyImage";
 import OutfitDetailScreen from "../../components/OutfitDetailScreen";
 import ProductDetailPage  from "../product/ProductDetailPage";
-import { isFollowing, toggleFollow } from "../../lib/followStore";
+import { useFollow } from "../../lib/followContext";
+import { useSellerContent } from "../../hooks/useDiscovery.js";
 import { getSellerItems, getSellerOutfits, getSellerSaleItems, toProductShape } from "../../constants/mockSellerData";
 import { unsplashUrl } from "../../lib/imageUtils";
-import { isLiked, getLikeCount, toggleLike } from "../../lib/likesStore";
+import { useLikes } from "../../lib/likesContext";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
@@ -72,14 +73,13 @@ function SellerItemCard({ item, onTap }) {
 // ─── Outfit card (2-col) ──────────────────────────────────────────────────────
 
 function SellerOutfitCard({ outfit, onTap }) {
-  const [liked, setLiked] = useState(() => isLiked(outfit.id));
-  const [count, setCount] = useState(() => getLikeCount(outfit.id, outfit.likes ?? 0));
+  const { isLiked, getCount, toggleLike } = useLikes();
+  const liked = isLiked(outfit.id);
+  const count = getCount(outfit.id, outfit.likes ?? 0);
 
   function handleLike(e) {
     e.stopPropagation();
-    const r = toggleLike(outfit.id, outfit.likes ?? 0);
-    setLiked(r.liked);
-    setCount(r.count);
+    toggleLike(outfit.id, outfit.likes ?? 0);
   }
 
   const imgSrc = outfit.previewImage?.includes("unsplash.com")
@@ -139,20 +139,33 @@ function EmptyState({ emoji, message }) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function SellerProfilePage({ seller, onBack }) {
-  const [following,      setFollowing]      = useState(() => isFollowing(seller.id));
+  const { isFollowing, toggleFollow } = useFollow();
+  const following                     = isFollowing(seller.id);
   const [activeTab,      setActiveTab]      = useState("items"); // "items" | "codis" | "sale"
-  const [localFollowers, setLocalFollowers] = useState(seller.followers);
+  const [localFollowers, setLocalFollowers] = useState(seller.followers ?? 0);
   // Internal detail overlays — managed here so z-stacking is clean
   const [selectedItem,   setSelectedItem]   = useState(null); // product shape
   const [selectedOutfit, setSelectedOutfit] = useState(null); // outfit object
 
-  const items     = getSellerItems(seller.id);
-  const outfits   = getSellerOutfits(seller.id);
-  const saleItems = getSellerSaleItems(seller.id);
+  // For real (Supabase) sellers, fetch their public content.
+  // For mock sellers, useSellerContent(null) returns empty arrays immediately.
+  const isReal = seller.source === "real";
+  const { items: realItems, styles: realOutfits, saleItems: realSaleItems } = useSellerContent(
+    isReal ? seller.id : null
+  );
+
+  const items     = isReal ? realItems     : getSellerItems(seller.id);
+  const outfits   = isReal ? realOutfits   : getSellerOutfits(seller.id);
+  const saleItems = isReal ? realSaleItems : getSellerSaleItems(seller.id);
+
+  // toProductShape is for mock items; real items are already normalised
+  const openItem = useMemo(
+    () => (item) => setSelectedItem(isReal ? item : toProductShape(item)),
+    [isReal]
+  );
 
   function handleFollow() {
     const result = toggleFollow(seller.id);
-    setFollowing(result.following);
     setLocalFollowers((n) => result.following ? n + 1 : n - 1);
   }
 
@@ -261,13 +274,15 @@ export default function SellerProfilePage({ seller, onBack }) {
             {seller.bio}
           </p>
 
-          {/* Style tag */}
-          <span
-            className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold mb-4"
-            style={{ backgroundColor: "rgba(245,194,0,0.14)", color: "#B8920A", border: "1px solid rgba(245,194,0,0.3)", fontFamily: FONT }}
-          >
-            {seller.styleLabel}
-          </span>
+          {/* Style tag — shown only when available */}
+          {seller.styleLabel && (
+            <span
+              className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold mb-4"
+              style={{ backgroundColor: "rgba(245,194,0,0.14)", color: "#B8920A", border: "1px solid rgba(245,194,0,0.3)", fontFamily: FONT }}
+            >
+              {seller.styleLabel}
+            </span>
+          )}
 
           {/* Stats */}
           <div className="grid grid-cols-4 gap-2">
@@ -275,7 +290,7 @@ export default function SellerProfilePage({ seller, onBack }) {
               { label: "아이템",  value: items.length },
               { label: "스타일",    value: outfits.length },
               { label: "팔로워",  value: localFollowers.toLocaleString() },
-              { label: "팔로잉",  value: seller.following.toLocaleString() },
+              { label: "팔로잉",  value: (seller.following ?? 0).toLocaleString() },
             ].map((s) => (
               <div key={s.label} className="flex flex-col items-center">
                 <p className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>
@@ -286,14 +301,16 @@ export default function SellerProfilePage({ seller, onBack }) {
             ))}
           </div>
 
-          {/* Rating row */}
-          <div className="flex items-center gap-1.5 mt-3 pt-3" style={{ borderTop: "1px solid #F5F5F5" }}>
-            <span style={{ fontSize: 14 }}>⭐</span>
-            <span className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>{seller.rating}</span>
-            <span className="text-[12px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>
-              ({seller.reviewCount}개 리뷰)
-            </span>
-          </div>
+          {/* Rating row — mock sellers only */}
+          {seller.rating != null && (
+            <div className="flex items-center gap-1.5 mt-3 pt-3" style={{ borderTop: "1px solid #F5F5F5" }}>
+              <span style={{ fontSize: 14 }}>⭐</span>
+              <span className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>{seller.rating}</span>
+              <span className="text-[12px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>
+                ({seller.reviewCount}개 리뷰)
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Sub-tabs */}
@@ -333,7 +350,7 @@ export default function SellerProfilePage({ seller, onBack }) {
             : (
               <div className="grid grid-cols-2 gap-3 px-4 py-4">
                 {items.map((item) => (
-                  <SellerItemCard key={item.id} item={item} onTap={(p) => setSelectedItem(p)} />
+                  <SellerItemCard key={item.id} item={item} onTap={openItem} />
                 ))}
               </div>
             )
@@ -359,7 +376,7 @@ export default function SellerProfilePage({ seller, onBack }) {
             : (
               <div className="grid grid-cols-2 gap-3 px-4 py-4">
                 {saleItems.map((item) => (
-                  <SellerItemCard key={item.id} item={item} onTap={(p) => setSelectedItem(p)} />
+                  <SellerItemCard key={item.id} item={item} onTap={openItem} />
                 ))}
               </div>
             )

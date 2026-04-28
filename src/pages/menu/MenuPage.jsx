@@ -4,6 +4,7 @@ import TermsOfServiceScreen from "../legal/TermsOfServiceScreen";
 import AccountSettingsScreen from "./AccountSettingsScreen";
 import CustomerSupportPage from "../support/CustomerSupportPage";
 import { showToast } from "../../lib/toastUtils";
+import { useProfile } from "../../hooks/useProfile.js";
 import {
   COMPANY_NAME, COMPANY_CEO, BUSINESS_NUMBER, TELECOM_REG_NUMBER,
   COMPANY_URL, SUPPORT_EMAIL, PARTNERSHIP_EMAIL,
@@ -193,12 +194,17 @@ export default function MenuPage({ user, onSignOut }) {
   const [supportOpen,  setSupportOpen]  = useState(false);
   const [signingOut,   setSigningOut]   = useState(false);
 
-  // Derive display values from auth user object
-  const displayName = user?.user_metadata?.display_name
+  // Load real profile from Supabase
+  const { profile, refresh: refreshProfile } = useProfile(user?.id);
+
+  // Prefer Supabase nickname → auth metadata → email prefix
+  const displayName = profile?.nickname
+    || user?.user_metadata?.display_name
     || user?.user_metadata?.nickname
     || user?.email?.split("@")[0]
     || "내 계정";
-  const displayEmail = user?.email || "";
+  const displayEmail  = user?.email || "";
+  const displayAvatar = profile?.avatar_url || null;
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -212,7 +218,7 @@ export default function MenuPage({ user, onSignOut }) {
       {/* Screen overlays */}
       {screen === "privacy" && <PrivacyPolicyScreen onBack={() => setScreen(null)} />}
       {screen === "terms"   && <TermsOfServiceScreen onBack={() => setScreen(null)} />}
-      {accountOpen && <AccountSettingsScreen onBack={() => setAccountOpen(false)} />}
+      {accountOpen && <AccountSettingsScreen onBack={() => { setAccountOpen(false); refreshProfile(); }} />}
       {supportOpen && <CustomerSupportPage onBack={() => setSupportOpen(false)} />}
 
       {/* ── Header ── */}
@@ -247,13 +253,17 @@ export default function MenuPage({ user, onSignOut }) {
             style={{ backgroundColor: DARK }}
           >
             <div
-              className="flex items-center justify-center rounded-full shrink-0"
+              className="rounded-full overflow-hidden shrink-0 flex items-center justify-center"
               style={{ width: 46, height: 46, backgroundColor: "rgba(255,255,255,0.12)" }}
             >
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <circle cx="11" cy="8" r="4" stroke="rgba(255,255,255,0.7)" strokeWidth="1.6" />
-                <path d="M3 20C3 15.58 6.58 12 11 12C15.42 12 19 15.58 19 20" stroke="rgba(255,255,255,0.7)" strokeWidth="1.6" strokeLinecap="round" />
-              </svg>
+              {displayAvatar ? (
+                <img src={displayAvatar} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                  <circle cx="11" cy="8" r="4" stroke="rgba(255,255,255,0.7)" strokeWidth="1.6" />
+                  <path d="M3 20C3 15.58 6.58 12 11 12C15.42 12 19 15.58 19 20" stroke="rgba(255,255,255,0.7)" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[14px] font-bold text-white truncate" style={{ fontFamily: FONT }}>

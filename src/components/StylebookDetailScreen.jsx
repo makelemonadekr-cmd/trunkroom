@@ -18,6 +18,7 @@ import { useState } from "react";
 import { CLOSET_ITEMS } from "../constants/mockClosetData";
 import SimilarClosetScreen from "./SimilarClosetScreen";
 import StylebookTemplate from "./StylebookTemplate";
+import StyleBoardTemplate from "./StyleBoardTemplate.jsx";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
@@ -260,6 +261,7 @@ export default function StylebookDetailScreen({
   onDelete,
   onItemTap,
   onProductSelect,
+  onMakeStyle,
 }) {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [similarOpen,   setSimilarOpen]   = useState(false);
@@ -272,12 +274,19 @@ export default function StylebookDetailScreen({
     .map((id) => CLOSET_ITEMS.find((i) => i.id === id))
     .filter(Boolean);
 
+  // mood = preset ID (e.g. "casual") → MOOD_MAP lookup for emoji chip
+  // customMood (or custom_mood) = personal # tags e.g. "#합정출근룩,#비오는날"
   const moodOpt      = coordi.mood ? MOOD_MAP[coordi.mood] : null;
+  const rawCustom    = coordi.customMood ?? coordi.custom_mood ?? null;
+  const personalTags = rawCustom ? rawCustom.split(",").filter(Boolean) : [];
   const hasPhoto     = !!coordi.photoUrl;
   const hasColors    = (coordi.extractedColors ?? []).length > 0;
   const hasMemo      = !!coordi.memo?.trim?.();
   const hasItems     = items.length > 0;
-  const hasTemplate  = !!coordi.templateId;
+  // "board" = new StyleBoardTemplate; "A"/"B" = legacy StylebookTemplate
+  const isBoardTemplate  = coordi.templateId === "board";
+  const isLegacyTemplate = coordi.templateId === "A" || coordi.templateId === "B";
+  const hasTemplate      = isBoardTemplate || isLegacyTemplate;
 
   // Hero height: 4:5 ratio for template view, fixed 310 otherwise
   const HERO_W      = 375;
@@ -290,10 +299,18 @@ export default function StylebookDetailScreen({
       <div className="relative shrink-0" style={{ height: heroHeight }}>
 
         {/* Template canvas (when templateId is saved) */}
-        {hasTemplate ? (
+        {isBoardTemplate ? (
+          <StyleBoardTemplate
+            photoUrl={coordi.photoUrl ?? null}
+            items={items}
+            width={HERO_W}
+            style={{ borderRadius: 0 }}
+          />
+        ) : isLegacyTemplate ? (
           <StylebookTemplate
             photoUrl={coordi.photoUrl}
             items={items}
+            template={coordi.templateId}
             width={HERO_W}
             style={{ borderRadius: 0 }}
           />
@@ -357,8 +374,8 @@ export default function StylebookDetailScreen({
         {/* Bottom overlay: chips + title + date */}
         <div className="absolute bottom-0 left-0 right-0 px-5 pb-5">
 
-          {/* Mood + visibility chips */}
-          <div className="flex items-center gap-2 mb-2.5">
+          {/* Mood / style tags + visibility chips */}
+          <div className="flex items-center gap-2 mb-2.5 flex-wrap">
             {moodOpt && (
               <div
                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
@@ -374,6 +391,21 @@ export default function StylebookDetailScreen({
                 </span>
               </div>
             )}
+            {personalTags.slice(0, 3).map((tag, i) => (
+              <div
+                key={i}
+                className="px-2.5 py-1 rounded-full"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.16)",
+                  backdropFilter:  "blur(10px)",
+                  border:          "1px solid rgba(255,255,255,0.22)",
+                }}
+              >
+                <span className="text-[10px] font-bold text-white" style={{ fontFamily: FONT }}>
+                  {tag}
+                </span>
+              </div>
+            ))}
             <div
               className="flex items-center gap-1 px-2.5 py-1 rounded-full"
               style={{
@@ -473,7 +505,7 @@ export default function StylebookDetailScreen({
                 className="text-[10px] font-bold tracking-[0.14em]"
                 style={{ color: "#BBBBBB", fontFamily: FONT }}
               >
-                나만의 메모
+                메모
               </p>
               <div
                 className="flex items-center gap-1 px-1.5 py-0.5 rounded"
@@ -547,6 +579,10 @@ export default function StylebookDetailScreen({
           wornItems={items}
           onBack={() => setSimilarOpen(false)}
           onItemTap={(item) => { setSimilarOpen(false); handleItemTap?.(item); }}
+          onMakeStyle={onMakeStyle ? (item) => {
+            setSimilarOpen(false);
+            onMakeStyle(item);
+          } : undefined}
         />
       )}
 

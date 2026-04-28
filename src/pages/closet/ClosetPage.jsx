@@ -6,15 +6,35 @@ import LazyImage from "../../components/LazyImage";
 import {
   MAIN_CATEGORIES,
   CLOSET_ITEMS,
-  getItemsByCategory,
 } from "../../constants/mockClosetData";
 import { useFavorites } from "../../lib/favoritesStore";
 import {
   getItemWearFrequency,
   getItemLastWornDates,
   localDateStr,
-} from "../../lib/wearHistoryStore";
+} from "../../hooks/useWearLogs.js";
+import { useWearLogs } from "../../hooks/useWearLogs.js";
 import { getItemsNeedingWash } from "../../lib/laundryStore";
+import { useAuth }    from "../../hooks/useAuth.js";
+import { useCloset }  from "../../hooks/useCloset.js";
+import { useProfile } from "../../hooks/useProfile.js";
+import { showToast }  from "../../lib/toastUtils.js";
+
+// ─── Normalise a Supabase DB row → shape expected by UI components ─────────────
+// Adds camelCase aliases for every snake_case column the UI references.
+function normalizeDbItem(dbItem) {
+  return {
+    ...dbItem,
+    // Field aliases
+    displayName:  dbItem.display_name  ?? dbItem.name,
+    mainCategory: dbItem.main_category,
+    subCategory:  dbItem.sub_category,
+    subcategory:  dbItem.sub_category,   // ClosetItemDetailScreen uses this variant
+    image:        dbItem.image_url,      // <img src={item.image}> throughout UI
+    isForSale:    dbItem.is_for_sale,
+    styleTags:    dbItem.style_tags    ?? [],
+  };
+}
 
 const YELLOW = "#F5C200";
 const DARK   = "#1a1a1a";
@@ -52,26 +72,30 @@ function ClosetHeader({ onAddItem }) {
 }
 
 // ─── Profile ──────────────────────────────────────────────────────────────────
-function ProfileSection({ onSizePress }) {
+function ProfileSection({ onSizePress, displayName, avatarUrl }) {
   return (
     <div className="px-5 py-3.5 bg-white" style={{ borderBottom: "1px solid #F0F0F0" }}>
       <div className="flex items-center gap-3">
         <div
-          className="flex items-center justify-center rounded-full shrink-0"
+          className="rounded-full overflow-hidden shrink-0 flex items-center justify-center"
           style={{ width: 52, height: 52, backgroundColor: "#EBEBEB" }}
         >
-          <img
-            src="/officiallogo.png"
-            alt="avatar"
-            style={{ width: 28, height: 28, objectFit: "contain", opacity: 0.55 }}
-          />
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ) : (
+            <img
+              src="/officiallogo.png"
+              alt="avatar"
+              style={{ width: 28, height: 28, objectFit: "contain", opacity: 0.55 }}
+            />
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <p
             className="text-[15px] font-bold truncate"
             style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}
           >
-            윤킴의 옷장
+            {displayName ? `${displayName}의 옷장` : "내 옷장"}
           </p>
           <button
             onClick={onSizePress}
@@ -100,12 +124,12 @@ function ProfileSection({ onSizePress }) {
 }
 
 // ─── Stats bar ───────────────────────────────────────────────────────────────
-function SubStats() {
+function SubStats({ itemCount = 0 }) {
   const stats = [
-    { label: "옷장의류", value: `${CLOSET_ITEMS.length}` },
-    { label: "공개의류", value: "105" },
-    { label: "팔로워",   value: "2,125" },
-    { label: "후기",     value: "34"  },
+    { label: "옷장의류", value: `${itemCount}` },
+    { label: "공개의류", value: `${itemCount}` },
+    { label: "팔로워",   value: "0" },
+    { label: "후기",     value: "0" },
   ];
   return (
     <div
@@ -460,11 +484,11 @@ function InsightsBanner({ onInsights }) {
 }
 
 // ─── 내 옷장 관리 팁 (collapsible) ────────────────────────────────────────────
-function TipsBanner({ onTipAction }) {
+function TipsBanner({ onTipAction, history = {} }) {
   const [tipsOpen, setTipsOpen] = useState(false);
 
   const { longUnwornItems, laundryItems } = useMemo(() => {
-    const lastWorn = getItemLastWornDates();
+    const lastWorn = getItemLastWornDates(history);
     const today    = localDateStr(new Date());
     const longUnwornItems = CLOSET_ITEMS.filter((item) => {
       const lw = lastWorn.get(item.id);
@@ -474,7 +498,7 @@ function TipsBanner({ onTipAction }) {
     const laundryRaw   = getItemsNeedingWash(2);
     const laundryItems = laundryRaw.map(({ itemId }) => CLOSET_ITEMS.find((i) => i.id === itemId)).filter(Boolean);
     return { longUnwornItems, laundryItems };
-  }, []);
+  }, [history]);
 
   const tipCount = longUnwornItems.length + laundryItems.length;
 
@@ -577,7 +601,7 @@ function getItemMaterial(item) {
 // ─── 내 아이템 tab ────────────────────────────────────────────────────────────
 const SEASONS = ["봄", "여름", "가을", "겨울"];
 
-function ClothingTab({ onMorePress, onItemTap }) {
+function ClothingTab({ onMorePress, onItemTap, items = [], history = {} }) {
   const [openPanel,      setOpenPanel]     = useState(null);
   const [catFilters,     setCatFilters]    = useState([]);
   const [subCatFilters,  setSubCatFilters] = useState([]);
@@ -605,42 +629,42 @@ function ClothingTab({ onMorePress, onItemTap }) {
 
   const subCategories = useMemo(() => {
     if (catFilters.length === 0) return [];
-    const base = CLOSET_ITEMS.filter((i) => catFilters.includes(i.mainCategory));
+    const base = items.filter((i) => catFilters.includes(i.mainCategory));
     return [...new Set(base.map((i) => i.subCategory ?? i.subcategory).filter(Boolean))].sort();
-  }, [catFilters]);
+  }, [catFilters, items]);
 
   const colorOptions = useMemo(() => {
-    const base = catFilters.length === 0 ? CLOSET_ITEMS : CLOSET_ITEMS.filter((i) => catFilters.includes(i.mainCategory));
+    const base = catFilters.length === 0 ? items : items.filter((i) => catFilters.includes(i.mainCategory));
     return [...new Set(base.map((i) => i.color).filter(Boolean))].sort();
-  }, [catFilters]);
+  }, [catFilters, items]);
 
   const materialOptions = useMemo(() => {
-    const base = catFilters.length === 0 ? CLOSET_ITEMS : CLOSET_ITEMS.filter((i) => catFilters.includes(i.mainCategory));
+    const base = catFilters.length === 0 ? items : items.filter((i) => catFilters.includes(i.mainCategory));
     return [...new Set(base.map(getItemMaterial))].sort();
-  }, [catFilters]);
+  }, [catFilters, items]);
 
   const filtered = useMemo(() => {
-    let items = CLOSET_ITEMS;
-    if (catFilters.length    > 0) items = items.filter((i) => catFilters.includes(i.mainCategory));
-    if (subCatFilters.length > 0) items = items.filter((i) => subCatFilters.includes(i.subCategory ?? i.subcategory));
-    if (colorFilters.length  > 0) items = items.filter((i) => colorFilters.includes(i.color));
-    if (seasonFilters.length > 0) items = items.filter((i) => (i.season ?? []).some((s) => seasonFilters.includes(s)));
-    if (matFilters.length    > 0) items = items.filter((i) => matFilters.includes(getItemMaterial(i)));
-    if (brandFilters.length  > 0) items = items.filter((i) => brandFilters.includes(i.brand));
+    let result = items;
+    if (catFilters.length    > 0) result = result.filter((i) => catFilters.includes(i.mainCategory));
+    if (subCatFilters.length > 0) result = result.filter((i) => subCatFilters.includes(i.subCategory ?? i.subcategory));
+    if (colorFilters.length  > 0) result = result.filter((i) => colorFilters.includes(i.color));
+    if (seasonFilters.length > 0) result = result.filter((i) => (i.season ?? []).some((s) => seasonFilters.includes(s)));
+    if (matFilters.length    > 0) result = result.filter((i) => matFilters.includes(getItemMaterial(i)));
+    if (brandFilters.length  > 0) result = result.filter((i) => brandFilters.includes(i.brand));
     if (wearFilter) {
-      const freq = getItemWearFrequency();
-      if (wearFilter === "high")  items = items.filter((i) => (freq.get(i.id) ?? 0) >= 5);
-      if (wearFilter === "low")   items = items.filter((i) => (freq.get(i.id) ?? 0) > 0 && (freq.get(i.id) ?? 0) < 5);
-      if (wearFilter === "none")  items = items.filter((i) => !(freq.get(i.id) ?? 0));
+      const freq = getItemWearFrequency(history);
+      if (wearFilter === "high")  result = result.filter((i) => (freq.get(i.id) ?? 0) >= 5);
+      if (wearFilter === "low")   result = result.filter((i) => (freq.get(i.id) ?? 0) > 0 && (freq.get(i.id) ?? 0) < 5);
+      if (wearFilter === "none")  result = result.filter((i) => !(freq.get(i.id) ?? 0));
     }
-    return items;
-  }, [catFilters, subCatFilters, colorFilters, seasonFilters, matFilters, brandFilters, wearFilter]);
+    return result;
+  }, [items, history, catFilters, subCatFilters, colorFilters, seasonFilters, matFilters, brandFilters, wearFilter]);
 
   const brandOptions = useMemo(() => {
     const counts = {};
-    CLOSET_ITEMS.forEach((i) => { if (i.brand) counts[i.brand] = (counts[i.brand] ?? 0) + 1; });
+    items.forEach((i) => { if (i.brand) counts[i.brand] = (counts[i.brand] ?? 0) + 1; });
     return Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([b]) => b);
-  }, []);
+  }, [items]);
 
   const totalActive = catFilters.length + subCatFilters.length
     + colorFilters.length + seasonFilters.length + matFilters.length + brandFilters.length
@@ -925,17 +949,31 @@ function ClothingTab({ onMorePress, onItemTap }) {
       {/* ── 아이템 그리드 ── */}
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-14 px-8">
-          <span style={{ fontSize: 40, opacity: 0.3 }}>🔍</span>
-          <p className="text-[14px] font-bold mt-3 text-center" style={{ color: "#BBBBBB", fontFamily: FONT }}>
-            조건에 맞는 아이템이 없어요
-          </p>
-          <button
-            onClick={resetAll}
-            className="mt-3 px-4 py-2 rounded-full text-[12px] font-medium"
-            style={{ backgroundColor: "#F2F2F2", color: "#555", fontFamily: FONT }}
-          >
-            필터 초기화
-          </button>
+          {items.length === 0 ? (
+            <>
+              <span style={{ fontSize: 40, opacity: 0.3 }}>👕</span>
+              <p className="text-[14px] font-bold mt-3 text-center" style={{ color: "#BBBBBB", fontFamily: FONT }}>
+                아직 옷장이 비어있어요
+              </p>
+              <p className="text-[12px] mt-1 text-center" style={{ color: "#CCCCCC", fontFamily: FONT }}>
+                + 버튼을 눌러 첫 아이템을 추가해보세요
+              </p>
+            </>
+          ) : (
+            <>
+              <span style={{ fontSize: 40, opacity: 0.3 }}>🔍</span>
+              <p className="text-[14px] font-bold mt-3 text-center" style={{ color: "#BBBBBB", fontFamily: FONT }}>
+                조건에 맞는 아이템이 없어요
+              </p>
+              <button
+                onClick={resetAll}
+                className="mt-3 px-4 py-2 rounded-full text-[12px] font-medium"
+                style={{ backgroundColor: "#F2F2F2", color: "#555", fontFamily: FONT }}
+              >
+                필터 초기화
+              </button>
+            </>
+          )}
         </div>
       ) : (
         <>
@@ -1057,10 +1095,10 @@ function InsightsSection({ onMore }) {
   );
 }
 
-function InsightsDetailScreen({ onBack }) {
+function InsightsDetailScreen({ onBack, history = {} }) {
   const total       = CLOSET_ITEMS.length;
-  const wearFreq    = useMemo(() => getItemWearFrequency(), []);
-  const lastWornMap = useMemo(() => getItemLastWornDates(), []);
+  const wearFreq    = useMemo(() => getItemWearFrequency(history), [history]);
+  const lastWornMap = useMemo(() => getItemLastWornDates(history), [history]);
   const todayLocal  = useMemo(() => localDateStr(new Date()), []);
 
   const catData = useMemo(() => {
@@ -1363,6 +1401,14 @@ function PhotoSourceSheet({ onSelect, onClose }) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 export default function ClosetPage({ onProductSelect, onItemTap }) {
+  const { user }                      = useAuth();
+  const { items: dbItems, loading: closetLoading, refresh } = useCloset(user?.id);
+  const { profile }                   = useProfile(user?.id);
+  const { history }                   = useWearLogs(user?.id);
+
+  // Normalise DB rows → UI shape (camelCase aliases)
+  const closetItems = useMemo(() => dbItems.map(normalizeDbItem), [dbItems]);
+
   const [fullList,        setFullList]        = useState(null);
   const [addItemOpen,     setAddItemOpen]     = useState(false);
   const [photoSource,     setPhotoSource]     = useState(null);
@@ -1376,24 +1422,56 @@ export default function ClosetPage({ onProductSelect, onItemTap }) {
     setAddItemOpen(true);
   }
 
+  function handleSaveItem() {
+    setAddItemOpen(false);
+    setPhotoSource(null);
+    refresh();   // reload items from Supabase
+  }
+
   return (
     <div className="relative flex flex-col h-full bg-white overflow-hidden">
-      <ClosetHeader onAddItem={() => setShowSourceSheet(true)} />
+      <ClosetHeader onAddItem={() => {
+        if (!user) { showToast("아이템 등록은 로그인 후 이용할 수 있어요", "warning"); return; }
+        setShowSourceSheet(true);
+      }} />
 
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-        <ProfileSection onSizePress={() => setMySizeOpen(true)} />
+        <ProfileSection
+          onSizePress={() => setMySizeOpen(true)}
+          displayName={profile?.nickname || null}
+          avatarUrl={profile?.avatar_url || null}
+        />
+
+        {/* ── Stats bar ── */}
+        <SubStats itemCount={closetItems.length} />
 
         {/* ── 옷장 인사이트 ── */}
         <InsightsBanner onInsights={() => setShowInsights(true)} />
 
         {/* ── 관리 팁 ── */}
-        <TipsBanner onTipAction={(data) => setFullList(data)} />
+        <TipsBanner history={history} onTipAction={(data) => setFullList(data)} />
 
         {/* ── Items + filters ── */}
-        <ClothingTab
-          onMorePress={(data) => setFullList(data)}
-          onItemTap={onItemTap}
-        />
+        {closetLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <div
+              className="rounded-full"
+              style={{
+                width: 28, height: 28,
+                border: `3px solid #F5C200`,
+                borderTopColor: "transparent",
+                animation: "spin 0.7s linear infinite",
+              }}
+            />
+          </div>
+        ) : (
+          <ClothingTab
+            items={closetItems}
+            history={history}
+            onMorePress={(data) => setFullList(data)}
+            onItemTap={onItemTap}
+          />
+        )}
 
         <div style={{ height: 24 }} />
       </div>
@@ -1421,7 +1499,7 @@ export default function ClosetPage({ onProductSelect, onItemTap }) {
         <AddClosetItemScreen
           photoSource={photoSource}
           onClose={() => { setAddItemOpen(false); setPhotoSource(null); }}
-          onSave={() => { setAddItemOpen(false); setPhotoSource(null); }}
+          onSave={handleSaveItem}
         />
       )}
 
@@ -1432,7 +1510,7 @@ export default function ClosetPage({ onProductSelect, onItemTap }) {
 
       {/* Insights detail overlay */}
       {showInsights && (
-        <InsightsDetailScreen onBack={() => setShowInsights(false)} />
+        <InsightsDetailScreen history={history} onBack={() => setShowInsights(false)} />
       )}
     </div>
   );

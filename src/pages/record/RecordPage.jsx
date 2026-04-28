@@ -1,25 +1,26 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
-  getAllWearHistory,
-  saveWearRecord,
-  deleteWearRecord,
-  getWearStats,
   getItemWearFrequency,
   getItemLastWornDates,
   localDateStr,
   todayStr,
-} from "../../lib/wearHistoryStore";
+} from "../../hooks/useWearLogs.js";
 import {
   getItemsNeedingWash,
   getLaundryStatus,
   markWashed,
   getWearsSinceWash,
 } from "../../lib/laundryStore";
-import { saveCoordi, getAllCoordi, deleteCoordi } from "../../lib/coordiStore";
+import { useAuth }     from "../../hooks/useAuth.js";
+import { showToast }   from "../../lib/toastUtils.js";
+import { useWearLogs } from "../../hooks/useWearLogs.js";
+import { useStyles }   from "../../hooks/useStyles.js";
+import { uploadStylePhoto } from "../../services/storageService.js";
+import { createStyle, updateStyle, replaceStyleItems } from "../../services/stylesService.js";
 import StylebookDetailScreen from "../../components/StylebookDetailScreen";
-import StylebookTemplate from "../../components/StylebookTemplate";
+import StylebookTemplate   from "../../components/StylebookTemplate";
+import StyleBoardTemplate  from "../../components/StyleBoardTemplate.jsx";
 import { extractColors } from "../../lib/colorExtractor";
-import OutfitCanvasEditor from "../../components/OutfitCanvasEditor";
 import StyleRecordFlow from "../../components/StyleRecordFlow";
 import { CLOSET_ITEMS } from "../../constants/mockClosetData";
 import FullListScreen from "../closet/FullListScreen";
@@ -35,7 +36,7 @@ const MONTH_NAMES = ["1월","2월","3월","4월","5월","6월","7월","8월","9�
 // ─── Mood options ─────────────────────────────────────────────────────────────
 
 const MOOD_OPTIONS = [
-  { id: "casual",  label: "캐주얼",  emoji: "😎", bg: "#F5F5F5",  fg: "#555" },
+  { id: "casual",  label: "캐주얼",  emoji: "😎", bg: "#E4EEFF",  fg: "#2B52C8" },
   { id: "minimal", label: "미니멀",  emoji: "⬜", bg: "#1a1a1a",  fg: "white" },
   { id: "chic",    label: "시크",    emoji: "💎", bg: "#6B3A5E",  fg: "white" },
   { id: "comfy",   label: "편안함",  emoji: "🌿", bg: "#E8F5E9",  fg: "#2E7D32" },
@@ -134,20 +135,52 @@ function StyleBoardView({ itemIds, size = 240 }) {
 // Full-screen overlay: compose selected outfit items into a stylebook entry.
 // Fields: name, mood, memo (private), isPublic, photoUrl, extractedColors.
 
-function StylebookCreatorSheet({ itemIds, dateStr, photoUrl: initPhotoUrl = null, onSave, onClose }) {
-  const [name,         setName]         = useState("");
-  const [mood,         setMood]         = useState(null);
-  const [memo,         setMemo]         = useState("");
-  const [isPublic,     setIsPublic]     = useState(false);
-  const [photo,        setPhoto]        = useState(initPhotoUrl);
+function StylebookCreatorSheet({
+  itemIds:      itemIdsProp,
+  initialItems: initialItemsProp = [],   // pre-resolved item objects (bypasses CLOSET_ITEMS lookup)
+  dateStr,
+  photoUrl:     initPhotoUrl = null,
+  editStyle     = null,   // when set → edit-mode: pre-populate fields, save via updateStyle
+  onSave,
+  onClose,
+}) {
+  const { user: sheetUser } = useAuth();
+  const isEditMode = !!editStyle?.id;
+
+  // In edit mode, use the style's existing itemIds if none explicitly provided
+  // When initialItems are provided, derive itemIds from them (for database save)
+  const itemIds = itemIdsProp
+    ?? (initialItemsProp.length > 0 ? initialItemsProp.map((i) => i.id) : null)
+    ?? editStyle?.itemIds
+    ?? [];
+
+  // Pre-populate state from editStyle when in edit mode
+  const initTags = (() => {
+    const raw = editStyle?.customMood ?? editStyle?.custom_mood ?? null;
+    return raw ? raw.split(",").filter(Boolean) : [];
+  })();
+
+  // selectedDate — user-editable date (initialized from prop, overridable via date picker)
+  const [selectedDate, setSelectedDate] = useState(
+    editStyle?.dateStr ?? editStyle?.date_str ?? dateStr ?? todayStr()
+  );
+  const [name,         setName]         = useState(editStyle?.title ?? "");
+  const [mood,         setMood]         = useState(editStyle?.mood ?? null);
+  const [styleTags,    setStyleTags]    = useState(initTags);
+  const [tagInput,     setTagInput]     = useState("");
+  const [memo,         setMemo]         = useState(editStyle?.memo ?? "");
+  const [isPublic,     setIsPublic]     = useState(editStyle?.isPublic ?? editStyle?.is_public ?? false);
+  const [photo,        setPhoto]        = useState(initPhotoUrl ?? editStyle?.photoUrl ?? editStyle?.photo_url ?? null);
   const [colors,       setColors]       = useState([]);
   const [colorLoading, setColorLoading] = useState(false);
+  const [saving,       setSaving]       = useState(false);
   const photoFileRef = useRef(null);
 
-  // Resolve itemIds → ClosetItem objects for template preview
-  const selectedItems = itemIds
-    .map((id) => CLOSET_ITEMS.find((i) => i.id === id))
-    .filter(Boolean);
+  // Resolve itemIds → ClosetItem objects for template preview.
+  // If initialItems were passed directly (real Supabase items), use them as-is.
+  const selectedItems = initialItemsProp.length > 0
+    ? initialItemsProp
+    : itemIds.map((id) => CLOSET_ITEMS.find((i) => i.id === id)).filter(Boolean);
 
   // Auto-extract colors whenever the photo changes
   useEffect(() => {
@@ -167,25 +200,81 @@ function StylebookCreatorSheet({ itemIds, dateStr, photoUrl: initPhotoUrl = null
     reader.readAsDataURL(file);
   }
 
-  function handleSave() {
-    const moodOpt = MOOD_OPTIONS.find((m) => m.id === mood);
-    const newEntry = {
-      id:              `coordi-${Date.now()}`,
-      title:           name.trim() || `${formatDateLabel(dateStr)} 코디`,
-      mood:            mood ?? null,
-      memo,                    // PRIVATE — not exposed publicly
-      isPublic,
-      itemIds:         [...itemIds],
-      thumbnail:       photo || (CLOSET_ITEMS.find((i) => i.id === itemIds[0])?.image ?? null),
-      bgColor:         moodOpt?.bg ?? "#F5F5F5",
-      dateStr,
-      photoUrl:        photo ?? null,
-      templateId:      "A",
-      extractedColors: colors,
-      updatedAt:       new Date().toISOString(),
-    };
-    saveCoordi(newEntry);
-    onSave?.();
+  async function handleSave() {
+    if (saving) return;
+    setSaving(true);
+    try {
+      const moodOpt = MOOD_OPTIONS.find((m) => m.id === mood);
+      const title   = name.trim() || `${formatDateLabel(selectedDate)} 스타일`;
+
+      // 1. Upload cover photo if present (best-effort)
+      // Skip re-upload if photo hasn't changed (still a URL, not a data: blob)
+      let finalPhotoUrl = photo ?? null;
+      if (photo && !photo.startsWith("http") && sheetUser?.id) {
+        const { url, error: uploadErr } = await uploadStylePhoto(sheetUser.id, photo);
+        if (!uploadErr && url) finalPhotoUrl = url;
+        else console.warn("[StylebookCreator] photo upload failed:", uploadErr?.message);
+      }
+
+      const styleData = {
+        title,
+        mood:           mood ?? null,
+        memo,
+        is_public:      isPublic,
+        background_url: finalPhotoUrl,   // DB column is background_url, not photo_url
+        date_str:       selectedDate,
+        template_id:    "board",
+        // bg_color column does not exist in styles table — omit
+        ...(styleTags.length ? { custom_mood: styleTags.join(",") } : { custom_mood: null }),
+      };
+
+      // 2. Save to Supabase
+      if (sheetUser?.id) {
+        if (isEditMode) {
+          // ── Edit mode: update existing style ──────────────────────────────
+          const { error: updateErr } = await updateStyle(editStyle.id, styleData);
+          if (updateErr) {
+            console.warn("[StylebookCreator] update failed:", updateErr.message);
+            showToast("수정에 실패했어요. 다시 시도해주세요.", "error");
+            return;
+          }
+          // Replace style_items — carry imageUrl + name so StyleBoardTemplate can display real images
+          const styleItems = selectedItems.map((item) => ({
+            clothingItemId: item.id,
+            imageUrl:       item.image ?? item.image_url ?? null,
+            name:           item.name ?? item.displayName ?? null,
+          }));
+          const { error: itemsErr } = await replaceStyleItems(editStyle.id, styleItems);
+          if (itemsErr) console.warn("[StylebookCreator] style_items replace failed:", itemsErr.message);
+          showToast("스타일이 수정됐어요!", "success");
+        } else {
+          // ── Create mode: insert new style — carry imageUrl + name ─────────
+          const styleItems = selectedItems.map((item) => ({
+            clothingItemId: item.id,
+            imageUrl:       item.image ?? item.image_url ?? null,
+            name:           item.name ?? item.displayName ?? null,
+          }));
+          console.log("[StylebookCreator] createStyle payload:", { styleData, styleItems });
+          const { error: saveErr } = await createStyle(sheetUser.id, styleData, styleItems);
+          if (saveErr) {
+            console.warn("[StylebookCreator] save failed:", saveErr.message);
+            showToast("저장에 실패했어요. 다시 시도해주세요.", "error");
+            return;
+          }
+          showToast("스타일이 저장됐어요!", "success");
+        }
+      } else {
+        // Unauthenticated — cannot save to Supabase
+        showToast("스타일 저장은 로그인 후 이용할 수 있어요", "warning", 4000);
+      }
+
+      onSave?.();
+    } catch (err) {
+      console.error("[StylebookCreator] unexpected error:", err);
+      onSave?.();
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -202,25 +291,52 @@ function StylebookCreatorSheet({ itemIds, dateStr, photoUrl: initPhotoUrl = null
           </svg>
         </button>
         <h2 className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>
-          스타일북 만들기
+          {isEditMode ? "스타일 수정" : "스타일 작성"}
         </h2>
         <button
           onClick={handleSave}
-          className="px-4 py-1.5 rounded-full text-[13px] font-bold"
-          style={{ backgroundColor: YELLOW, color: DARK, fontFamily: FONT }}
+          disabled={saving}
+          className="px-4 py-1.5 rounded-full text-[13px] font-bold flex items-center justify-center"
+          style={{ backgroundColor: YELLOW, color: DARK, fontFamily: FONT, minWidth: 52 }}
         >
-          저장
+          {saving ? (
+            <div style={{ width: 14, height: 14, border: `2px solid ${DARK}`, borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+          ) : "저장"}
         </button>
       </div>
 
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
 
-        {/* ── Template preview ── */}
+        {/* ── Date picker ── click the row to open native date input */}
+        <div className="px-4 pt-4 pb-3" style={{ borderBottom: `1px solid ${DIVIDER}` }}>
+          <label
+            className="flex items-center gap-3 px-4 rounded-2xl cursor-pointer active:opacity-80"
+            style={{ height: 52, backgroundColor: "#FEFCE8", border: "1.5px solid #EDD83A", position: "relative", overflow: "hidden", display: "flex" }}
+          >
+            <span style={{ fontSize: 16 }}>📅</span>
+            <span className="text-[14px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.01em", flex: 1 }}>
+              {formatDateLabel(selectedDate)}
+            </span>
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M2 4L5 7L8 4" stroke="#A07800" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {/* Native date input overlaid — invisible but clickable */}
+            <input
+              type="date"
+              value={selectedDate}
+              max={todayStr()}
+              onChange={(e) => e.target.value && setSelectedDate(e.target.value)}
+              style={{ position: "absolute", inset: 0, opacity: 0, width: "100%", height: "100%", cursor: "pointer" }}
+            />
+          </label>
+        </div>
+
+        {/* ── Style Board preview ── */}
         <div className="pt-5 pb-2 flex flex-col items-center px-5">
 
-          {/* 4:5 preview with camera overlay */}
+          {/* 4:5 StyleBoardTemplate preview with camera overlay */}
           <div className="relative" style={{ width: 252 }}>
-            <StylebookTemplate
+            <StyleBoardTemplate
               photoUrl={photo}
               items={selectedItems}
               width={252}
@@ -229,7 +345,7 @@ function StylebookCreatorSheet({ itemIds, dateStr, photoUrl: initPhotoUrl = null
             {/* Camera / photo change button */}
             <button
               onClick={() => photoFileRef.current?.click()}
-              className="absolute bottom-10 right-2.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full active:opacity-70"
+              className="absolute bottom-3 right-2.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full active:opacity-70"
               style={{ backgroundColor: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", zIndex: 10 }}
             >
               <svg width="11" height="11" viewBox="0 0 20 20" fill="none">
@@ -238,7 +354,7 @@ function StylebookCreatorSheet({ itemIds, dateStr, photoUrl: initPhotoUrl = null
                 <path d="M7 5L8.5 2.5H11.5L13 5" stroke="white" strokeWidth="1.6" strokeLinecap="round" />
               </svg>
               <span className="text-[10px] font-bold text-white" style={{ fontFamily: FONT }}>
-                {photo ? "변경" : "사진 추가"}
+                {photo ? "사진 변경" : "착장 사진 추가"}
               </span>
             </button>
           </div>
@@ -254,7 +370,7 @@ function StylebookCreatorSheet({ itemIds, dateStr, photoUrl: initPhotoUrl = null
           <p className="text-[10px] mt-2 text-center" style={{ color: "#BBBBBB", fontFamily: FONT }}>
             {photo
               ? `착장 사진 · ${selectedItems.length}개 아이템`
-              : "착장 사진을 추가하면 템플릿이 완성돼요"}
+              : "착장 사진과 아이템으로 스타일 보드가 완성돼요"}
           </p>
         </div>
 
@@ -313,16 +429,16 @@ function StylebookCreatorSheet({ itemIds, dateStr, photoUrl: initPhotoUrl = null
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="이 코디에 이름을 붙여보세요"
+            placeholder="이 스타일에 이름을 붙여보세요"
             className="w-full px-4 py-3 rounded-xl text-[14px] font-medium outline-none"
             style={{ backgroundColor: "#F5F5F5", color: DARK, fontFamily: FONT }}
           />
         </div>
 
-        {/* ── Mood selector ── */}
+        {/* ── 오늘의 무드 ── */}
         <div className="px-5 pb-4">
           <p className="text-[11px] font-bold mb-2" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.05em" }}>
-            MOOD
+            오늘의 무드
           </p>
           <div className="flex flex-wrap gap-2">
             {MOOD_OPTIONS.map((opt) => {
@@ -348,11 +464,59 @@ function StylebookCreatorSheet({ itemIds, dateStr, photoUrl: initPhotoUrl = null
           </div>
         </div>
 
+        {/* ── 마이 스타일 태그 ── */}
+        <div className="px-5 pb-4">
+          <p className="text-[11px] font-bold mb-1" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.05em" }}>
+            마이 스타일 태그 <span style={{ color: "#CCCCCC", fontWeight: 400 }}>(선택)</span>
+          </p>
+          <p className="text-[10px] mb-2" style={{ color: "#CCCCCC", fontFamily: FONT }}>태그를 적어두면 검색이 더 쉬워져요.</p>
+
+          {/* Active tag chips */}
+          {styleTags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-2.5">
+              {styleTags.map((tag, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-full"
+                  style={{ backgroundColor: "#1a1a1a", fontFamily: FONT }}
+                >
+                  <span className="text-[12px] font-medium text-white">{tag}</span>
+                  <button
+                    onClick={() => setStyleTags((prev) => prev.filter((_, j) => j !== i))}
+                    className="text-white leading-none"
+                    style={{ fontSize: 13, opacity: 0.6, lineHeight: 1 }}
+                  >×</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Tag input */}
+          <input
+            type="text"
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                const raw = tagInput.trim().replace(/^#+/, "");
+                if (!raw) return;
+                const tag = `#${raw}`;
+                if (!styleTags.includes(tag)) setStyleTags((prev) => [...prev, tag]);
+                setTagInput("");
+              }
+            }}
+            placeholder="예: #합정출근룩 #촬영날 #비오는날"
+            className="w-full px-4 py-3 rounded-xl text-[13px] outline-none"
+            style={{ backgroundColor: "#F5F5F5", color: DARK, fontFamily: FONT }}
+          />
+        </div>
+
         {/* ── Private memo ── */}
         <div className="px-5 pb-4">
           <div className="flex items-center gap-2 mb-2">
             <p className="text-[11px] font-bold" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.05em" }}>
-              나만의 메모
+              메모
             </p>
             <div
               className="flex items-center gap-1 px-1.5 py-0.5 rounded"
@@ -451,8 +615,8 @@ function DayRecordSheet({ dateStr, record, onSave, onDelete, onClose }) {
 
   if (showStylebook) {
     return (
-      <OutfitCanvasEditor
-        initialItemIds={selectedIds}
+      <StylebookCreatorSheet
+        itemIds={selectedIds}
         dateStr={dateStr}
         onSave={() => {
           setShowStylebook(false);
@@ -642,33 +806,42 @@ function DayRecordSheet({ dateStr, record, onSave, onDelete, onClose }) {
 // • 미기록: pencil icon + "오늘은 무엇을 입었는지 기록해주세요" + chevron
 // • 기록됨: checkmark + title + 수정 button + small square outfit thumbnail (right)
 
-function TodayCard({ todayRecord, onTap }) {
-  const hasRecord = !!todayRecord;
+/**
+ * TodayCard — compact horizontal banner at the top of RecordPage.
+ *
+ * Props:
+ *   todayStyles  Object[]   styles saved for today (from useStyles)
+ *   onNewStyle   () => void open new style creation
+ *   onEditStyle  (s) => void open existing style in edit mode
+ */
+function TodayCard({ todayStyles = [], onNewStyle, onEditStyle }) {
+  const hasStyle   = todayStyles.length > 0;
+  const latestStyle = todayStyles[0] ?? null; // newest first (sorted by created_at desc)
 
-  // Build thumbnail source for the right-side square
-  const thumbItems = hasRecord
-    ? (todayRecord.itemIds ?? [])
-        .map((id) => CLOSET_ITEMS.find((i) => i.id === id))
-        .filter((i) => i?.image)
-        .slice(0, 4)
+  // Build a compact style-board thumbnail (4:5) for the right side
+  const thumbW = 54;
+  const thumbH = Math.round(thumbW * 1.25); // 68px
+
+  // Prefer real items from Supabase style_items; fall back to mock lookup
+  const thumbItems = latestStyle
+    ? (latestStyle.items && latestStyle.items.length > 0
+        ? latestStyle.items
+        : (latestStyle.itemIds ?? []).map((id) => CLOSET_ITEMS.find((i) => i.id === id)).filter(Boolean))
     : [];
-
-  const THUMB = 68; // px — size of the square thumbnail
 
   return (
     <div
       className="mx-4 mt-4 mb-1 rounded-2xl overflow-hidden"
-      style={{ border: hasRecord ? "1px solid #EEEEEE" : "1px solid #FDE68A" }}
+      style={{ border: hasStyle ? "1px solid #EEEEEE" : "1px solid #FDE68A" }}
     >
       <button
-        onClick={onTap}
+        onClick={() => hasStyle ? onEditStyle?.(latestStyle) : onNewStyle?.()}
         className="w-full flex items-center gap-3 px-4 text-left active:opacity-75 transition-opacity"
-        style={{ minHeight: 76, paddingTop: 14, paddingBottom: 14, backgroundColor: hasRecord ? "white" : "#FFFBEB" }}
+        style={{ minHeight: 76, paddingTop: 14, paddingBottom: 14, backgroundColor: hasStyle ? "white" : "#FFFBEB" }}
       >
         {/* ── 왼쪽: 아이콘 + 텍스트 ── */}
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          {/* 아이콘 */}
-          {hasRecord ? (
+          {hasStyle ? (
             <span style={{ fontSize: 26, lineHeight: 1, flexShrink: 0 }}>✅</span>
           ) : (
             <div
@@ -679,15 +852,16 @@ function TodayCard({ todayRecord, onTap }) {
             </div>
           )}
 
-          {/* 텍스트 블록 */}
           <div className="flex-1 min-w-0">
-            {hasRecord ? (
+            {hasStyle ? (
               <>
-                <p className="text-[14px] font-semibold leading-snug" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>
-                  오늘의 스타일 등록 완료!
+                <p className="text-[14px] font-semibold leading-snug truncate" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>
+                  {todayStyles.length > 1
+                    ? `오늘 스타일 ${todayStyles.length}개 등록됨`
+                    : (latestStyle.title || "오늘의 스타일 등록 완료!")}
                 </p>
                 <p className="text-[11px] mt-0.5" style={{ color: "#AAAAAA", fontFamily: FONT }}>
-                  오늘 기록 완료 · 탭하여 수정
+                  탭하여 수정 · 우측 상단 + 로 추가
                 </p>
               </>
             ) : (
@@ -703,37 +877,15 @@ function TodayCard({ todayRecord, onTap }) {
           </div>
         </div>
 
-        {/* ── 오른쪽: 기록됨이면 썸네일, 아니면 chevron ── */}
-        {hasRecord && (todayRecord.photoUrl || thumbItems.length > 0) ? (
-          <div
-            className="shrink-0 rounded-xl overflow-hidden"
-            style={{ width: THUMB, height: THUMB, backgroundColor: "#F0F0F0" }}
-          >
-            {todayRecord.photoUrl ? (
-              <img
-                src={todayRecord.photoUrl}
-                alt="오늘 착장"
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            ) : thumbItems.length === 1 ? (
-              <img src={thumbItems[0].image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
-            ) : thumbItems.length === 2 ? (
-              <div style={{ display: "flex", width: "100%", height: "100%", gap: 2 }}>
-                {thumbItems.map((it) => (
-                  <div key={it.id} style={{ flex: 1, overflow: "hidden" }}>
-                    <img src={it.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", width: "100%", height: "100%", gap: 2 }}>
-                {thumbItems.slice(0, 4).map((it) => (
-                  <div key={it.id} style={{ overflow: "hidden" }}>
-                    <img src={it.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
-                  </div>
-                ))}
-              </div>
-            )}
+        {/* ── 오른쪽: 스타일 보드 미니 썸네일 or chevron ── */}
+        {hasStyle ? (
+          <div className="shrink-0 rounded-xl overflow-hidden" style={{ width: thumbW, height: thumbH }}>
+            <StyleBoardTemplate
+              photoUrl={latestStyle.photoUrl ?? null}
+              items={thumbItems}
+              width={thumbW}
+              style={{ borderRadius: 0 }}
+            />
           </div>
         ) : (
           <svg width="15" height="15" viewBox="0 0 15 15" fill="none" className="shrink-0">
@@ -1271,19 +1423,14 @@ function StreakBanner({ stats, onTap }) {
 // ─── My Stylebooks Screen ─────────────────────────────────────────────────────
 // Full-screen overlay: shows all saved stylebooks. Launched from Record page.
 
-function MyStylebooksScreen({ onBack, onItemTap }) {
-  const [coordiList,    setCoordiList]    = useState(() => getAllCoordi());
+function MyStylebooksScreen({ onBack, onItemTap, onMakeStyle, onEditStyle }) {
+  const { user: styleUser }                              = useAuth();
+  const { styles: coordiList, removeStyle, refresh }     = useStyles(styleUser?.id);
   const [detailOpen,    setDetailOpen]    = useState(null);  // coordi object
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const [coordiRefresh, setCoordiRefresh] = useState(0);
 
-  useEffect(() => {
-    setCoordiList(getAllCoordi());
-  }, [coordiRefresh]);
-
-  function handleDelete(id) {
-    deleteCoordi(id);
-    setCoordiRefresh((n) => n + 1);
+  async function handleDelete(id) {
+    await removeStyle(id);
     setDeleteConfirm(null);
     if (detailOpen?.id === id) setDetailOpen(null);
   }
@@ -1335,44 +1482,53 @@ function MyStylebooksScreen({ onBack, onItemTap }) {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3 px-4 py-4">
-            {coordiList.map((c) => (
-              <div key={c.id} className="relative">
-                <button
-                  onClick={() => setDetailOpen(c)}
-                  className="w-full rounded-2xl overflow-hidden active:opacity-80"
-                  style={{ aspectRatio: "3/4", backgroundColor: c.bgColor || "#F2F2F2", display: "block", position: "relative" }}
-                >
-                  {c.thumbnail ? (
-                    <img src={c.thumbnail} alt={c.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span style={{ fontSize: 40, opacity: 0.18 }}>👗</span>
+            {coordiList.map((c) => {
+              // Prefer real items from Supabase style_items; fall back to mock lookup
+              const thumbItems = (c.items && c.items.length > 0)
+                ? c.items
+                : (c.itemIds ?? []).map((id) => CLOSET_ITEMS.find((i) => i.id === id)).filter(Boolean);
+              const dateLabel = c.dateStr
+                || (c.updatedAt ? new Date(c.updatedAt).toLocaleDateString("ko-KR", { month: "short", day: "numeric" }) : "");
+              return (
+                <div key={c.id} className="relative">
+                  <button
+                    onClick={() => setDetailOpen(c)}
+                    className="rounded-2xl overflow-hidden active:opacity-80"
+                    style={{ display: "block", position: "relative" }}
+                  >
+                    {/* StyleBoardTemplate thumbnail — 165px wide, 4:5 */}
+                    <StyleBoardTemplate
+                      photoUrl={c.thumbnail ?? c.photoUrl ?? null}
+                      items={thumbItems}
+                      width={165}
+                      style={{ borderRadius: 0 }}
+                    />
+                    {/* Title gradient overlay */}
+                    <div
+                      className="absolute inset-0 pointer-events-none"
+                      style={{ background: "linear-gradient(to top, rgba(0,0,0,0.70) 0%, transparent 50%)" }}
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5">
+                      <p className="text-white text-[11px] font-bold truncate" style={{ fontFamily: FONT }}>
+                        {c.title || "제목 없음"}
+                      </p>
+                      <p className="text-[9px] mt-0.5" style={{ color: "rgba(255,255,255,0.55)", fontFamily: FONT }}>
+                        {dateLabel}
+                      </p>
                     </div>
-                  )}
-                  <div
-                    className="absolute inset-0"
-                    style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 55%)" }}
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
-                    <p className="text-white text-[12px] font-bold truncate" style={{ fontFamily: FONT }}>
-                      {c.title || "제목 없음"}
-                    </p>
-                    <p className="text-[9px] mt-0.5" style={{ color: "rgba(255,255,255,0.55)", fontFamily: FONT }}>
-                      {c.dateStr || (c.updatedAt ? new Date(c.updatedAt).toLocaleDateString("ko-KR", { month: "short", day: "numeric" }) : "")}
-                    </p>
-                  </div>
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setDeleteConfirm(c.id); }}
-                  className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
-                >
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                    <path d="M2 2L8 8M8 2L2 8" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
-                  </svg>
-                </button>
-              </div>
-            ))}
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setDeleteConfirm(c.id); }}
+                    className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+                  >
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path d="M2 2L8 8M8 2L2 8" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
         <div style={{ height: 24 }} />
@@ -1383,8 +1539,13 @@ function MyStylebooksScreen({ onBack, onItemTap }) {
         <StylebookDetailScreen
           coordi={detailOpen}
           onBack={() => setDetailOpen(null)}
+          onEdit={onEditStyle ? (c) => { setDetailOpen(null); onEditStyle(c); } : undefined}
           onDelete={(id) => handleDelete(id)}
           onItemTap={onItemTap}
+          onMakeStyle={onMakeStyle ? (item) => {
+            setDetailOpen(null);
+            onMakeStyle(item);
+          } : undefined}
         />
       )}
 
@@ -1475,15 +1636,15 @@ function RecentRecordsSection({ records, onTap }) {
 
 // ─── Most Worn ────────────────────────────────────────────────────────────────
 
-function MostWornSection({ onItemTap }) {
+function MostWornSection({ onItemTap, history = {} }) {
   const sorted = useMemo(() => {
-    const freq = getItemWearFrequency();
+    const freq = getItemWearFrequency(history);
     return dedupeByImage(
       CLOSET_ITEMS
         .filter((item) => freq.has(item.id))
         .sort((a, b) => (freq.get(b.id) ?? 0) - (freq.get(a.id) ?? 0))
     ).slice(0, 8).map((item) => ({ item, count: freq.get(item.id) ?? 0 }));
-  }, []);
+  }, [history]);
 
   if (sorted.length === 0) return null;
   return (
@@ -1587,9 +1748,9 @@ function LaundrySection({ onItemTap }) {
 
 // ─── Not Worn ─────────────────────────────────────────────────────────────────
 
-function NotWornSection({ onItemTap }) {
+function NotWornSection({ onItemTap, history = {} }) {
   const sorted = useMemo(() => {
-    const lastWorn  = getItemLastWornDates();
+    const lastWorn  = getItemLastWornDates(history);
     const today     = localDateStr(new Date());
     return dedupeByImage(
       CLOSET_ITEMS
@@ -1602,9 +1763,9 @@ function NotWornSection({ onItemTap }) {
         .sort((a, b) => b.daysSince - a.daysSince)
         .map((d) => d.item)
     ).slice(0, 8);
-  }, []);
+  }, [history]);
 
-  const lastWorn = getItemLastWornDates();
+  const lastWorn = getItemLastWornDates(history);
   const today    = localDateStr(new Date());
 
   return (
@@ -1640,12 +1801,12 @@ function NotWornSection({ onItemTap }) {
 // A. ❄️  오래 안 입은 옷 N개 발견! 팔아서 돈을 버는 것은 어때요?
 // B. 🧺  세탁 타임! N개 아이템이 세탁 타임. 완료 표시로 착용 횟수를 리셋하세요
 
-function StyleTips({ onTipAction }) {
+function StyleTips({ onTipAction, history = {} }) {
   const [open, setOpen] = useState(false);
 
   const { longUnwornItems, laundryCount, laundryItems, topItems, wornCount } = useMemo(() => {
-    const lastWorn  = getItemLastWornDates();
-    const freqMap   = getItemWearFrequency();
+    const lastWorn  = getItemLastWornDates(history);
+    const freqMap   = getItemWearFrequency(history);
     const today     = localDateStr(new Date());
 
     const longUnwornItems = CLOSET_ITEMS.filter((item) => {
@@ -1669,7 +1830,7 @@ function StyleTips({ onTipAction }) {
     const wornCount = CLOSET_ITEMS.filter((i) => (freqMap.get(i.id) ?? 0) > 0).length;
 
     return { longUnwornItems, laundryCount: laundryRaw.length, laundryItems, topItems, wornCount };
-  }, []); // eslint-disable-line
+  }, [history]); // eslint-disable-line
 
   const tipCount = (longUnwornItems.length > 0 ? 1 : 0) + (laundryCount > 0 ? 1 : 0);
 
@@ -1803,58 +1964,127 @@ function StyleTips({ onTipAction }) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
-export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandled, prefilledItem, onPrefilledHandled }) {
+export default function RecordPage({
+  onItemSelect,
+  autoOpenFlow,
+  onAutoOpenHandled,
+  prefilledItem,
+  onPrefilledHandled,
+  editStyle,           // when set, open StylebookCreatorSheet in edit mode
+  onEditStyleHandled,  // call after consuming editStyle
+  onStyleSaved,        // called after any StylebookCreatorSheet saves → App.jsx increments stylesSavedTick
+}) {
   const TODAY = todayStr();
 
-  const [history,        setHistory]       = useState(() => getAllWearHistory());
-  const [stats,          setStats]         = useState(() => getWearStats());
+  // ── Supabase auth + wear logs + styles ──────────────────────────────────────
+  const { user } = useAuth();
+  const {
+    history,
+    stats,
+    loading: logsLoading,
+    saveLog,
+    removeLog,
+  } = useWearLogs(user?.id);
+  // styles for TodayCard + TodayStyles display (separate from MyStylebooksScreen's list)
+  const { styles: allStylesList, refresh: refreshStyles } = useStyles(user?.id);
+
   const [selectedDate,   setSelected]      = useState(null);
   const [showStreak,     setShowStreak]    = useState(false);
   const [stylebooksOpen, setStylebooksOpen] = useState(false);
   const [fullList,       setFullList]      = useState(null);
   const [styleFlowDate,  setStyleFlowDate]  = useState(null);
   const [stylebookData,  setStylebookData]  = useState(null);
+  const [editStyleData,  setEditStyleData]  = useState(null); // active style edit session
+  // makeStyleItem: when set, open StylebookCreatorSheet with this item pre-selected.
+  // This is the target for "+ 이 아이템으로 스타일 만들기" buttons everywhere.
+  const [makeStyleItem,  setMakeStyleItem]  = useState(null);
   // Use a ref (not state) so the value is available synchronously on the very
   // next render triggered by setStyleFlowDate, before React has a chance to
   // null out the parent prop via onPrefilledHandled.
   const prefilledItemRef = useRef(null);
 
-  // When the home screen's "기록 시작하기" fires
+  // When the home screen's "기록 시작하기" fires — always open NEW style creation
+  // (skip openDayRecord so existing wear history never triggers DayRecordSheet)
   useEffect(() => {
     if (autoOpenFlow) {
-      openDayRecord(TODAY);
+      setStyleFlowDate(TODAY);
       onAutoOpenHandled?.();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoOpenFlow]);
 
   // When "이 아이템으로 스타일 만들기" fires from ClosetItemDetailScreen.
-  // Write to ref first (synchronous) then trigger the render — the ref is
-  // guaranteed to be set when StyleRecordFlow evaluates its initialStep prop.
+  // Open StylebookCreatorSheet directly with the item pre-selected.
   useEffect(() => {
     if (prefilledItem) {
-      prefilledItemRef.current = prefilledItem;
-      setStyleFlowDate(TODAY);
+      setMakeStyleItem(prefilledItem);
       onPrefilledHandled?.();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefilledItem]);
 
-  function refresh() {
-    setHistory(getAllWearHistory());
-    setStats(getWearStats());
-  }
+  // When a style edit is requested (e.g. from TodayRecordCard on HomePage)
+  useEffect(() => {
+    if (editStyle) {
+      setEditStyleData(editStyle);
+      onEditStyleHandled?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editStyle]);
 
-  function handleSave(dateStr, record) {
-    saveWearRecord(dateStr, record);
-    refresh();
+  async function handleSave(dateStr, record) {
+    await saveLog(dateStr, record);
     setSelected(null);
   }
 
   // StyleRecordFlow save — record comes pre-built from DraftStep
-  function handleStyleFlowSave(dateStr, record) {
-    saveWearRecord(dateStr, record);
-    refresh();
+  async function handleStyleFlowSave(dateStr, record) {
+    // 1. Save to wear_logs (existing behavior)
+    await saveLog(dateStr, record);
+
+    // 2. ALSO save to styles table so it appears in TodayCard / useStyles
+    if (user?.id) {
+      // Upload photo to storage if it's a data: URL
+      let finalPhotoUrl = record.photoUrl ?? null;
+      if (finalPhotoUrl && !finalPhotoUrl.startsWith("http")) {
+        const { url: uploadedUrl } = await uploadStylePhoto(user.id, finalPhotoUrl);
+        if (uploadedUrl) finalPhotoUrl = uploadedUrl;
+        // If upload fails, fall back to null (data URLs are too large for DB text column)
+        else finalPhotoUrl = null;
+      }
+
+      // Build style_items carrying image + name from CLOSET_ITEMS mock lookup
+      const styleItems = (record.itemIds ?? []).map((id) => {
+        const item = CLOSET_ITEMS.find((i) => i.id === id);
+        return {
+          clothingItemId: id,
+          imageUrl:       item?.image ?? item?.image_url ?? null,
+          name:           item?.name ?? item?.displayName ?? null,
+        };
+      });
+
+      console.log("[handleStyleFlowSave] saving to styles table:", { dateStr, photoUrl: finalPhotoUrl, itemCount: styleItems.length });
+
+      const { error: saveErr } = await createStyle(user.id, {
+        title:          `${formatDateLabel(dateStr)} 스타일`,
+        date_str:       dateStr,
+        background_url: finalPhotoUrl,   // DB column is background_url
+        mood:           record.mood ?? null,
+        custom_mood:    record.customMood ?? null,
+        template_id:    "board",
+        // bg_color column does not exist in styles table — omit
+        is_public:      false,
+      }, styleItems);
+
+      if (saveErr) {
+        console.warn("[handleStyleFlowSave] styles save failed:", saveErr.message);
+        showToast("스타일 저장에 실패했어요 (" + saveErr.message + ")", "error");
+      } else {
+        console.log("[handleStyleFlowSave] styles save OK — awaiting refreshStyles");
+        await refreshStyles();   // await so TodayCard updates before Done step shows
+        onStyleSaved?.();
+      }
+    }
     // Stay on "done" step — user closes from there
   }
 
@@ -1868,10 +2098,14 @@ export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandl
     }
   }
 
-  function handleDelete(dateStr) {
-    deleteWearRecord(dateStr);
-    refresh();
+  async function handleDelete(dateStr) {
+    await removeLog(dateStr);
     setSelected(null);
+  }
+
+  // Start StylebookCreatorSheet with a pre-selected item (from SimilarClosetScreen path)
+  function startStyleWithItem(item) {
+    setMakeStyleItem(item);
   }
 
   // ── StatsRow tap routing ──────────────────────────────────────────────────
@@ -1879,7 +2113,7 @@ export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandl
     if (key === "streak") {
       setShowStreak(true);
     } else if (key === "items") {
-      const freq = getItemWearFrequency();
+      const freq = getItemWearFrequency(history);
       const sorted = CLOSET_ITEMS
         .filter((i) => freq.has(i.id))
         .sort((a, b) => (freq.get(b.id) ?? 0) - (freq.get(a.id) ?? 0));
@@ -1907,7 +2141,7 @@ export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandl
         <div style={{ width: 34 }} />
         <h1 className="text-[17px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>기록</h1>
         <button
-          onClick={() => openDayRecord(TODAY)}
+          onClick={() => setStyleFlowDate(TODAY)}
           className="w-[34px] h-[34px] flex items-center justify-center rounded-full active:opacity-70"
           style={{ backgroundColor: "#F5F5F5" }}
         >
@@ -1920,10 +2154,11 @@ export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandl
       {/* ── Scroll body ── */}
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
 
-        {/* 1. 오늘은 무엇을 입었나요 */}
+        {/* 1. 오늘의 스타일 현황 — Supabase styles 기반 (wear_log 아님) */}
         <TodayCard
-          todayRecord={history[TODAY] ?? null}
-          onTap={() => openDayRecord(TODAY)}
+          todayStyles={(allStylesList ?? []).filter((s) => s.dateStr === TODAY)}
+          onNewStyle={() => setStyleFlowDate(TODAY)}
+          onEditStyle={(style) => setEditStyleData(style)}
         />
 
         {/* 2. 스타일 인사이트 + 스타일북 */}
@@ -1940,7 +2175,7 @@ export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandl
         <StreakBanner stats={stats} onTap={() => setShowStreak(true)} />
 
         {/* 5. 내 스타일 관리 팁 (토글) */}
-        <StyleTips onTipAction={(data) => setFullList(data)} />
+        <StyleTips history={history} onTipAction={(data) => setFullList(data)} />
 
         <div style={{ height: 24 }} />
       </div>
@@ -1952,7 +2187,7 @@ export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandl
         <StyleRecordFlow
           dateStr={styleFlowDate}
           onSave={handleStyleFlowSave}
-          onClose={() => { setStyleFlowDate(null); prefilledItemRef.current = null; }}
+          onClose={() => { setStyleFlowDate(null); prefilledItemRef.current = null; refreshStyles(); }}
           onOpenStylebook={(itemIds, photoUrl, dateStr) => {
             setStylebookData({ itemIds, photoUrl, dateStr });
           }}
@@ -1974,6 +2209,8 @@ export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandl
           onSave={() => {
             setStylebookData(null);
             setStyleFlowDate(null);
+            refreshStyles();
+            onStyleSaved?.();
           }}
           onClose={() => setStylebookData(null)}
         />
@@ -1996,10 +2233,47 @@ export default function RecordPage({ onItemSelect, autoOpenFlow, onAutoOpenHandl
           onBack={() => setShowStreak(false)}
         />
       )}
+      {/* StylebookCreatorSheet — "이 아이템으로 스타일 만들기" from ClosetItemDetailScreen */}
+      {makeStyleItem && !editStyleData && (
+        <StylebookCreatorSheet
+          initialItems={[makeStyleItem]}
+          dateStr={TODAY}
+          onSave={() => {
+            setMakeStyleItem(null);
+            refreshStyles();
+            onStyleSaved?.();
+          }}
+          onClose={() => setMakeStyleItem(null)}
+        />
+      )}
+
+      {/* StylebookCreatorSheet — edit-mode (from TodayRecordCard or MyStylebooks edit button) */}
+      {editStyleData && (
+        <StylebookCreatorSheet
+          itemIds={editStyleData.itemIds ?? []}
+          dateStr={editStyleData.dateStr ?? TODAY}
+          editStyle={editStyleData}
+          onSave={() => {
+            setEditStyleData(null);
+            refreshStyles();
+            onStyleSaved?.();
+          }}
+          onClose={() => setEditStyleData(null)}
+        />
+      )}
+
       {stylebooksOpen && (
         <MyStylebooksScreen
           onBack={() => setStylebooksOpen(false)}
           onItemTap={onItemSelect}
+          onMakeStyle={(item) => {
+            setStylebooksOpen(false);
+            startStyleWithItem(item);
+          }}
+          onEditStyle={(style) => {
+            setStylebooksOpen(false);
+            setEditStyleData(style);
+          }}
         />
       )}
       {fullList && (

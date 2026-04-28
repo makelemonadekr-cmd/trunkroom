@@ -17,7 +17,11 @@ import {
   setTempPref,
   TEMP_PREF_LABELS,
 } from "../../services/weatherRecommendation";
-import { getWearRecord, todayStr } from "../../lib/wearHistoryStore";
+import { useAuth }          from "../../hooks/useAuth.js";
+import { useWearLogs }      from "../../hooks/useWearLogs.js";
+import { useNotifications } from "../../hooks/useNotifications.js";
+import { useCloset }   from "../../hooks/useCloset.js";
+import { useStyles }   from "../../hooks/useStyles.js";
 import {
   MAIN_CATEGORIES,
   SUBCATEGORIES,
@@ -35,6 +39,17 @@ import {
   openExternalUrl, openMailTo, openTel,
 } from "../../constants/appConfig";
 import { zoneItemImg, zoneCoordiImg } from "../../lib/localImages";
+import StyleBoardTemplate from "../../components/StyleBoardTemplate.jsx";
+
+// ─── Date helper ──────────────────────────────────────────────────────────────
+/** 오늘 날짜를 로컬 타임존 기준 YYYY-MM-DD 문자열로 반환. */
+function todayStr() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
 
 // ─── 2 banner slides ──────────────────────────────────────────────────────────
 // Order: [0] mainimage (→ introducing), [1] banner2 (→ guide)
@@ -108,28 +123,38 @@ function DetailScreen({ detailKey, onBack }) {
 // • Not recorded → yellow gradient with camera + CTA copy
 // • Recorded     → dark card with item grid + "오늘의 코디 완성!" badge
 
-function TodayRecordCard({ onRecordToday }) {
-  const todayRecord = getWearRecord(todayStr());
-  const hasRecord   = !!todayRecord;
+function TodayRecordCard({ onRecordToday, todayRecord: todayRecordProp, closetItems: closetItemsProp, todayStyle, todayStyles: todayStylesProp = [], onEditStyle }) {
+  const todayRecord = todayRecordProp ?? null;
+  // Support both single todayStyle (legacy) and array todayStyles
+  const todayStyles = todayStylesProp.length > 0 ? todayStylesProp
+    : todayStyle ? [todayStyle]
+    : [];
+  // "recorded" if we have saved styles OR a wear_log entry
+  const hasRecord   = todayStyles.length > 0 || !!todayRecord;
   const FONT = "'Spoqa Han Sans Neo', sans-serif";
 
-  // Gather item images for the "recorded" state
-  const recordedItems = hasRecord
-    ? (todayRecord.itemIds ?? [])
-        .map((id) => CLOSET_ITEMS.find((i) => i.id === id))
-        .filter(Boolean)
-        .slice(0, 4)
-    : [];
+  // Closet lookup: use real items from Supabase if available, else mock
+  const allItems = (closetItemsProp && closetItemsProp.length > 0) ? closetItemsProp : CLOSET_ITEMS;
+
+  // Wear-log items fallback (when no style exists)
+  const wearLogIds = todayRecord?.itemIds ?? [];
+  const recordedItems = wearLogIds
+    .map((id) => allItems.find((i) => i.id === id))
+    .filter(Boolean)
+    .slice(0, 4);
 
   return (
     <div className="px-4 pt-4 pb-1">
       <button
         className="relative w-full overflow-hidden rounded-2xl active:opacity-90"
         style={{ aspectRatio: "1 / 1", display: "block", border: "1.5px solid #E8E8E8" }}
-        onClick={onRecordToday}
+        onClick={() => {
+          if (todayStyles.length > 0) onEditStyle?.(todayStyles[0]);
+          else onRecordToday?.();
+        }}
       >
         {hasRecord ? (
-          /* ── Recorded state ── */
+          /* ── Recorded state: always shows yellow bracket frame ── */
           <>
             {/* Beige background */}
             <div className="absolute inset-0" style={{ background: "linear-gradient(160deg, #FAF7F2 0%, #F3EDE3 100%)" }} />
@@ -141,74 +166,132 @@ function TodayRecordCard({ onRecordToday }) {
               </span>
             </div>
 
-            {/* Center: [ photos ] */}
+            {/* Center: StyleBoardTemplate (or item photos) inside yellow brackets */}
             <div className="absolute" style={{
               top: 42, bottom: 52, left: 0, right: 0,
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             }}>
-              {/* Left bracket */}
-              <svg width="22" height="184" viewBox="0 0 22 184" fill="none" style={{ flexShrink: 0 }}>
-                <path d="M20 3 H3 V181 H20" stroke="#F5C200" strokeWidth="5" strokeLinecap="square" strokeLinejoin="miter"/>
+              {/* Left bracket — 249 px tall to frame the 4:5 style board */}
+              <svg width="22" height="249" viewBox="0 0 22 249" fill="none" style={{ flexShrink: 0 }}>
+                <path d="M20 3 H3 V246 H20" stroke="#F5C200" strokeWidth="5" strokeLinecap="square" strokeLinejoin="miter"/>
               </svg>
 
-              {/* Photos */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                {recordedItems.length > 0 ? (
-                  recordedItems.slice(0, 2).map((item, idx) => (
-                    <div key={item.id} className="relative" style={{
-                      width: 132, height: 176,
-                      borderRadius: 10, overflow: "hidden",
-                      backgroundColor: "#E8E2D8",
-                      flexShrink: 0,
-                    }}>
-                      {item.image && (
-                        <img src={item.image} alt={item.name}
-                          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
-                      )}
-                      {idx === 1 && recordedItems.length > 2 && (
-                        <div className="absolute inset-0 flex items-end justify-center pb-2"
-                          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)" }}>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.85)", fontFamily: FONT }}>
-                            +{recordedItems.length - 2}개 더
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  ))
-                ) : todayRecord.photoUrl ? (
-                  <div style={{ width: 132, height: 176, borderRadius: 10, overflow: "hidden", flexShrink: 0 }}>
-                    <img src={todayRecord.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              {/* Content inside brackets */}
+              {todayStyles.length > 0 ? (
+                /*
+                 * 저장된 스타일이 1개 이상 → StyleBoardTemplate 가로 스크롤
+                 * 각 카드 클릭 → 해당 스타일 edit mode
+                 * 맨 끝 + 버튼 → 새 스타일 추가
+                 */
+                <div
+                  style={{
+                    display: "flex", gap: 6,
+                    overflowX: "auto", scrollbarWidth: "none",
+                    maxWidth: 283,           // 브래킷 안쪽 가용 폭
+                    alignItems: "center",
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {todayStyles.map((style) => {
+                    // Prefer real items carried from Supabase style_items; fall back to mock lookup
+                    const styleItems = (style.items && style.items.length > 0)
+                      ? style.items
+                      : (style.itemIds ?? []).map((id) => allItems.find((i) => i.id === id)).filter(Boolean);
+                    return (
+                      <div
+                        key={style.id}
+                        style={{ flexShrink: 0, cursor: "pointer" }}
+                        onClick={(e) => { e.stopPropagation(); onEditStyle?.(style); }}
+                      >
+                        <StyleBoardTemplate
+                          photoUrl={style.photoUrl ?? null}
+                          items={styleItems}
+                          width={todayStyles.length === 1 ? 199 : 150}
+                          style={{ borderRadius: 8 }}
+                        />
+                      </div>
+                    );
+                  })}
+                  {/* 새 스타일 추가 버튼 */}
+                  <div
+                    style={{
+                      flexShrink: 0, width: 52,
+                      height: todayStyles.length === 1 ? 249 : 188,
+                      borderRadius: 8,
+                      backgroundColor: "rgba(0,0,0,0.06)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      cursor: "pointer",
+                    }}
+                    onClick={(e) => { e.stopPropagation(); onRecordToday?.(); }}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path d="M10 4V16M4 10H16" stroke="#AAAAAA" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
                   </div>
-                ) : (
-                  <span style={{ fontSize: 52 }}>👗</span>
-                )}
-              </div>
+                </div>
+              ) : recordedItems.length > 0 ? (
+                /*
+                 * Wear-log만 있고 style 없는 경우 → StyleBoardTemplate으로 표시
+                 * (photoUrl=null이면 왼쪽 👗 placeholder, 오른쪽 아이템 그리드)
+                 */
+                <StyleBoardTemplate
+                  photoUrl={null}
+                  items={recordedItems}
+                  width={199}
+                  style={{ borderRadius: 8, flexShrink: 0 }}
+                />
+              ) : (
+                <span style={{ fontSize: 52 }}>👗</span>
+              )}
 
               {/* Right bracket */}
-              <svg width="22" height="184" viewBox="0 0 22 184" fill="none" style={{ flexShrink: 0 }}>
-                <path d="M2 3 H19 V181 H2" stroke="#F5C200" strokeWidth="5" strokeLinecap="square" strokeLinejoin="miter"/>
+              <svg width="22" height="249" viewBox="0 0 22 249" fill="none" style={{ flexShrink: 0 }}>
+                <path d="M2 3 H19 V246 H2" stroke="#F5C200" strokeWidth="5" strokeLinecap="square" strokeLinejoin="miter"/>
               </svg>
             </div>
 
-            {/* Bottom: 등록 완료 centered + 수정하기 absolute right */}
+            {/* Bottom: style title / count OR 등록완료 badge */}
             <div className="absolute bottom-4 left-4 right-4 flex items-center justify-center">
-              <div className="flex items-center gap-2">
-                <div style={{
-                  width: 17, height: 17, borderRadius: 4,
-                  backgroundColor: "#F5C200",
-                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                }}>
-                  <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
-                    <path d="M1.5 5L3.8 7.5L8.5 2.5" stroke="#1a1a1a" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+              {todayStyles.length > 1 ? (
+                <div className="text-center">
+                  <p className="text-[12px] font-bold" style={{ color: "#1a1a1a", fontFamily: FONT }}>
+                    오늘 스타일 {todayStyles.length}개
+                  </p>
+                  <p className="text-[10px] mt-0.5" style={{ color: "rgba(0,0,0,0.35)", fontFamily: FONT }}>
+                    탭하여 수정 · + 로 추가
+                  </p>
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#1a1a1a", fontFamily: FONT }}>
-                  오늘의 스타일 등록 완료!
-                </span>
-              </div>
+              ) : todayStyles.length === 1 ? (
+                <div className="text-center">
+                  <p className="text-[12px] font-bold truncate" style={{ color: "#1a1a1a", fontFamily: FONT, maxWidth: 240 }}>
+                    {todayStyles[0].title || "오늘의 스타일"}
+                  </p>
+                  {todayStyles[0].itemIds?.length > 0 && (
+                    <p className="text-[10px] mt-0.5" style={{ color: "rgba(0,0,0,0.35)", fontFamily: FONT }}>
+                      {todayStyles[0].itemIds.length}개 아이템
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <div style={{
+                    width: 17, height: 17, borderRadius: 4,
+                    backgroundColor: "#F5C200",
+                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                  }}>
+                    <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
+                      <path d="M1.5 5L3.8 7.5L8.5 2.5" stroke="#1a1a1a" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#1a1a1a", fontFamily: FONT }}>
+                    오늘의 스타일 등록 완료!
+                  </span>
+                </div>
+              )}
             </div>
+
             <span className="absolute" style={{ bottom: 18, right: 16, fontSize: 10, color: "rgba(0,0,0,0.25)", fontFamily: FONT }}>
-              수정하기 →
+              {todayStyles.length > 1 ? "전체보기 →" : "수정하기 →"}
             </span>
           </>
         ) : (
@@ -257,7 +340,7 @@ function TodayRecordCard({ onRecordToday }) {
                   오늘의 착장을<br />기록해보세요
                 </p>
                 <p className="text-[13px] mt-2 leading-relaxed" style={{ color: "rgba(0,0,0,0.45)", fontFamily: FONT }}>
-                  사진을 찍거나 아이템을 선택해<br />나만의 코디를 남겨보세요
+                  사진을 찍거나 아이템을 선택해<br />나만의 스타일을 남겨보세요
                 </p>
               </div>
               {/* CTA pill */}
@@ -511,8 +594,10 @@ function ClosetMiniCardDark({ item, onTap }) {
 
 // ─── Inline closet filter panel (expands inside recommendation card) ──────────
 
-function ClosetItemsByPiece({ piece, onItemTap }) {
-  const items = filterClosetItemsByPiece(piece);
+// closetItems: real items passed from WeatherSection (normalised to mock shape).
+// Falls back to CLOSET_ITEMS mock data when null/undefined.
+function ClosetItemsByPiece({ piece, onItemTap, closetItems }) {
+  const items = filterClosetItemsByPiece(piece, closetItems ?? undefined);
 
   return (
     <div
@@ -585,9 +670,20 @@ const TEMP_PREFS = [
   { key: "warm",   label: "더위 탐", emoji: "🔥" },
 ];
 
-function WeatherSection({ onExpand, onItemTap }) {
+// closetItems: real user closet items from Supabase (passed from HomePage root).
+// Currently the weather recommendation copy (outfit.keyword / pieces) is still mock-based.
+// Passing real closetItems through here makes it trivial to switch the piece-filter panel
+// from CLOSET_ITEMS → real data when ready — just remove the `?? undefined` fallback below.
+function WeatherSection({ onExpand, onItemTap, closetItems }) {
   const { weather, loading } = useWeather();
   const [selectedPiece, setSelectedPiece] = useState(null);
+
+  // Normalise real items to mock shape so ClosetMiniCardDark renders correctly.
+  // If no real items yet, effectiveClosetItems is null → ClosetItemsByPiece falls back to mock.
+  const effectiveClosetItems =
+    closetItems && closetItems.length > 0
+      ? closetItems.map((item) => ({ ...item, image: item.image ?? item.image_url }))
+      : null;
 
   // Skeleton while loading
   if (loading && !weather) {
@@ -793,7 +889,11 @@ function WeatherSection({ onExpand, onItemTap }) {
 
           {/* ── Inline closet items (expands when piece is tapped) ── */}
           {selectedPiece && (
-            <ClosetItemsByPiece piece={selectedPiece} onItemTap={onItemTap} />
+            <ClosetItemsByPiece
+              piece={selectedPiece}
+              onItemTap={onItemTap}
+              closetItems={effectiveClosetItems}
+            />
           )}
         </div>
       </div>
@@ -1700,7 +1800,7 @@ function Footer({ onLegalOpen }) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
-export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGoToRecord, onGoToDiscover }) {
+export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGoToRecord, onGoToDiscover, onEditStyle, onMakeStyle, stylesSavedTick = 0 }) {
   const [activeDetail,    setActiveDetail]    = useState(null);
   const [weatherOpen,     setWeatherOpen]     = useState(false);
   const [fullList,        setFullList]        = useState(null); // { title, items }
@@ -1708,6 +1808,30 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
   const [favoritesOpen,     setFavoritesOpen]     = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [selectedOutfit,    setSelectedOutfit]    = useState(null);
+
+  // ── Real data for today's outfit card ──────────────────────────────────────
+  const { user }                              = useAuth();
+  const { history }                           = useWearLogs(user?.id);
+  const { items: closetItems }                = useCloset(user?.id);
+  const {
+    notifications,
+    unreadCount:   notifUnread,
+    markRead:      notifMarkRead,
+    markAllRead:   notifMarkAllRead,
+    loading:       notifLoading,
+  } = useNotifications(user?.id);
+  const { styles, refresh: refreshStyles }    = useStyles(user?.id);
+  const todayRecord  = history[todayStr()] ?? null;
+  // All saved styles for today — supports multiple styles per day
+  const todayStyles  = (styles ?? []).filter((s) => s.dateStr === todayStr());
+  // backward-compat single ref (first/latest style)
+  const todayStyle   = todayStyles[0] ?? null;
+
+  // Re-fetch styles whenever RecordPage saves a style (tick increments in App.jsx)
+  useEffect(() => {
+    if (stylesSavedTick > 0) refreshStyles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stylesSavedTick]);
 
   function handleOutfitTap(outfitId) {
     const outfit = OUTFIT_DATA.find((o) => o.id === outfitId);
@@ -1807,7 +1931,14 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
     <div className="relative flex flex-col h-full bg-white overflow-hidden">
       {/* Outfit detail overlay (style book taps) */}
       {selectedOutfit && (
-        <OutfitDetailScreen outfit={selectedOutfit} onBack={() => setSelectedOutfit(null)} />
+        <OutfitDetailScreen
+          outfit={selectedOutfit}
+          onBack={() => setSelectedOutfit(null)}
+          onMakeStyle={onMakeStyle ? (item) => {
+            setSelectedOutfit(null);
+            onMakeStyle(item);
+          } : undefined}
+        />
       )}
 
       {/* Detail screen overlay (banner taps) */}
@@ -1848,12 +1979,16 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
         <NotificationCenterScreen
           onBack={() => setNotificationsOpen(false)}
           onAction={handleNotificationAction}
+          notifications={notifications}
+          markRead={notifMarkRead}
+          markAllRead={notifMarkAllRead}
+          loading={notifLoading}
         />
       )}
 
 
       <TopBar
-        notificationCount={4}
+        notificationCount={notifUnread}
         onSearchTap={() => setSearchOpen(true)}
         onFavoritesOpen={() => setFavoritesOpen(true)}
         onNotificationsOpen={() => setNotificationsOpen(true)}
@@ -1865,12 +2000,20 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
         <BannerCarousel onBannerTap={(key) => setActiveDetail(key)} />
 
         {/* ② Today's outfit record — square card, no weather */}
-        <TodayRecordCard onRecordToday={onGoToRecord} />
+        <TodayRecordCard
+          onRecordToday={onGoToRecord}
+          todayRecord={todayRecord}
+          closetItems={closetItems}
+          todayStyle={todayStyle}
+          todayStyles={todayStyles}
+          onEditStyle={onEditStyle}
+        />
 
         {/* ③ Weather + outfit recommendation (tap pieces to find closet items) */}
         <WeatherSection
           onExpand={() => setWeatherOpen(true)}
           onItemTap={onItemTap}
+          closetItems={closetItems}
         />
 
         {/* ④ My closet by category */}

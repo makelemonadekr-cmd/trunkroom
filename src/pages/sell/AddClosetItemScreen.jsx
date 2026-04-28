@@ -9,8 +9,12 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import AutoDetectLoadingState from "../../components/AutoDetectLoadingState.jsx";
 import AutoDetectedBadge      from "../../components/AutoDetectedBadge.jsx";
 import { runUploadPipeline }  from "../../lib/uploadClothing.js";
-import { addClosetItem }      from "../../lib/closetStore.js";
 import { validateImageFile, compressImage } from "../../lib/imageUtils.js";
+import { addClosetItem as saveToSupabase } from "../../services/closetService.js";
+import { useAuth }     from "../../hooks/useAuth.js";
+import { useAiUsage }  from "../../hooks/useAiUsage.js";
+import { showToast }   from "../../lib/toastUtils.js";
+import { getSession }  from "../../services/authService.js";
 
 const DARK   = "#1a1a1a";
 const YELLOW = "#F5C200";
@@ -268,6 +272,18 @@ function ChipGroup({ label, options, selected, onToggle, single = false, badge, 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function AddClosetItemScreen({ onClose, onSave, photoSource = null }) {
+  const { user } = useAuth();
+  const [accessToken, setAccessToken] = useState(null);
+
+  // Fetch session access token once on mount
+  useEffect(() => {
+    getSession().then(({ session }) => {
+      setAccessToken(session?.access_token ?? null);
+    });
+  }, []);
+
+  const { analyze: analyzeUsage, removeBg: removeBgUsage, refresh: refreshUsage } = useAiUsage(accessToken);
+
   // Photos
   const [photos,         setPhotos]         = useState([]);       // array of base64 strings
   const [displayMime,    setDisplayMime]     = useState("image/jpeg");
@@ -343,8 +359,11 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
       await runUploadPipeline(uploadFile, {
         onBgStart:      () => setPipelineState("removing_bg"),
         onAnalyzeStart: () => setPipelineState("analyzing"),
+        accessToken,
         onDone: (result) => {
           setPipelineState("done");
+          // Refresh remaining count after pipeline completes
+          refreshUsage();
 
           // Set the display image
           setPhotos([result.displayBase64]);
@@ -423,35 +442,45 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
 
   // ── Save ──────────────────────────────────────────────────────────────────
 
-  function handleSave() {
-    const newItem = {
-      id:          Date.now(),
+  async function handleSave() {
+    if (!user) {
+      showToast("아이템 저장은 로그인 후 이용할 수 있어요", "warning");
+      return;
+    }
+
+    const formData = {
       name:        name || "새 아이템",
       brand,
       color,
-      material,
-      customMood:  customMood.trim() || null,
+      desc,
       subCategory,
       category:    CATEGORIES.find((c) => c.id === category)?.label ?? "상의",
-      image:       photos[0] ? `data:${displayMime};base64,${photos[0]}` : null,
       condition,
-      price:       price ? parseInt(price.replace(/,/g, ""), 10) : 0,
+      price,
       seasons,
       styleTags,
-      bgRemoved,
-      autoDetected,
-      needsReview,
-      photoSource,
-      addedAt:     new Date().toISOString(),
     };
 
-    addClosetItem(newItem);
+    setSaved(true);   // show checkmark / loading state immediately
 
-    setSaved(true);
+    const { error: saveErr } = await saveToSupabase(
+      user.id,
+      formData,
+      photos[0] ?? null,   // raw base64, no data: prefix
+      displayMime,
+    );
+
+    if (saveErr) {
+      setSaved(false);
+      console.error("[AddClosetItemScreen] 저장 실패:", saveErr.message);
+      // TODO: show global toast
+      return;
+    }
+
     setTimeout(() => {
       onSave?.();
       onClose?.();
-    }, 800);
+    }, 600);
   }
 
   // ── Build 6-slot grid ─────────────────────────────────────────────────────
@@ -563,6 +592,33 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
               첫 번째 사진이 대표 이미지
             </span>
           </div>
+          {/* AI usage remaining pill */}
+          {accessToken && (
+            <div className="flex gap-2 mb-3">
+              <span
+                className="text-[10px] px-2 py-0.5 rounded-full"
+                style={{
+                  backgroundColor: removeBgUsage.remaining > 0 ? "#F0FFF4" : "#FFF0F0",
+                  color:           removeBgUsage.remaining > 0 ? "#276749" : "#C53030",
+                  fontFamily:      "'Spoqa Han Sans Neo', sans-serif",
+                  border:          `1px solid ${removeBgUsage.remaining > 0 ? "#C6F6D5" : "#FED7D7"}`,
+                }}
+              >
+                배경 제거 {removeBgUsage.remaining}/{removeBgUsage.limit}회 남음
+              </span>
+              <span
+                className="text-[10px] px-2 py-0.5 rounded-full"
+                style={{
+                  backgroundColor: analyzeUsage.remaining > 0 ? "#EBF8FF" : "#FFF0F0",
+                  color:           analyzeUsage.remaining > 0 ? "#2C5282" : "#C53030",
+                  fontFamily:      "'Spoqa Han Sans Neo', sans-serif",
+                  border:          `1px solid ${analyzeUsage.remaining > 0 ? "#BEE3F8" : "#FED7D7"}`,
+                }}
+              >
+                AI 분석 {analyzeUsage.remaining}/{analyzeUsage.limit}회 남음
+              </span>
+            </div>
+          )}
           <div className="grid grid-cols-3 gap-2">
             {slots.map((img, i) => (
               <PhotoSlot

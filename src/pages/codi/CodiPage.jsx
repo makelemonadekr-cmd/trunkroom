@@ -5,7 +5,7 @@ import { OUTFIT_DATA, getOutfitsByStyleAndSeason } from "../../constants/mockOut
 import OutfitDetailScreen from "../../components/OutfitDetailScreen";
 import CoordiEditorPage from "./CoordiEditorPage";
 import LazyImage from "../../components/LazyImage";
-import { isLiked, getLikeCount, toggleLike } from "../../lib/likesStore";
+import { useLikes } from "../../lib/likesContext";
 
 const DARK   = "#1a1a1a";
 const YELLOW = "#F5C200";
@@ -13,15 +13,13 @@ const YELLOW = "#F5C200";
 // ─── Outfit card ──────────────────────────────────────────────────────────────
 
 function OutfitCard({ board, onTap }) {
-  // Initialise from persisted store so state survives page switches / remounts
-  const [liked, setLiked] = useState(() => isLiked(board.id));
-  const [likes, setLikes] = useState(() => getLikeCount(board.id, board.likes));
+  const { isLiked, getCount, toggleLike } = useLikes();
+  const liked = isLiked(board.id);
+  const likes = getCount(board.id, board.likes);
 
   function handleLike(e) {
     e.stopPropagation();
-    const result = toggleLike(board.id, board.likes);
-    setLiked(result.liked);
-    setLikes(result.count);
+    toggleLike(board.id, board.likes);
   }
 
   return (
@@ -200,7 +198,7 @@ export default function CodiPage() {
             className="text-[12px] font-bold text-white"
             style={{ fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
           >
-            내 코디 만들기
+            스타일 작성
           </span>
         </button>
       </div>

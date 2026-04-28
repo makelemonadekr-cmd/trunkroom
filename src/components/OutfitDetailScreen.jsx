@@ -27,6 +27,7 @@ import { useState } from "react";
 import { CLOSET_ITEMS } from "../constants/mockClosetData";
 import LazyImage from "./LazyImage";
 import SimilarClosetScreen from "./SimilarClosetScreen";
+import StyleBoardTemplate from "./StyleBoardTemplate";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
@@ -34,130 +35,7 @@ const YELLOW = "#F5C200";
 const CREAM  = "#F5F2EC";   // warm cream — makes white product-shot BGs disappear
                              // via mix-blend-mode: multiply
 
-// ─── Coordi Board ─────────────────────────────────────────────────────────────
-// Renders the style composition:
-//   [STYLE PHOTO] | [ITEM CUTOUTS — 2-col grid, cream bg, multiply blend]
-// This is the closest achievable representation of "BG-removed items layered
-// over the style reference" without a server-side removal API.
-
-function CoordiBoardSection({ styleImage, items, onItemTap }) {
-  const boardItems = items.slice(0, 4);  // up to 4 item slots in the grid
-
-  return (
-    <div className="mx-4 mb-4 rounded-2xl overflow-hidden" style={{ border: `1px solid #EBEBEB` }}>
-      {/* Section label */}
-      <div className="flex items-center justify-between px-3.5 py-2.5" style={{ borderBottom: "1px solid #EBEBEB", backgroundColor: "#FAFAFA" }}>
-        <div className="flex items-center gap-1.5">
-          <span style={{ fontSize: 13 }}>✨</span>
-          <p className="text-[11px] font-bold" style={{ color: DARK, fontFamily: FONT }}>코디 보드</p>
-        </div>
-        <p className="text-[10px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>
-          스타일 + 아이템 합성
-        </p>
-      </div>
-
-      {/* Composition area */}
-      <div className="flex" style={{ height: 210, backgroundColor: CREAM }}>
-
-        {/* Left — style reference image (the "스타일" folder image) */}
-        <div
-          className="relative shrink-0 overflow-hidden"
-          style={{ width: "48%", borderRight: "2px solid rgba(255,255,255,0.6)" }}
-        >
-          <LazyImage
-            src={styleImage}
-            alt="style reference"
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              objectPosition: "center top",
-            }}
-            crossOrigin="anonymous"
-          />
-          {/* Subtle label overlay */}
-          <div
-            className="absolute bottom-0 left-0 right-0 px-2 py-1.5"
-            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)" }}
-          >
-            <p className="text-[8px] font-bold text-white uppercase tracking-wide" style={{ fontFamily: FONT }}>
-              Style Ref
-            </p>
-          </div>
-        </div>
-
-        {/* Right — item cutouts from 클로스/옷 folder (mix-blend-mode: multiply) */}
-        <div
-          className="flex-1 grid grid-cols-2"
-          style={{ gap: 2, padding: 2, backgroundColor: CREAM }}
-        >
-          {boardItems.length > 0 ? (
-            boardItems.map((item, idx) => (
-              <button
-                key={item.id}
-                onClick={() => onItemTap?.(item)}
-                className="relative overflow-hidden active:opacity-80"
-                style={{ borderRadius: 8, backgroundColor: CREAM }}
-              >
-                {/* Item image — mix-blend-mode:multiply makes white bg transparent */}
-                <img
-                  src={item.image}
-                  alt={item.displayName ?? item.name}
-                  crossOrigin="anonymous"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    objectPosition: "center top",
-                    mixBlendMode: "multiply",
-                    display: "block",
-                  }}
-                />
-                {/* Tap hint on item */}
-                <div
-                  className="absolute inset-0 flex items-end opacity-0 hover:opacity-100 active:opacity-100"
-                  style={{ background: "linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 60%)" }}
-                >
-                  <p className="text-[7px] font-bold text-white px-1.5 pb-1.5 truncate w-full" style={{ fontFamily: FONT }}>
-                    {item.subCategory ?? item.subcategory}
-                  </p>
-                </div>
-              </button>
-            ))
-          ) : (
-            // Placeholder slots when no items resolved
-            Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: "#ECEAE4" }}>
-                <span style={{ fontSize: 20, opacity: 0.25 }}>👗</span>
-              </div>
-            ))
-          )}
-
-          {/* Empty slots if fewer than 4 items */}
-          {boardItems.length > 0 && boardItems.length < 4 &&
-            Array.from({ length: 4 - boardItems.length }).map((_, i) => (
-              <div key={`empty-${i}`} className="rounded-lg"
-                style={{ backgroundColor: "#ECEAE4", opacity: 0.4 }} />
-            ))
-          }
-        </div>
-      </div>
-
-      {/* Bottom hint */}
-      <div className="px-3.5 py-2 flex items-center gap-1.5" style={{ backgroundColor: "#F8F8F6", borderTop: "1px solid #EBEBEB" }}>
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-          <circle cx="5" cy="5" r="4" stroke="#CCCCCC" strokeWidth="1" />
-          <path d="M5 4.5V7" stroke="#CCCCCC" strokeWidth="1.2" strokeLinecap="round" />
-          <circle cx="5" cy="3.5" r="0.5" fill="#CCCCCC" />
-        </svg>
-        <p className="text-[9px]" style={{ color: "#BBBBBB", fontFamily: FONT }}>
-          아이템을 탭하면 상세 정보를 볼 수 있어요
-        </p>
-      </div>
-    </div>
-  );
-}
+// CoordiBoardSection removed — replaced by StyleBoardTemplate
 
 // ─── Item row (clickable) ─────────────────────────────────────────────────────
 function ItemRow({ item, last = false, onTap }) {
@@ -214,7 +92,7 @@ function ItemRow({ item, last = false, onTap }) {
 }
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
-export default function OutfitDetailScreen({ outfit, onBack, onItemTap }) {
+export default function OutfitDetailScreen({ outfit, onBack, onItemTap, onMakeStyle }) {
   const [liked,       setLiked]       = useState(false);
   const [likes,       setLikes]       = useState(outfit.likes ?? 0);
   const [similarOpen, setSimilarOpen] = useState(false);
@@ -321,12 +199,14 @@ export default function OutfitDetailScreen({ outfit, onBack, onItemTap }) {
       {/* ── Scrollable body ── */}
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
 
-        {/* ── 2. Coordi Board — style photo + item cutouts composition ── */}
-        <div className="pt-4">
-          <CoordiBoardSection
-            styleImage={outfit.previewImage}
+        {/* ── 2. Style Board — outfit photo + item cards ── */}
+        <div className="px-4 pt-4 pb-4">
+          <StyleBoardTemplate
+            photoUrl={outfit.previewImage}
             items={displayItems}
-            onItemTap={onItemTap}
+            width={375 - 32}   // 375px shell minus 16px side padding × 2
+            showText={false}
+            style={{ borderRadius: 16 }}
           />
         </div>
 
@@ -401,6 +281,10 @@ export default function OutfitDetailScreen({ outfit, onBack, onItemTap }) {
           wornItems={displayItems}
           onBack={() => setSimilarOpen(false)}
           onItemTap={(item) => { setSimilarOpen(false); onItemTap?.(item); }}
+          onMakeStyle={onMakeStyle ? (item) => {
+            setSimilarOpen(false);
+            onMakeStyle(item);
+          } : undefined}
         />
       )}
     </div>

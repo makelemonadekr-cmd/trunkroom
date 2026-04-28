@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 @layer base {
   * {
     -webkit-tap-highlight-color: transparent;

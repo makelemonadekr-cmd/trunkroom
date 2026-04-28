@@ -6,6 +6,22 @@
  * Secret keys never leave the server.
  */
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Convert a File/Blob to a raw base64 string (no data-URL prefix). */
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => {
+      const result = reader.result;
+      // Strip "data:<mime>;base64," prefix
+      resolve(result.includes(",") ? result.split(",")[1] : result);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 // ─── Background removal ───────────────────────────────────────────────────────
 
 /**
@@ -21,12 +37,14 @@
  *   error:             string|null,
  * }>}
  */
-export async function uploadForBgRemoval(file) {
+export async function uploadForBgRemoval(file, accessToken = null) {
   const form = new FormData();
   form.append("image", file);
 
+  const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
   const res = await fetch("/api/remove-background", {
     method: "POST",
+    headers,
     body: form,
   });
 
@@ -48,10 +66,13 @@ export async function uploadForBgRemoval(file) {
  * @param {string} mimeType    — e.g. "image/jpeg" or "image/png"
  * @returns {Promise<ClothingAnalysis>}
  */
-export async function analyzeClothingImage(imageBase64, mimeType = "image/jpeg") {
+export async function analyzeClothingImage(imageBase64, mimeType = "image/jpeg", accessToken = null) {
   const res = await fetch("/api/analyze-clothing", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    },
     body: JSON.stringify({ imageBase64, mimeType }),
   });
 
@@ -89,33 +110,51 @@ export async function runUploadPipeline(file, {
   onAnalyzeStart = () => {},
   onDone         = () => {},
   onError        = () => {},
+  accessToken    = null,
 } = {}) {
+  // Read the file once so we always have the original base64
+  const originalBase64   = await fileToBase64(file);
+  const originalMimeType = file.type || "image/jpeg";
+
   try {
-    // Step 1 — background removal
+    // Step 1 — background removal (best-effort; continue with original if server is down)
     onBgStart();
-    const bgResult = await uploadForBgRemoval(file);
+    let bgResult;
+    try {
+      bgResult = await uploadForBgRemoval(file, accessToken);
+    } catch (bgErr) {
+      console.warn("[uploadPipeline] bg removal unavailable, using original:", bgErr.message);
+      bgResult = {
+        bgRemoved:        false,
+        originalBase64,
+        originalMimeType,
+        processedBase64:  null,
+        processedMimeType: "image/png",
+        error:            bgErr.message,
+      };
+    }
 
-    const displayBase64  = bgResult.bgRemoved && bgResult.processedBase64
+    const displayBase64   = bgResult.bgRemoved && bgResult.processedBase64
       ? bgResult.processedBase64
-      : bgResult.originalBase64;
-    const displayMimeType = bgResult.bgRemoved ? "image/png" : bgResult.originalMimeType;
+      : originalBase64;
+    const displayMimeType = bgResult.bgRemoved ? "image/png" : originalMimeType;
 
-    // Step 2 — AI analysis (using the display image)
+    // Step 2 — AI analysis (best-effort; continue without if server is down)
     onAnalyzeStart();
     let analysis = null;
     try {
-      analysis = await analyzeClothingImage(displayBase64, displayMimeType);
+      analysis = await analyzeClothingImage(displayBase64, displayMimeType, accessToken);
     } catch (analysisErr) {
-      console.warn("[uploadPipeline] analysis failed, continuing without:", analysisErr.message);
+      console.warn("[uploadPipeline] analysis unavailable:", analysisErr.message);
       analysis = { success: false, error: analysisErr.message, needsReview: true };
     }
 
     const result = {
-      originalBase64:   bgResult.originalBase64,
-      originalMimeType: bgResult.originalMimeType,
+      originalBase64,
+      originalMimeType,
       displayBase64,
       displayMimeType,
-      bgRemoved:        bgResult.bgRemoved,
+      bgRemoved: bgResult.bgRemoved,
       analysis,
     };
 

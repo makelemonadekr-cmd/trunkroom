@@ -18,7 +18,7 @@
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-export const MAX_UPLOAD_BYTES     = 20 * 1024 * 1024; // 20 MB
+export const MAX_UPLOAD_BYTES     = 10 * 1024 * 1024; // 10 MB
 export const MAX_COMPRESSED_DIM   = 1200;              // px — max side after compression
 export const COMPRESS_QUALITY     = 0.85;              // JPEG quality for uploads
 export const THUMBNAIL_DIM        = 400;               // px — coordi thumbnails
@@ -69,7 +69,7 @@ export function unsplashSrcSet(baseUrl) {
 export function validateImageFile(file) {
   if (!file) return { valid: false, error: "파일이 없어요" };
   if (file.size > MAX_UPLOAD_BYTES) {
-    return { valid: false, error: `파일 크기는 20MB 이하여야 해요 (현재: ${(file.size / 1024 / 1024).toFixed(1)}MB)` };
+    return { valid: false, error: `파일 크기는 10MB 이하여야 해요 (현재: ${(file.size / 1024 / 1024).toFixed(1)}MB)` };
   }
   // HEIC/HEIF check by extension (MIME type may be application/octet-stream on some browsers)
   const ext = file.name.split(".").pop()?.toLowerCase();

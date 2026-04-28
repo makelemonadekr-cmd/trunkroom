@@ -1,10 +1,6 @@
 import { useState } from "react";
-import {
-  getAllWearHistory,
-  saveWearRecord,
-  deleteWearRecord,
-  getWearStats,
-} from "../../lib/wearHistoryStore";
+import { useAuth }     from "../../hooks/useAuth.js";
+import { useWearLogs } from "../../hooks/useWearLogs.js";
 import { CLOSET_ITEMS } from "../../constants/mockClosetData";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
@@ -389,14 +385,10 @@ export default function CalendarPage() {
   const [year,  setYear]  = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth()); // 0-based
 
-  const [history,      setHistory]      = useState(() => getAllWearHistory());
-  const [stats,        setStats]        = useState(() => getWearStats());
   const [selectedDate, setSelectedDate] = useState(null); // "YYYY-MM-DD" | null
 
-  function refresh() {
-    setHistory(getAllWearHistory());
-    setStats(getWearStats());
-  }
+  const { user }                                = useAuth();
+  const { history, stats, saveLog, removeLog }  = useWearLogs(user?.id);
 
   function prevMonth() {
     if (month === 0) { setYear((y) => y - 1); setMonth(11); }
@@ -427,15 +419,13 @@ export default function CalendarPage() {
     setSelectedDate(dateStr);
   }
 
-  function handleSave(dateStr, record) {
-    saveWearRecord(dateStr, record);
-    refresh();
+  async function handleSave(dateStr, record) {
+    await saveLog(dateStr, record);
     setSelectedDate(null);
   }
 
-  function handleDelete(dateStr) {
-    deleteWearRecord(dateStr);
-    refresh();
+  async function handleDelete(dateStr) {
+    await removeLog(dateStr);
     setSelectedDate(null);
   }
 

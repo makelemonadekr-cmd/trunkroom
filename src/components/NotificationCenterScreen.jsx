@@ -10,10 +10,7 @@
  */
 
 import { useState } from "react";
-import {
-  ALL_NOTIFICATIONS,
-  BADGE_CONFIG,
-} from "../lib/mockNotifications";
+import { BADGE_CONFIG } from "../lib/mockNotifications";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
@@ -190,41 +187,41 @@ function EmptyState() {
 }
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
-export default function NotificationCenterScreen({ onBack, onAction }) {
+/**
+ * Props:
+ *   onBack        () => void
+ *   onAction      (notification) => void
+ *   notifications Object[]   — from useNotifications hook (already has isRead)
+ *   markRead      (key) => void
+ *   markAllRead   (sourceGroup) => void
+ *   loading       boolean
+ */
+export default function NotificationCenterScreen({
+  onBack,
+  onAction,
+  notifications = [],
+  markRead,
+  markAllRead,
+  loading = false,
+}) {
   const [activeTab, setActiveTab] = useState("my"); // "my" | "others"
 
-  // Local copy so we can toggle isRead without a global store
-  const [notifications, setNotifications] = useState(() =>
-    ALL_NOTIFICATIONS.map((n) => ({ ...n }))
-  );
-
-  const myItems    = notifications.filter((n) => n.sourceGroup === "my_closet");
-  const otherItems = notifications.filter((n) => n.sourceGroup === "other_closet");
-  const myUnread   = myItems.filter((n) => !n.isRead).length;
+  const myItems     = notifications.filter((n) => n.sourceGroup === "my_closet");
+  const otherItems  = notifications.filter((n) => n.sourceGroup === "other_closet");
+  const myUnread    = myItems.filter((n) => !n.isRead).length;
   const otherUnread = otherItems.filter((n) => !n.isRead).length;
   const totalUnread = myUnread + otherUnread;
 
   const current = activeTab === "my" ? myItems : otherItems;
 
-  function markRead(id) {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
-    );
-  }
-
-  function markAllRead() {
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n.sourceGroup === (activeTab === "my" ? "my_closet" : "other_closet")
-          ? { ...n, isRead: true }
-          : n
-      )
-    );
-  }
-
   function handleTap(notification) {
-    markRead(notification.id);
+    markRead?.(notification.key);
     onAction(notification);
+  }
+
+  function handleMarkAllRead() {
+    const group = activeTab === "my" ? "my_closet" : "other_closet";
+    markAllRead?.(group);
   }
 
   const tabs = [
@@ -265,7 +262,7 @@ export default function NotificationCenterScreen({ onBack, onAction }) {
 
         {/* Mark all read for current tab */}
         <button
-          onClick={markAllRead}
+          onClick={handleMarkAllRead}
           className="px-2 py-1"
         >
           <span
@@ -330,12 +327,16 @@ export default function NotificationCenterScreen({ onBack, onAction }) {
 
       {/* ── Notification list ── */}
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
-        {current.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="rounded-full" style={{ width: 24, height: 24, border: "3px solid #F5C200", borderTopColor: "transparent", animation: "spin 0.7s linear infinite" }} />
+          </div>
+        ) : current.length === 0 ? (
           <EmptyState />
         ) : (
           <>
             {current.map((n) => (
-              <NotificationCard key={n.id} notification={n} onTap={handleTap} />
+              <NotificationCard key={n.key ?? n.id} notification={n} onTap={handleTap} />
             ))}
             <div style={{ height: 24 }} />
           </>

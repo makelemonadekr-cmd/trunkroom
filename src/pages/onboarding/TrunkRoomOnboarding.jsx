@@ -4,9 +4,9 @@ const DARK_BG = "#313439";
 const TEXT_DARK = "#333333";
 
 const SLIDES = [
-  { id: 1, src: "/onboarding-1.png" },
-  { id: 2, src: "/onboarding-2.png" },
-  { id: 3, src: "/onboarding-3.png" },
+  { id: 1, src: "/onboarding1.png" },
+  { id: 2, src: "/onboarding2.png" },
+  { id: 3, src: "/onboarding3.png" },
 ];
 
 function StatusBar() {

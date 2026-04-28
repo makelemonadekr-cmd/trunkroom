@@ -7,7 +7,8 @@
  * All functions return { data, error } matching Supabase conventions.
  */
 
-import { supabase } from "../lib/supabase";
+import { supabase }       from "../lib/supabase.js";
+import { ensureProfile }  from "./profileService.js";
 
 // ─── Sign Up ─────────────────────────────────────────────────────────────────
 
@@ -32,6 +33,14 @@ export async function signUp(email, password, displayName) {
       },
     },
   });
+
+  // When email confirmation is disabled, Supabase returns a session immediately.
+  // Create the profiles row right away so the app can read it without hitting PGRST116.
+  // (The DB trigger handles this too; ensureProfile is a belt-and-suspenders fallback.)
+  if (!error && data?.session && data?.user) {
+    await ensureProfile(data.user.id, displayName || null);
+  }
+
   return { data, error };
 }
 
@@ -87,6 +96,61 @@ export async function getSession() {
 export async function getCurrentUser() {
   const { data, error } = await supabase.auth.getUser();
   return { user: data?.user ?? null, error };
+}
+
+// ─── Password Reset ───────────────────────────────────────────────────────────
+
+/**
+ * Send a password-reset email.
+ * After clicking the link, the user lands on the app with a recovery session
+ * — useAuth will fire PASSWORD_RECOVERY and surface isPasswordRecovery = true.
+ *
+ * @param {string} email
+ * @returns {Promise<{ data, error }>}
+ */
+export async function resetPassword(email) {
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+  });
+  return { data, error };
+}
+
+/**
+ * Update the current user's password.
+ * Must be called while an active session (or PASSWORD_RECOVERY session) exists.
+ *
+ * @param {string} newPassword
+ * @returns {Promise<{ data, error }>}
+ */
+export async function updatePassword(newPassword) {
+  const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+  return { data, error };
+}
+
+/**
+ * Update the current user's email.
+ * Supabase sends a confirmation link to the new address.
+ * The change only takes effect after the link is clicked.
+ *
+ * @param {string} newEmail
+ * @returns {Promise<{ data, error }>}
+ */
+export async function updateEmail(newEmail) {
+  const { data, error } = await supabase.auth.updateUser({ email: newEmail });
+  return { data, error };
+}
+
+// ─── Account Deletion ─────────────────────────────────────────────────────────
+
+/**
+ * Permanently delete the current user's account and all associated data.
+ * Invokes the `delete-account` Supabase Edge Function which runs with service_role.
+ *
+ * @returns {Promise<{ data, error }>}
+ */
+export async function deleteAccount() {
+  const { data, error } = await supabase.functions.invoke("delete-account");
+  return { data, error };
 }
 
 // ─── Auth State Listener ──────────────────────────────────────────────────────

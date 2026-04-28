@@ -12,9 +12,12 @@ import PrivacyPolicyScreen from "./pages/legal/PrivacyPolicyScreen";
 import TermsOfServiceScreen from "./pages/legal/TermsOfServiceScreen";
 import BottomNav from "./components/BottomNav";
 import AuthScreen from "./features/auth/AuthScreen";
-import { useAuth } from "./hooks/useAuth";
-import { signOut } from "./services/authService";
+import { useAuth } from "./hooks/useAuth.js";
+import { signOut } from "./services/authService.js";
 
+const FONT         = "'Spoqa Han Sans Neo', sans-serif";
+const DARK         = "#1a1a1a";
+const YELLOW       = "#F5C200";
 const ONBOARDING_KEY = "trunkroom_onboarded";
 
 function PlaceholderPage({ title }) {
@@ -22,7 +25,7 @@ function PlaceholderPage({ title }) {
     <div className="flex items-center justify-center h-full bg-white">
       <p
         className="text-[16px]"
-        style={{ color: "#999", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+        style={{ color: "#999", fontFamily: FONT }}
       >
         {title} 화면 준비 중
       </p>
@@ -30,23 +33,166 @@ function PlaceholderPage({ title }) {
   );
 }
 
+// ─── Auth Gate Modal (bottom sheet) ──────────────────────────────────────────
+
+function AuthGateModal({ onLogin, onDismiss }) {
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 z-[100]"
+        style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+        onClick={onDismiss}
+      />
+
+      {/* Sheet */}
+      <div
+        className="absolute bottom-0 left-0 right-0 z-[101] bg-white"
+        style={{ borderRadius: "24px 24px 0 0", padding: "20px 20px 28px" }}
+      >
+        {/* Handle bar */}
+        <div className="flex justify-center mb-5">
+          <div
+            className="rounded-full"
+            style={{ width: 36, height: 4, backgroundColor: "#E0E0E0" }}
+          />
+        </div>
+
+        {/* Icon */}
+        <div className="flex justify-center mb-4">
+          <div
+            className="flex items-center justify-center rounded-full"
+            style={{ width: 52, height: 52, backgroundColor: "#FFF9E0" }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="8" r="4" stroke={YELLOW} strokeWidth="1.8" />
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={YELLOW} strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          </div>
+        </div>
+
+        <p
+          className="text-[17px] font-bold text-center mb-2"
+          style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}
+        >
+          로그인이 필요해요
+        </p>
+        <p
+          className="text-[13px] text-center mb-6"
+          style={{ color: "#888888", fontFamily: FONT, lineHeight: 1.65, whiteSpace: "pre-line" }}
+        >
+          {"이 기능은 로그인 후 사용할 수 있어요.\n로그인하고 내 옷장을 만들어볼까요?"}
+        </p>
+
+        {/* Login button */}
+        <button
+          onClick={onLogin}
+          className="w-full flex items-center justify-center rounded-2xl font-bold active:opacity-80 mb-2"
+          style={{
+            height:          52,
+            backgroundColor: YELLOW,
+            color:           DARK,
+            fontFamily:      FONT,
+            fontSize:        15,
+          }}
+        >
+          로그인하기
+        </button>
+
+        {/* Dismiss button */}
+        <button
+          onClick={onDismiss}
+          className="w-full flex items-center justify-center rounded-2xl active:opacity-60"
+          style={{
+            height:          48,
+            backgroundColor: "#F5F5F5",
+            color:           "#888888",
+            fontFamily:      FONT,
+            fontSize:        14,
+          }}
+        >
+          계속 둘러보기
+        </button>
+      </div>
+    </>
+  );
+}
+
+// ─── App ─────────────────────────────────────────────────────────────────────
+
 export default function App() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, isPasswordRecovery, clearPasswordRecovery } = useAuth();
 
   const [phase, setPhase] = useState(
     () => (localStorage.getItem(ONBOARDING_KEY) ? "app" : "onboarding")
   );
   const [activeTab,        setActiveTab]        = useState("home");
-  const [currentProduct,   setCurrentProduct]   = useState(null);  // for-sale products → ProductDetailPage
-  const [currentItem,      setCurrentItem]       = useState(null);  // closet items → ClosetItemDetailScreen
-  const [legalScreen,      setLegalScreen]       = useState(null);  // null | "privacy" | "terms"
-  const [autoOpenFlow,     setAutoOpenFlow]      = useState(false); // trigger StyleRecordFlow in RecordPage
-  const [discoverTab,      setDiscoverTab]       = useState(null);  // initial sub-tab for DiscoveryPage
-  const [styleFlowItem,    setStyleFlowItem]     = useState(null);  // prefilled item → StyleRecordFlow draft
+  const [currentProduct,   setCurrentProduct]   = useState(null);
+  const [currentItem,      setCurrentItem]       = useState(null);
+  const [legalScreen,      setLegalScreen]       = useState(null);
+  const [autoOpenFlow,     setAutoOpenFlow]      = useState(false);
+  const [discoverTab,      setDiscoverTab]       = useState(null);
+  const [styleFlowItem,    setStyleFlowItem]     = useState(null);
+  const [editStylePending, setEditStylePending]  = useState(null);
+  const [closetKey,        setClosetKey]         = useState(0);
+  const [stylesSavedTick,  setStylesSavedTick]   = useState(0);
+
+  // ── Guest mode: auth gate modal + AuthScreen overlay ─────────────────────────
+  const [showAuthGate,   setShowAuthGate]   = useState(false);
+  const [showAuthScreen, setShowAuthScreen] = useState(false);
+  const pendingActionRef = useRef(null);
+
+  /**
+   * requireAuth(action)
+   * If the user is logged in, run action() immediately.
+   * Otherwise, store it and show the auth gate modal.
+   */
+  function requireAuth(action) {
+    if (user) {
+      action();
+    } else {
+      pendingActionRef.current = action;
+      setShowAuthGate(true);
+    }
+  }
+
+  // ── Logout / Login state management ──────────────────────────────────────────
+  const prevUserRef = useRef(undefined);
+  useEffect(() => {
+    if (authLoading) return;
+    const prevUser = prevUserRef.current;
+    prevUserRef.current = user;
+
+    if (prevUser != null && user === null) {
+      // ── User just signed out → reset state ──────────────────────────────────
+      setCurrentProduct(null);
+      setCurrentItem(null);
+      setLegalScreen(null);
+      setAutoOpenFlow(false);
+      setDiscoverTab(null);
+      setStyleFlowItem(null);
+      setEditStylePending(null);
+      setActiveTab("home");
+      setClosetKey(0);
+      setShowAuthGate(false);
+      setShowAuthScreen(false);
+      pendingActionRef.current = null;
+    }
+
+    if (prevUser === null && user != null) {
+      // ── User just signed in → close auth screens + run pending action ────────
+      setShowAuthScreen(false);
+      setShowAuthGate(false);
+      if (pendingActionRef.current) {
+        pendingActionRef.current();
+        pendingActionRef.current = null;
+      }
+    }
+  }, [user, authLoading]);
 
   // ── Global toast ─────────────────────────────────────────────────────────────
-  const [toast,     setToast]     = useState(null);  // { message, type }
-  const toastTimer                = useRef(null);
+  const [toast,    setToast]    = useState(null);
+  const toastTimer              = useRef(null);
 
   useEffect(() => {
     const handler = (e) => {
@@ -62,6 +208,8 @@ export default function App() {
     };
   }, []);
 
+  // ── Handlers ─────────────────────────────────────────────────────────────────
+
   const handleOnboardingComplete = () => {
     localStorage.setItem(ONBOARDING_KEY, "1");
     setPhase("app");
@@ -71,6 +219,11 @@ export default function App() {
     setCurrentProduct(null);
     setCurrentItem(null);
     setDiscoverTab(null);
+    // closet and record tabs require login
+    if ((tab === "closet" || tab === "record") && !user) {
+      requireAuth(() => setActiveTab(tab));
+      return;
+    }
     setActiveTab(tab);
   }
 
@@ -81,12 +234,35 @@ export default function App() {
     setActiveTab("discover");
   }
 
-  // Called from HomePage's "기록 시작하기" — switch to record tab and open flow directly
   function handleStartStyleFlow() {
-    setCurrentProduct(null);
-    setCurrentItem(null);
-    setActiveTab("record");
-    setAutoOpenFlow(true);
+    requireAuth(() => {
+      setCurrentProduct(null);
+      setCurrentItem(null);
+      setActiveTab("record");
+      setAutoOpenFlow(true);
+    });
+  }
+
+  function handleEditStyle(style) {
+    requireAuth(() => {
+      setCurrentProduct(null);
+      setCurrentItem(null);
+      setEditStylePending(style);
+      setActiveTab("record");
+    });
+  }
+
+  function handleStyleSaved() {
+    setStylesSavedTick((n) => n + 1);
+  }
+
+  function handleMakeStyleWithItem(item) {
+    requireAuth(() => {
+      setCurrentProduct(null);
+      setCurrentItem(null);
+      setStyleFlowItem(item);
+      setActiveTab("record");
+    });
   }
 
   if (phase === "onboarding") {
@@ -105,9 +281,6 @@ export default function App() {
           [4] Home pill    — shrink-0, 22 px  (iPhone home indicator)
 
         Heights: 44 + flex-1 + 60 + 22 = 812  →  flex-1 = 686 px
-        BottomNav top  = 44 + 686 = 730 px from top  (82 px from bottom)
-        BottomNav bottom = 730 + 60 = 790 px from top (22 px from bottom)
-        Corner-radius 44 clips at x ≈ 0 px at y = 790 → zero clip on tab content ✓
       */}
       <div
         className="relative overflow-hidden shadow-2xl flex flex-col"
@@ -150,7 +323,7 @@ export default function App() {
         {/* ── [2] Page area ────────────────────────────────────────── */}
         <div className="relative flex-1 min-h-0 overflow-hidden bg-white">
 
-          {/* ── Auth loading state ── */}
+          {/* ── Auth loading spinner ── */}
           {authLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-white z-50">
               <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style={{ animation: "spin 0.8s linear infinite" }}>
@@ -159,73 +332,131 @@ export default function App() {
             </div>
           )}
 
-          {/* ── Not authenticated → show login/signup ── */}
-          {!authLoading && !user && <AuthScreen />}
+          {/* ── Pages (always rendered once auth has resolved) ── */}
+          {!authLoading && (<>
 
-          {/* ── Authenticated → existing app ── */}
-          {!authLoading && user && <>
-          {activeTab === "home"   && (
-            <HomePage
-              onProductSelect={setCurrentProduct}
-              onItemTap={setCurrentItem}
-              onLegalOpen={(type) => setLegalScreen(type)}
-              onGoToRecord={handleStartStyleFlow}
-              onGoToDiscover={handleGoToDiscover}
-            />
-          )}
-          {activeTab === "record" && (
-            <RecordPage
-              onItemSelect={setCurrentItem}
-              autoOpenFlow={autoOpenFlow}
-              onAutoOpenHandled={() => setAutoOpenFlow(false)}
-              prefilledItem={styleFlowItem}
-              onPrefilledHandled={() => setStyleFlowItem(null)}
-            />
-          )}
-          {activeTab === "closet" && (
-            <ClosetPage
-              onProductSelect={setCurrentProduct}
-              onItemTap={setCurrentItem}
-            />
-          )}
-          {activeTab === "discover" && <DiscoveryPage initialTab={discoverTab} />}
-          {activeTab === "menu"   && <MenuPage user={user} onSignOut={signOut} />}
+            {/* Home — public */}
+            {activeTab === "home" && (
+              <HomePage
+                onProductSelect={setCurrentProduct}
+                onItemTap={setCurrentItem}
+                onLegalOpen={(type) => setLegalScreen(type)}
+                onGoToRecord={handleStartStyleFlow}
+                onGoToDiscover={handleGoToDiscover}
+                onEditStyle={handleEditStyle}
+                onMakeStyle={handleMakeStyleWithItem}
+                stylesSavedTick={stylesSavedTick}
+              />
+            )}
 
-          {/* Closet item detail overlay — for any closet item tapped in the app */}
-          {currentItem && !currentProduct && (
-            <ClosetItemDetailScreen
-              item={currentItem}
-              onBack={() => setCurrentItem(null)}
-              onMakeStyle={(item) => {
-                setCurrentItem(null);
-                setStyleFlowItem(item);
-                setActiveTab("record");
-              }}
-            />
-          )}
+            {/* Discover — public */}
+            {activeTab === "discover" && (
+              <DiscoveryPage initialTab={discoverTab} />
+            )}
 
-          {/* Product detail overlay — for marketplace products */}
-          {currentProduct && (
-            <ProductDetailPage
-              product={currentProduct}
-              onBack={() => setCurrentProduct(null)}
-            />
-          )}
+            {/* Menu — public (shows limited content for guests) */}
+            {activeTab === "menu" && (
+              <MenuPage
+                user={user}
+                onSignOut={signOut}
+                onLoginRequest={() => {
+                  pendingActionRef.current = null;
+                  setShowAuthScreen(true);
+                }}
+              />
+            )}
 
-          {/* Legal screen overlays (triggered from footer or menu) */}
-          {legalScreen === "privacy" && (
-            <PrivacyPolicyScreen onBack={() => setLegalScreen(null)} />
-          )}
-          {legalScreen === "terms" && (
-            <TermsOfServiceScreen onBack={() => setLegalScreen(null)} />
-          )}
-          </>}
-          {/* ── end authenticated block ── */}
+            {/* Record — auth required */}
+            {activeTab === "record" && user && (
+              <RecordPage
+                onItemSelect={setCurrentItem}
+                autoOpenFlow={autoOpenFlow}
+                onAutoOpenHandled={() => setAutoOpenFlow(false)}
+                prefilledItem={styleFlowItem}
+                onPrefilledHandled={() => setStyleFlowItem(null)}
+                editStyle={editStylePending}
+                onEditStyleHandled={() => setEditStylePending(null)}
+                onStyleSaved={handleStyleSaved}
+              />
+            )}
+
+            {/* Closet — auth required */}
+            {activeTab === "closet" && user && (
+              <ClosetPage
+                key={closetKey}
+                onProductSelect={setCurrentProduct}
+                onItemTap={setCurrentItem}
+              />
+            )}
+
+            {/* Closet item detail overlay */}
+            {currentItem && !currentProduct && (
+              <ClosetItemDetailScreen
+                item={currentItem}
+                onBack={() => setCurrentItem(null)}
+                onDelete={() => {
+                  setCurrentItem(null);
+                  setClosetKey((k) => k + 1);
+                }}
+                onMemoSaved={() => setClosetKey((k) => k + 1)}
+                onMakeStyle={handleMakeStyleWithItem}
+              />
+            )}
+
+            {/* Product detail overlay */}
+            {currentProduct && (
+              <ProductDetailPage
+                product={currentProduct}
+                onBack={() => setCurrentProduct(null)}
+              />
+            )}
+
+            {/* Legal screen overlays */}
+            {legalScreen === "privacy" && (
+              <PrivacyPolicyScreen onBack={() => setLegalScreen(null)} />
+            )}
+            {legalScreen === "terms" && (
+              <TermsOfServiceScreen onBack={() => setLegalScreen(null)} />
+            )}
+
+            {/* ── Auth gate modal (bottom sheet) ── */}
+            {showAuthGate && (
+              <AuthGateModal
+                onLogin={() => {
+                  setShowAuthGate(false);
+                  setShowAuthScreen(true);
+                }}
+                onDismiss={() => {
+                  setShowAuthGate(false);
+                  pendingActionRef.current = null;
+                }}
+              />
+            )}
+
+            {/* ── AuthScreen overlay (full-screen, above everything) ── */}
+            {/* 비밀번호 재설정 링크 클릭 후 진입 OR 일반 로그인 요청 */}
+            {(showAuthScreen || isPasswordRecovery) && (
+              <div className="absolute inset-0 z-[150]">
+                <AuthScreen
+                  isPasswordRecovery={isPasswordRecovery}
+                  onPasswordResetDone={clearPasswordRecovery}
+                  onClose={isPasswordRecovery ? undefined : () => {
+                    setShowAuthScreen(false);
+                    pendingActionRef.current = null;
+                  }}
+                />
+              </div>
+            )}
+
+          </>)}
+          {/* ── end page area ── */}
 
         </div>
 
-        {/* ── [3] Bottom navigation — ALWAYS inside the phone ─────── */}
-        {!authLoading && user && <BottomNav active={activeTab} onTabChange={handleTabChange} />}
+        {/* ── [3] Bottom navigation — visible to all non-loading users ────────── */}
+        {!authLoading && (
+          <BottomNav active={activeTab} onTabChange={handleTabChange} />
+        )}
 
         {/* ── [4] iPhone home indicator ───────────────────────────── */}
         <div
@@ -275,7 +506,7 @@ export default function App() {
               )}
               <span
                 className="text-[13px] font-bold text-white"
-                style={{ fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+                style={{ fontFamily: FONT }}
               >
                 {toast.message}
               </span>

@@ -12,7 +12,6 @@ import TermsOfServiceScreen from "../legal/TermsOfServiceScreen";
 import EditProfilePage from "../account/EditProfilePage";
 import ManageUserInfoPage from "../account/ManageUserInfoPage";
 import LoginInfoPage from "../account/LoginInfoPage";
-import { clearUser } from "../../lib/userStore";
 
 const FONT    = "'Spoqa Han Sans Neo', sans-serif";
 const DARK    = "#1a1a1a";
@@ -165,7 +164,6 @@ export default function AccountSettingsScreen({ onBack }) {
   }
 
   function handleDeleteAccount() {
-    clearUser();
     setLoginInfoOpen(false);
     setLoggedOut(true);
   }

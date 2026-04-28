@@ -13,15 +13,12 @@
 
 import { useState, useMemo, useRef } from "react";
 import { OUTFIT_DATA, getOutfitsContainingItem } from "../constants/mockOutfitData";
-import {
-  getItemWearFrequency,
-  getItemLastWornDates,
-  getAllWearHistory,
-} from "../lib/wearHistoryStore";
 import OutfitDetailScreen from "./OutfitDetailScreen";
-import OutfitCanvasEditor from "./OutfitCanvasEditor";
 import { MAIN_CATEGORIES } from "../constants/mockClosetData";
 import { showToast } from "../lib/toastUtils";
+import { useAuth }         from "../hooks/useAuth.js";
+import { useWearLogs }     from "../hooks/useWearLogs.js";
+import { updateClosetItem, deleteClosetItem } from "../services/closetService.js";
 
 const FONT = "'Spoqa Han Sans Neo', sans-serif";
 const DARK = "#1a1a1a";
@@ -269,15 +266,16 @@ function SaleSection({ item, onShowPreview }) {
 }
 
 // ─── Wear history list ────────────────────────────────────────────────────────
-function WearHistorySection({ itemId }) {
+// `history` is the { [dateStr]: { itemIds, ... } } map from useWearLogs (Supabase).
+function WearHistorySection({ itemId, history: historyProp }) {
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const wornDates = useMemo(() => {
-    const store = getAllWearHistory();
+    const store = historyProp ?? {};
     return Object.keys(store)
       .filter((d) => (store[d].itemIds ?? []).includes(itemId))
       .sort((a, b) => b.localeCompare(a));
-  }, [itemId]);
+  }, [itemId, historyProp]);
 
   const wearCount = wornDates.length;
   const lastDate  = wornDates[0] ?? null;
@@ -393,19 +391,64 @@ function StylebookCard({ outfit, onTap }) {
 }
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
-export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMakeStyle }) {
+export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMakeStyle, onDelete, onMemoSaved }) {
+  const { user }                    = useAuth();
+  const { history }                 = useWearLogs(user?.id);
+
   const [activeOutfit,    setActiveOutfit]    = useState(null);
-  const [openCanvas,      setOpenCanvas]      = useState(false);
-  const [memo,            setMemo]            = useState(item.memo ?? "");
+  const [memo,            setMemo]            = useState(item.notes ?? item.memo ?? "");
   const [editingMemo,     setEditingMemo]     = useState(false);
+  const [savingMemo,      setSavingMemo]      = useState(false);
   const [showCopyPreview, setShowCopyPreview] = useState(false);
   const [generatedCopy,   setGeneratedCopy]   = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting,        setDeleting]        = useState(false);
   const memoRef = useRef(null);
 
   const todayStr = (() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   })();
+
+  // ── Memo save to Supabase ────────────────────────────────────────────────
+  async function handleMemoSave() {
+    setSavingMemo(true);
+    const { error } = await updateClosetItem(item.id, { notes: memo.trim() });
+    setSavingMemo(false);
+    setEditingMemo(false);
+    if (error) {
+      showToast("메모 저장에 실패했어요", "error");
+    } else {
+      showToast("메모가 저장되었어요 ✓", "success");
+      onMemoSaved?.();  // notify App.jsx to refresh closet list
+    }
+  }
+
+  // ── Delete item ──────────────────────────────────────────────────────────
+  async function handleDeleteConfirm() {
+    setDeleting(true);
+    const { error } = await deleteClosetItem(item.id);
+    setDeleting(false);
+    if (error) {
+      showToast("삭제에 실패했어요", "error");
+      setShowDeleteConfirm(false);
+    } else {
+      onDelete?.(item.id);
+      onBack?.();
+    }
+  }
+
+  // ── Timestamp label ──────────────────────────────────────────────────────
+  function formatTimestamp(ts) {
+    if (!ts) return "방금 등록";
+    const d    = new Date(ts);
+    const diff = Math.floor((Date.now() - d.getTime()) / 86400000);
+    if (diff === 0)  return "오늘 등록";
+    if (diff === 1)  return "어제 등록";
+    if (diff < 30)   return `${diff}일 전 등록`;
+    if (diff < 365)  return `${Math.floor(diff / 30)}개월 전 등록`;
+    return `${Math.floor(diff / 365)}년 전 등록`;
+  }
 
   const relatedOutfits = useMemo(
     () => getOutfitsContainingItem(item.id, item),
@@ -448,13 +491,26 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
             <path d="M12.5 4L7 10L12.5 16" stroke={DARK} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-        <button onClick={handleShare} className="w-9 h-9 flex items-center justify-center active:opacity-60">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M15 7L11 3L7 7" stroke="#333" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M11 3V13" stroke="#333" strokeWidth="1.6" strokeLinecap="round" />
-            <path d="M4 12V16C4 16.55 4.45 17 5 17H15C15.55 17 16 16.55 16 16V12" stroke="#333" strokeWidth="1.6" strokeLinecap="round" />
-          </svg>
-        </button>
+        <div className="flex items-center gap-1">
+          <button onClick={handleShare} className="w-9 h-9 flex items-center justify-center active:opacity-60">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M15 7L11 3L7 7" stroke="#333" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M11 3V13" stroke="#333" strokeWidth="1.6" strokeLinecap="round" />
+              <path d="M4 12V16C4 16.55 4.45 17 5 17H15C15.55 17 16 16.55 16 16V12" stroke="#333" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          </button>
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="w-9 h-9 flex items-center justify-center active:opacity-60"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M3 5H15" stroke="#CC3333" strokeWidth="1.6" strokeLinecap="round" />
+              <path d="M6 5V3H12V5" stroke="#CC3333" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M4 5L5 15H13L14 5" stroke="#CC3333" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M7.5 8V12M10.5 8V12" stroke="#CC3333" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* ── Scrollable body ── */}
@@ -478,7 +534,9 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
               {item.brand}
             </p>
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-[11px]" style={{ color: "#BBBBBB", fontFamily: FONT }}>방금 등록</span>
+              <span className="text-[11px]" style={{ color: "#BBBBBB", fontFamily: FONT }}>
+                {formatTimestamp(item.updated_at ?? item.updatedAt)}
+              </span>
               <span
                 className="text-[10px] font-bold px-2 py-0.5 rounded-sm text-white"
                 style={{ backgroundColor: condBg, fontFamily: FONT }}
@@ -546,7 +604,7 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
         </div>
 
         {/* 4. Wear stats + collapsible history */}
-        <WearHistorySection itemId={item.id} />
+        <WearHistorySection itemId={item.id} history={history} />
 
         {/* 5. Sale toggle + form */}
         <SaleSection
@@ -566,13 +624,20 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
             </div>
             <button
               onClick={() => {
-                setEditingMemo((v) => !v);
-                if (!editingMemo) setTimeout(() => memoRef.current?.focus(), 50);
+                if (editingMemo) {
+                  handleMemoSave();
+                } else {
+                  setEditingMemo(true);
+                  setTimeout(() => memoRef.current?.focus(), 50);
+                }
               }}
-              className="text-[11px] font-medium px-2.5 py-1 rounded-lg"
+              disabled={savingMemo}
+              className="text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1"
               style={{ backgroundColor: "#F5F5F5", color: "#888", fontFamily: FONT }}
             >
-              {editingMemo ? "완료" : "편집"}
+              {savingMemo ? (
+                <div style={{ width: 11, height: 11, border: "1.5px solid #888", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+              ) : (editingMemo ? "완료" : "편집")}
             </button>
           </div>
           <p className="text-[10px] mb-2" style={{ color: "#BBBBBB", fontFamily: FONT }}>
@@ -603,7 +668,7 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
             </div>
           ) : (
             <button
-              onClick={() => { setEditingMemo(true); setTimeout(() => memoRef.current?.focus(), 50); }}
+              onClick={() => { setEditingMemo(true); setTimeout(() => memoRef.current?.focus(), 60); }}
               className="w-full flex items-center gap-2 py-3 px-4 rounded-xl"
               style={{ backgroundColor: "#FAFAFA", border: "1px dashed #E0E0E0" }}
             >
@@ -670,7 +735,7 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
         <button
           className="w-full h-12 rounded-xl text-[14px] font-bold flex items-center justify-center gap-2"
           style={{ backgroundColor: DARK, color: "white", fontFamily: FONT }}
-          onClick={() => onMakeStyle ? onMakeStyle(item) : setOpenCanvas(true)}
+          onClick={() => onMakeStyle?.(item)}
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M8 3V13M3 8H13" stroke="white" strokeWidth="2" strokeLinecap="round" />
@@ -770,15 +835,44 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
         </div>
       )}
 
-      {/* ── OutfitCanvasEditor — pre-loaded with this item ── */}
-      {openCanvas && (
-        <div className="absolute inset-0 z-50">
-          <OutfitCanvasEditor
-            initialItemIds={[item.id]}
-            dateStr={todayStr}
-            onSave={() => setOpenCanvas(false)}
-            onClose={() => setOpenCanvas(false)}
-          />
+      {/* ── Delete confirmation sheet ── */}
+      {showDeleteConfirm && (
+        <div
+          className="absolute inset-0 z-[60] flex items-end"
+          style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+          onClick={() => !deleting && setShowDeleteConfirm(false)}
+        >
+          <div
+            className="w-full rounded-t-3xl bg-white px-5 pt-6 pb-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-[16px] font-bold text-center mb-1" style={{ color: DARK, fontFamily: FONT }}>
+              아이템을 삭제할까요?
+            </p>
+            <p className="text-[12px] text-center mb-6" style={{ color: "#AAAAAA", fontFamily: FONT }}>
+              삭제한 아이템은 복구할 수 없어요
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="flex-1 h-12 rounded-xl text-[14px] font-medium"
+                style={{ backgroundColor: "#F5F5F5", color: "#888", fontFamily: FONT }}
+              >
+                취소
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={deleting}
+                className="flex-1 h-12 rounded-xl text-[14px] font-bold flex items-center justify-center gap-2"
+                style={{ backgroundColor: "#E84040", color: "white", fontFamily: FONT }}
+              >
+                {deleting ? (
+                  <div style={{ width: 16, height: 16, border: "2px solid white", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+                ) : "삭제"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

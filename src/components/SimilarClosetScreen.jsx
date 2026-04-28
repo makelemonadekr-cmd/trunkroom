@@ -119,7 +119,7 @@ function CategorySection({ category, items, onItemTap }) {
 }
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
-export default function SimilarClosetScreen({ wornItems = [], onBack, onItemTap }) {
+export default function SimilarClosetScreen({ wornItems = [], onBack, onItemTap, onMakeStyle }) {
   const [selectedItem, setSelectedItem] = useState(null);
 
   const similar = useMemo(
@@ -217,6 +217,10 @@ export default function SimilarClosetScreen({ wornItems = [], onBack, onItemTap 
         <ClosetItemDetailScreen
           item={selectedItem}
           onBack={() => setSelectedItem(null)}
+          onMakeStyle={onMakeStyle ? (item) => {
+            setSelectedItem(null);
+            onMakeStyle(item);
+          } : undefined}
         />
       )}
     </div>

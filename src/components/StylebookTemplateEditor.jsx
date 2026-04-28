@@ -227,6 +227,7 @@ export default function StylebookTemplateEditor({
   items = [],
   layerOrders = null,
   width = 280,
+  template = 'A',          // 'A' = clear photo  |  'B' = faded photo
   onTransformsChange,
   onDeleteItem,
   onSelectionChange,
@@ -280,13 +281,18 @@ export default function StylebookTemplateEditor({
 
   return (
     <div
-      style={{ position: "relative", width, height, borderRadius: 14, overflow: "hidden", backgroundColor: "#D8D8D8", flexShrink: 0, touchAction: "none" }}
+      style={{ position: "relative", width, height, borderRadius: 14, overflow: "hidden", backgroundColor: template === 'B' ? '#E2E2E2' : '#D8D8D8', flexShrink: 0, touchAction: "none" }}
       onClick={deselect}
     >
       {/* Background photo */}
       {photoUrl ? (
-        <img src={photoUrl} alt="outfit"
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", pointerEvents: "none" }} />
+        <>
+          <img src={photoUrl} alt="outfit"
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", pointerEvents: "none", opacity: template === 'B' ? 0.42 : 1 }} />
+          {template === 'B' && (
+            <div style={{ position: "absolute", inset: 0, backgroundColor: "rgba(255,255,255,0.30)", pointerEvents: "none" }} />
+          )}
+        </>
       ) : (
         <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
           <svg width="30" height="30" viewBox="0 0 30 30" fill="none">

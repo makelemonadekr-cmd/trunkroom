@@ -14,8 +14,10 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { CLOSET_ITEMS, MAIN_CATEGORIES } from "../constants/mockClosetData";
-import { saveCoordi } from "../lib/coordiStore";
 import { extractColors } from "../lib/colorExtractor";
+import { useAuth }          from "../hooks/useAuth.js";
+import { createStyle }      from "../services/stylesService.js";
+import { uploadStylePhoto } from "../services/storageService.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -233,6 +235,8 @@ export default function OutfitCanvasEditor({
   onSave,
   onClose,
 }) {
+  const { user } = useAuth();
+
   // ── Canvas items state ──────────────────────────────────────────────────────
   const [items, setItems] = useState(() => {
     const imgs = initialItemIds
@@ -403,23 +407,36 @@ export default function OutfitCanvasEditor({
     setSaving(true);
     try {
       const dataUrl = await composeToDataUrl(items, bgColor);
-      const colors  = await extractColors(dataUrl, 5);
-      const entry   = {
-        id:              `coordi-${Date.now()}`,
-        title:           styleName.trim() || `${dateStr ?? ""} 스타일`.trim(),
-        mood:            null,
-        memo:            "",
-        isPublic:        false,
-        itemIds:         [...initialItemIds],
-        thumbnail:       dataUrl,
-        bgColor,
-        dateStr:         dateStr ?? null,
-        photoUrl:        dataUrl,
-        extractedColors: colors,
-        updatedAt:       new Date().toISOString(),
-      };
-      saveCoordi(entry);
-      onSave?.(entry);
+      const title   = styleName.trim() || `${dateStr ?? ""} 스타일`.trim();
+
+      if (user?.id) {
+        // Upload canvas composite → get storage URL
+        const { url: bgUrl } = await uploadStylePhoto(user.id, dataUrl);
+
+        const styleData = {
+          title,
+          is_public:      false,
+          background_url: bgUrl ?? null,
+          date_str:       dateStr ?? null,
+          template_id:    "canvas",
+        };
+        const styleItems = initialItemIds.map((id) => {
+          const ci = CLOSET_ITEMS.find((c) => c.id === id);
+          return {
+            clothingItemId: id,
+            imageUrl:       ci?.image ?? ci?.image_url ?? null,
+            name:           ci?.name  ?? ci?.displayName ?? null,
+          };
+        });
+        const { error: saveErr } = await createStyle(user.id, styleData, styleItems);
+        if (saveErr) {
+          console.warn("[OutfitCanvasEditor] save failed:", saveErr.message);
+        }
+        onSave?.({ title, dateStr, itemIds: initialItemIds, thumbnail: bgUrl ?? dataUrl });
+      } else {
+        // Not logged in — notify and still call onSave so the UI can close
+        onSave?.({ title, dateStr, itemIds: initialItemIds, thumbnail: dataUrl });
+      }
     } finally {
       setSaving(false);
       setShowSave(false);
@@ -450,7 +467,7 @@ export default function OutfitCanvasEditor({
           </svg>
         </button>
         <p className="text-[16px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>
-          내 코디 만들기
+          스타일 작성
         </p>
         <button
           onClick={() => setShowSave(true)}

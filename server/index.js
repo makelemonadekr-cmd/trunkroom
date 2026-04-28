@@ -14,52 +14,60 @@
 import "dotenv/config";
 import express from "express";
 import multer from "multer";
-import { removeBg } from "./lib/removeBg.js";
+import { removeBg }        from "./lib/removeBg.js";
 import { analyzeClothing } from "./lib/analyzeClothing.js";
+import { requireAuth }     from "./middleware/requireAuth.js";
+import { checkLimit, logUsage } from "./lib/rateLimit.js";
 
 const app  = express();
 const port = process.env.API_PORT || 3001;
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 
-// JSON bodies (for /api/analyze-clothing)
-app.use(express.json({ limit: "20mb" }));
+// JSON bodies (for /api/analyze-clothing) — 5 MB cap (이미지 압축 후 충분)
+app.use(express.json({ limit: "5mb" }));
 
 // Multipart file upload (for /api/remove-background)
-// Store in memory — files are small enough (~5 MB typical)
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB hard cap
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
 });
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
 /**
  * POST /api/remove-background
- *
- * Multipart form body:
- *   image  — the image file
- *
- * Response JSON:
- *   {
- *     bgRemoved:          boolean
- *     originalBase64:     string      (base64 of the original file)
- *     originalMimeType:   string
- *     processedBase64:    string|null (base64 of the bg-removed PNG, or null on failure)
- *     processedMimeType:  "image/png"
- *     error:              string|null
- *   }
+ * 인증 필요. 일일 10회 제한.
  */
-app.post("/api/remove-background", upload.single("image"), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No image file provided" });
-    }
+app.post("/api/remove-background", requireAuth, upload.single("image"), async (req, res) => {
+  const userId = req.userId;
 
+  // 1. 일일 한도 확인
+  const { allowed, used, limit } = await checkLimit(userId, "remove_background");
+  if (!allowed) {
+    return res.status(429).json({
+      error: `오늘 배경 제거를 ${limit}회 모두 사용했어요. 내일 다시 사용할 수 있어요.`,
+      used,
+      limit,
+    });
+  }
+
+  // 2. 파일 확인
+  if (!req.file) {
+    return res.status(400).json({ error: "이미지 파일이 없어요" });
+  }
+
+  try {
     const { buffer, mimetype } = req.file;
     const originalBase64 = buffer.toString("base64");
 
     const result = await removeBg(buffer, mimetype);
+
+    // 3. 사용 기록 (실제 API 호출 완료 후)
+    await logUsage(userId, "remove_background", {
+      success: result.bgRemoved,
+      billed:  true, // remove.bg 크레딧 소모됨
+    });
 
     return res.json({
       bgRemoved:         result.bgRemoved,
@@ -68,6 +76,8 @@ app.post("/api/remove-background", upload.single("image"), async (req, res) => {
       processedBase64:   result.processedBase64,
       processedMimeType: result.processedMimeType,
       error:             result.error,
+      used:              used + 1,
+      limit,
     });
   } catch (err) {
     console.error("[/api/remove-background] unhandled error:", err.message);
@@ -77,38 +87,68 @@ app.post("/api/remove-background", upload.single("image"), async (req, res) => {
 
 /**
  * POST /api/analyze-clothing
- *
- * JSON body:
- *   {
- *     imageBase64: string   — base64-encoded image
- *     mimeType:    string   — e.g. "image/jpeg" or "image/png"
- *   }
- *
- * Response JSON: ClothingAnalysis object (see analyzeClothing.js)
+ * 인증 필요. 일일 10회 제한.
  */
-app.post("/api/analyze-clothing", async (req, res) => {
+app.post("/api/analyze-clothing", requireAuth, async (req, res) => {
+  const userId = req.userId;
+
+  // 1. 일일 한도 확인
+  const { allowed, used, limit } = await checkLimit(userId, "analyze_clothing");
+  if (!allowed) {
+    return res.status(429).json({
+      error: `오늘 AI 분석을 ${limit}회 모두 사용했어요. 내일 다시 사용할 수 있어요.`,
+      used,
+      limit,
+    });
+  }
+
+  // 2. 입력 확인
+  const { imageBase64, mimeType } = req.body ?? {};
+  if (!imageBase64) {
+    return res.status(400).json({ success: false, error: "imageBase64가 필요해요" });
+  }
+
   try {
-    const { imageBase64, mimeType } = req.body ?? {};
-
-    if (!imageBase64) {
-      return res.status(400).json({ success: false, error: "imageBase64 is required" });
-    }
-
     const result = await analyzeClothing(imageBase64, mimeType ?? "image/jpeg");
-    return res.json(result);
+
+    // 3. 사용 기록 (OpenAI 호출 완료 후)
+    await logUsage(userId, "analyze_clothing", {
+      success: result.success,
+      billed:  true, // OpenAI 토큰 소모됨
+    });
+
+    return res.json({ ...result, used: used + 1, limit });
   } catch (err) {
     console.error("[/api/analyze-clothing] unhandled error:", err.message);
     return res.status(500).json({ success: false, error: err.message });
   }
 });
 
+/**
+ * GET /api/ai-usage
+ * 오늘 남은 AI 사용 횟수 조회 (UI 표시용).
+ * 인증 필요.
+ */
+app.get("/api/ai-usage", requireAuth, async (req, res) => {
+  const userId = req.userId;
+  const [analyze, removeBg] = await Promise.all([
+    checkLimit(userId, "analyze_clothing"),
+    checkLimit(userId, "remove_background"),
+  ]);
+  res.json({
+    analyze:  { used: analyze.used,  limit: analyze.limit,  remaining: analyze.limit  - analyze.used  },
+    removeBg: { used: removeBg.used, limit: removeBg.limit, remaining: removeBg.limit - removeBg.used },
+  });
+});
+
 // ─── Health check ─────────────────────────────────────────────────────────────
 
 app.get("/api/health", (_req, res) => {
   res.json({
-    ok: true,
-    openai:   !!process.env.OPENAI_API_KEY,
-    removeBg: !!process.env.REMOVE_BG_API_KEY,
+    ok:              true,
+    openai:          !!process.env.OPENAI_API_KEY,
+    removeBg:        !!process.env.REMOVE_BG_API_KEY,
+    rateLimitActive: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
   });
 });
 
@@ -116,6 +156,7 @@ app.get("/api/health", (_req, res) => {
 
 app.listen(port, () => {
   console.log(`[server] listening on http://localhost:${port}`);
-  if (!process.env.OPENAI_API_KEY)   console.warn("[server] OPENAI_API_KEY not set — AI analysis disabled");
-  if (!process.env.REMOVE_BG_API_KEY) console.warn("[server] REMOVE_BG_API_KEY not set — background removal disabled");
+  if (!process.env.OPENAI_API_KEY)          console.warn("[server] ⚠️  OPENAI_API_KEY not set");
+  if (!process.env.REMOVE_BG_API_KEY)       console.warn("[server] ⚠️  REMOVE_BG_API_KEY not set");
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) console.warn("[server] ⚠️  SUPABASE_SERVICE_ROLE_KEY not set — rate limiting disabled");
 });

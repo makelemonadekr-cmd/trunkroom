@@ -13,8 +13,8 @@
  *   Buttons: rounded-2xl, full width
  */
 
-import { useState } from "react";
-import { signIn, signUp } from "../../services/authService";
+import { useState, useRef } from "react";
+import { signIn, signUp, resetPassword, updatePassword } from "../../services/authService";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
@@ -22,12 +22,14 @@ const YELLOW = "#F5C200";
 
 // ─── Shared input component ───────────────────────────────────────────────────
 
-function AuthInput({ type = "text", placeholder, value, onChange, autoComplete }) {
+function AuthInput({ type = "text", placeholder, value, onChange, autoComplete, onEnter, inputRef }) {
   return (
     <input
+      ref={inputRef}
       type={type}
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      onKeyDown={(e) => { if (e.key === "Enter") onEnter?.(); }}
       placeholder={placeholder}
       autoComplete={autoComplete}
       className="w-full px-4 py-3.5 rounded-xl text-[14px] outline-none"
@@ -40,6 +42,56 @@ function AuthInput({ type = "text", placeholder, value, onChange, autoComplete }
       onFocus={(e)  => (e.target.style.border = `1.5px solid ${YELLOW}`)}
       onBlur={(e)   => (e.target.style.border = "1.5px solid transparent")}
     />
+  );
+}
+
+// ─── Password input with visibility toggle ────────────────────────────────────
+
+function PasswordInput({ placeholder, value, onChange, autoComplete, onEnter, inputRef }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative w-full">
+      <input
+        ref={inputRef}
+        type={show ? "text" : "password"}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter") onEnter?.(); }}
+        placeholder={placeholder}
+        autoComplete={autoComplete}
+        className="w-full px-4 py-3.5 pr-11 rounded-xl text-[14px] outline-none"
+        style={{
+          backgroundColor: "#F5F5F5",
+          color:           DARK,
+          fontFamily:      FONT,
+          border:          "1.5px solid transparent",
+        }}
+        onFocus={(e)  => (e.target.style.border = `1.5px solid ${YELLOW}`)}
+        onBlur={(e)   => (e.target.style.border = "1.5px solid transparent")}
+      />
+      <button
+        type="button"
+        onClick={() => setShow((v) => !v)}
+        className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8"
+        style={{ color: "#BBBBBB" }}
+        tabIndex={-1}
+      >
+        {show ? (
+          // Eye-off icon (password visible → tap to hide)
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M2 2L16 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M7.2 7.3A2.3 2.3 0 0010.7 10.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M3.7 3.8A9 9 0 001 9c1.6 3.8 4.8 6.5 8 6.5a8.5 8.5 0 004.8-1.6M7.4 4.6A9 9 0 0117 9c-.7 1.7-1.9 3.2-3.3 4.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        ) : (
+          // Eye icon (password hidden → tap to show)
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M1 9C2.6 5.2 5.7 2.5 9 2.5S15.4 5.2 17 9c-1.6 3.8-4.7 6.5-8 6.5S2.6 12.8 1 9Z" stroke="currentColor" strokeWidth="1.5" />
+            <circle cx="9" cy="9" r="2.3" stroke="currentColor" strokeWidth="1.5" />
+          </svg>
+        )}
+      </button>
+    </div>
   );
 }
 
@@ -59,11 +111,12 @@ function ErrorMsg({ msg }) {
 
 // ─── Login view ───────────────────────────────────────────────────────────────
 
-function LoginView({ onGoSignUp }) {
+function LoginView({ onGoSignUp, onGoForgot, onClose }) {
   const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
   const [error,    setError]    = useState("");
   const [loading,  setLoading]  = useState(false);
+  const pwRef = useRef(null);
 
   async function handleLogin() {
     if (!email.trim() || !password)  { setError("이메일과 비밀번호를 입력해주세요."); return; }
@@ -72,17 +125,37 @@ function LoginView({ onGoSignUp }) {
     const { error: err } = await signIn(email.trim(), password);
     setLoading(false);
     if (err) {
-      if (err.message.includes("Invalid login")) setError("이메일 또는 비밀번호가 올바르지 않아요.");
-      else if (err.message.includes("Email not confirmed")) setError("이메일 인증 후 로그인할 수 있어요. 받은편지함을 확인해주세요.");
-      else setError("로그인에 실패했어요. 다시 시도해주세요.");
+      const msg = err.message ?? "";
+      if (msg.includes("Invalid login") || msg.includes("invalid_credentials"))
+        setError("이메일 또는 비밀번호가 올바르지 않아요.");
+      else if (msg.includes("Email not confirmed"))
+        setError("이메일 인증 후 로그인할 수 있어요. 받은편지함을 확인해주세요.");
+      else if (msg.includes("Too many requests"))
+        setError("잠시 후 다시 시도해주세요.");
+      else
+        setError("로그인에 실패했어요. 다시 시도해주세요.");
     }
-    // On success, useAuth in App.jsx picks up the session automatically
+    // On success, useAuth in App.jsx picks up the session via onAuthChange
   }
 
   return (
     <div className="absolute inset-0 flex flex-col bg-white overflow-hidden">
+      {/* Close button (only shown when used as overlay) */}
+      {onClose && (
+        <div className="flex justify-end px-5 pt-4">
+          <button
+            onClick={onClose}
+            className="w-9 h-9 flex items-center justify-center rounded-full active:opacity-60"
+            style={{ backgroundColor: "#F2F2F2" }}
+          >
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+              <path d="M1 1L10 10M10 1L1 10" stroke={DARK} strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+      )}
       {/* Logo area */}
-      <div className="flex flex-col items-center pt-16 pb-8 px-8">
+      <div className={`flex flex-col items-center ${onClose ? "pt-6" : "pt-16"} pb-8 px-8`}>
         <img
           src="/officiallogo.png"
           alt="트렁크룸"
@@ -98,7 +171,7 @@ function LoginView({ onGoSignUp }) {
           className="text-[13px] mt-1.5"
           style={{ color: "#AAAAAA", fontFamily: FONT }}
         >
-          나만의 스타일 아카이브
+          내 손안의 AI 옷장
         </p>
       </div>
 
@@ -110,13 +183,15 @@ function LoginView({ onGoSignUp }) {
           value={email}
           onChange={setEmail}
           autoComplete="email"
+          onEnter={() => pwRef.current?.focus()}
         />
-        <AuthInput
-          type="password"
+        <PasswordInput
           placeholder="비밀번호"
           value={password}
           onChange={setPassword}
           autoComplete="current-password"
+          onEnter={handleLogin}
+          inputRef={pwRef}
         />
 
         <ErrorMsg msg={error} />
@@ -162,6 +237,20 @@ function LoginView({ onGoSignUp }) {
         >
           새 계정 만들기
         </button>
+
+        {/* Forgot password */}
+        <button
+          onClick={onGoForgot}
+          className="w-full flex items-center justify-center active:opacity-60 mt-1"
+          style={{ height: 36 }}
+        >
+          <span
+            className="text-[12px]"
+            style={{ color: "#AAAAAA", fontFamily: FONT, textDecoration: "underline", textUnderlineOffset: 3 }}
+          >
+            비밀번호를 잊으셨나요?
+          </span>
+        </button>
       </div>
 
       {/* Footer */}
@@ -186,6 +275,10 @@ function SignUpView({ onGoLogin }) {
   const [loading,   setLoading]   = useState(false);
   const [done,      setDone]      = useState(false); // email confirm pending
 
+  const emailRef = useRef(null);
+  const pw1Ref   = useRef(null);
+  const pw2Ref   = useRef(null);
+
   async function handleSignUp() {
     if (!nickname.trim())           { setError("닉네임을 입력해주세요."); return; }
     if (!email.trim())              { setError("이메일을 입력해주세요."); return; }
@@ -194,14 +287,26 @@ function SignUpView({ onGoLogin }) {
 
     setError("");
     setLoading(true);
-    const { error: err } = await signUp(email.trim(), password, nickname.trim());
+    const { data, error: err } = await signUp(email.trim(), password, nickname.trim());
     setLoading(false);
 
     if (err) {
-      if (err.message.includes("already registered")) setError("이미 가입된 이메일이에요. 로그인해주세요.");
-      else setError("가입에 실패했어요. 다시 시도해주세요.");
+      const msg = err.message ?? "";
+      if (msg.includes("already registered") || msg.includes("User already registered"))
+        setError("이미 가입된 이메일이에요. 로그인해주세요.");
+      else if (msg.includes("Password should be"))
+        setError("비밀번호는 6자리 이상이어야 해요.");
+      else
+        setError("가입에 실패했어요. 다시 시도해주세요.");
+    } else if (data?.session) {
+      // ── Email confirmation DISABLED (MVP mode) ────────────────────────────
+      // Supabase already created a session. App.jsx's onAuthChange listener
+      // will pick up the SIGNED_IN event and unmount this screen automatically.
+      // Nothing to do here — just let the transition happen.
     } else {
-      setDone(true); // show email confirmation notice
+      // ── Email confirmation ENABLED ─────────────────────────────────────────
+      // No session yet. Show the "check your inbox" screen.
+      setDone(true);
     }
   }
 
@@ -276,6 +381,7 @@ function SignUpView({ onGoLogin }) {
             value={nickname}
             onChange={setNickname}
             autoComplete="nickname"
+            onEnter={() => emailRef.current?.focus()}
           />
         </div>
 
@@ -287,28 +393,32 @@ function SignUpView({ onGoLogin }) {
             value={email}
             onChange={setEmail}
             autoComplete="email"
+            onEnter={() => pw1Ref.current?.focus()}
+            inputRef={emailRef}
           />
         </div>
 
         <div>
           <p className="text-[11px] font-bold mb-1.5" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>비밀번호</p>
-          <AuthInput
-            type="password"
+          <PasswordInput
             placeholder="6자리 이상"
             value={password}
             onChange={setPassword}
             autoComplete="new-password"
+            onEnter={() => pw2Ref.current?.focus()}
+            inputRef={pw1Ref}
           />
         </div>
 
         <div>
           <p className="text-[11px] font-bold mb-1.5" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>비밀번호 확인</p>
-          <AuthInput
-            type="password"
+          <PasswordInput
             placeholder="비밀번호 재입력"
             value={password2}
             onChange={setPassword2}
             autoComplete="new-password"
+            onEnter={handleSignUp}
+            inputRef={pw2Ref}
           />
         </div>
 
@@ -345,12 +455,250 @@ function SignUpView({ onGoLogin }) {
   );
 }
 
+// ─── Forgot-password view ─────────────────────────────────────────────────────
+
+function ForgotPasswordView({ onGoLogin }) {
+  const [email,   setEmail]   = useState("");
+  const [error,   setError]   = useState("");
+  const [loading, setLoading] = useState(false);
+  const [done,    setDone]    = useState(false);
+
+  async function handleReset() {
+    if (!email.trim()) { setError("이메일을 입력해주세요."); return; }
+    setError("");
+    setLoading(true);
+    const { error: err } = await resetPassword(email.trim());
+    setLoading(false);
+    if (err) {
+      setError("이메일 전송에 실패했어요. 다시 시도해주세요.");
+    } else {
+      setDone(true);
+    }
+  }
+
+  if (done) {
+    return (
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white px-8">
+        <span style={{ fontSize: 52 }} className="mb-5">📬</span>
+        <h2
+          className="text-[20px] font-bold text-center mb-2"
+          style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}
+        >
+          이메일을 확인해주세요
+        </h2>
+        <p
+          className="text-[13px] text-center mb-8"
+          style={{ color: "#888", fontFamily: FONT, lineHeight: 1.65 }}
+        >
+          <span style={{ color: DARK, fontWeight: 700 }}>{email}</span>으로{"\n"}
+          비밀번호 재설정 링크를 보냈어요.{"\n"}
+          링크를 클릭하면 새 비밀번호를 설정할 수 있어요.
+        </p>
+        <button
+          onClick={onGoLogin}
+          className="w-full flex items-center justify-center rounded-2xl font-bold active:opacity-80"
+          style={{ height: 56, backgroundColor: YELLOW, color: DARK, fontFamily: FONT, fontSize: 15 }}
+        >
+          로그인 화면으로
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="absolute inset-0 flex flex-col bg-white overflow-hidden">
+      {/* Header */}
+      <div
+        className="flex items-center px-5 shrink-0"
+        style={{ height: 52, borderBottom: "1px solid #F0F0F0" }}
+      >
+        <button
+          onClick={onGoLogin}
+          className="w-9 h-9 flex items-center justify-center rounded-full active:opacity-60"
+          style={{ backgroundColor: "#F2F2F2" }}
+        >
+          <svg width="9" height="15" viewBox="0 0 9 15" fill="none">
+            <path d="M7.5 1.5L2 7.5L7.5 13.5" stroke={DARK} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <h2
+          className="text-[16px] font-bold mx-auto"
+          style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}
+        >
+          비밀번호 재설정
+        </h2>
+        <div style={{ width: 36 }} />
+      </div>
+
+      {/* Form */}
+      <div className="flex-1 px-6 pt-8 flex flex-col gap-4">
+        <p
+          className="text-[13px] leading-relaxed"
+          style={{ color: "#888", fontFamily: FONT }}
+        >
+          가입한 이메일 주소를 입력하면{"\n"}비밀번호 재설정 링크를 보내드려요.
+        </p>
+        <AuthInput
+          type="email"
+          placeholder="이메일"
+          value={email}
+          onChange={setEmail}
+          autoComplete="email"
+          onEnter={handleReset}
+        />
+        <ErrorMsg msg={error} />
+        <button
+          onClick={handleReset}
+          disabled={loading}
+          className="w-full flex items-center justify-center rounded-2xl font-bold active:opacity-80 mt-2"
+          style={{
+            height:          56,
+            backgroundColor: loading ? "#E8E8E8" : YELLOW,
+            color:           DARK,
+            fontFamily:      FONT,
+            fontSize:        15,
+          }}
+        >
+          {loading ? (
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ animation: "spin 0.8s linear infinite" }}>
+              <path d="M10 2a8 8 0 1 1-5.66 2.34" stroke={DARK} strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          ) : "재설정 링크 보내기"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Reset-password view (shown after clicking the email link) ────────────────
+
+function ResetPasswordView({ onDone }) {
+  const [pw1,     setPw1]     = useState("");
+  const [pw2,     setPw2]     = useState("");
+  const [error,   setError]   = useState("");
+  const [loading, setLoading] = useState(false);
+  const [done,    setDone]    = useState(false);
+  const pw2Ref = useRef(null);
+
+  async function handleSave() {
+    if (pw1.length < 6)    { setError("비밀번호는 6자리 이상이어야 해요."); return; }
+    if (pw1 !== pw2)       { setError("비밀번호가 일치하지 않아요."); return; }
+    setError("");
+    setLoading(true);
+    const { error: err } = await updatePassword(pw1);
+    setLoading(false);
+    if (err) {
+      setError("비밀번호 변경에 실패했어요. 다시 시도해주세요.");
+    } else {
+      setDone(true);
+    }
+  }
+
+  if (done) {
+    return (
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white px-8">
+        <span style={{ fontSize: 52 }} className="mb-5">🔐</span>
+        <h2
+          className="text-[20px] font-bold text-center mb-2"
+          style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}
+        >
+          비밀번호가 변경됐어요!
+        </h2>
+        <p
+          className="text-[13px] text-center mb-8"
+          style={{ color: "#888", fontFamily: FONT }}
+        >
+          새 비밀번호로 계속 이용하세요.
+        </p>
+        <button
+          onClick={onDone}
+          className="w-full flex items-center justify-center rounded-2xl font-bold active:opacity-80"
+          style={{ height: 56, backgroundColor: YELLOW, color: DARK, fontFamily: FONT, fontSize: 15 }}
+        >
+          계속하기
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="absolute inset-0 flex flex-col bg-white overflow-hidden">
+      {/* Logo area */}
+      <div className="flex flex-col items-center pt-14 pb-6 px-8">
+        <img src="/officiallogo.png" alt="트렁크룸" style={{ width: 56, height: 56, objectFit: "contain", marginBottom: 12 }} />
+        <h1 className="text-[20px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.03em" }}>새 비밀번호 설정</h1>
+        <p className="text-[13px] mt-1" style={{ color: "#AAAAAA", fontFamily: FONT }}>새로 사용할 비밀번호를 입력해주세요</p>
+      </div>
+
+      <div className="flex-1 px-6 flex flex-col gap-3">
+        <PasswordInput
+          placeholder="새 비밀번호 (6자리 이상)"
+          value={pw1}
+          onChange={setPw1}
+          autoComplete="new-password"
+          onEnter={() => pw2Ref.current?.focus()}
+        />
+        <PasswordInput
+          placeholder="새 비밀번호 확인"
+          value={pw2}
+          onChange={setPw2}
+          autoComplete="new-password"
+          onEnter={handleSave}
+          inputRef={pw2Ref}
+        />
+        <ErrorMsg msg={error} />
+        <button
+          onClick={handleSave}
+          disabled={loading}
+          className="w-full flex items-center justify-center rounded-2xl font-bold active:opacity-80 mt-2"
+          style={{
+            height:          56,
+            backgroundColor: loading ? "#E8E8E8" : YELLOW,
+            color:           DARK,
+            fontFamily:      FONT,
+            fontSize:        15,
+          }}
+        >
+          {loading ? (
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ animation: "spin 0.8s linear infinite" }}>
+              <path d="M10 2a8 8 0 1 1-5.66 2.34" stroke={DARK} strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          ) : "비밀번호 변경하기"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Root export ──────────────────────────────────────────────────────────────
 
-export default function AuthScreen() {
-  const [view, setView] = useState("login"); // "login" | "signup"
+/**
+ * @param {object}   props
+ * @param {()=>void} [props.onClose]             — X 버튼 표시 (오버레이로 쓸 때)
+ * @param {boolean}  [props.isPasswordRecovery]  — true 면 비밀번호 재설정 화면으로 직행
+ * @param {()=>void} [props.onPasswordResetDone] — 재설정 완료 후 호출
+ */
+export default function AuthScreen({ onClose, isPasswordRecovery = false, onPasswordResetDone }) {
+  const [view, setView] = useState("login"); // "login" | "signup" | "forgot"
 
-  return view === "login"
-    ? <LoginView  onGoSignUp={() => setView("signup")} />
-    : <SignUpView onGoLogin={()  => setView("login")}  />;
+  // 비밀번호 재설정 링크 클릭 후 진입 → 바로 reset 화면
+  if (isPasswordRecovery) {
+    return <ResetPasswordView onDone={onPasswordResetDone ?? (() => {})} />;
+  }
+
+  if (view === "signup") {
+    return <SignUpView onGoLogin={() => setView("login")} />;
+  }
+
+  if (view === "forgot") {
+    return <ForgotPasswordView onGoLogin={() => setView("login")} />;
+  }
+
+  return (
+    <LoginView
+      onGoSignUp={() => setView("signup")}
+      onGoForgot={() => setView("forgot")}
+      onClose={onClose}
+    />
+  );
 }

@@ -14,7 +14,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { CLOSET_ITEMS } from "../constants/mockClosetData";
 import { useWeather }   from "../hooks/useWeather";
-import StylebookTemplateEditor   from "./StylebookTemplateEditor";
+import StyleBoardTemplate from "./StyleBoardTemplate";
 
 const FONT    = "'Spoqa Han Sans Neo', sans-serif";
 const DARK    = "#1a1a1a";
@@ -24,7 +24,7 @@ const DIVIDER = "#F0F0F0";
 // ─── Mood options (shared with RecordPage) ─────────────────────────────────────
 
 const MOOD_OPTIONS = [
-  { id: "casual",  label: "캐주얼",  emoji: "😎", bg: "#F5F5F5",  fg: "#555" },
+  { id: "casual",  label: "캐주얼",  emoji: "😎", bg: "#E4EEFF",  fg: "#2B52C8" },
   { id: "minimal", label: "미니멀",  emoji: "⬜", bg: "#1a1a1a",  fg: "white" },
   { id: "chic",    label: "시크",    emoji: "💎", bg: "#6B3A5E",  fg: "white" },
   { id: "comfy",   label: "편안함",  emoji: "🌿", bg: "#E8F5E9",  fg: "#2E7D32" },
@@ -1038,51 +1038,19 @@ function ItemsGrid({ items }) {
   );
 }
 
-function DraftStep({ photoUrl: initPhotoUrl, confirmedItems, dateStr: initDateStr, weather, onSave, onClose }) {
+function DraftStep({ photoUrl: initPhotoUrl, confirmedItems, dateStr: initDateStr, weather, onSave, onClose, isSaving = false }) {
   const [subStep,      setSubStep]      = useState("layout");
   const [selectedDate, setSelectedDate] = useState(initDateStr);
   const [editPhoto,    setEditPhoto]    = useState(initPhotoUrl);
   const [editItems,    setEditItems]    = useState(confirmedItems);
   const [mood,         setMood]         = useState(null);
-  const [customMood,   setCustomMood]   = useState("");
+  const [styleTags,    setStyleTags]    = useState([]);
+  const [tagInput,     setTagInput]     = useState("");
   const [memo,         setMemo]         = useState("");
   const [isPublic,     setIsPublic]     = useState(false);
-  const [showCalendar,      setShowCalendar]      = useState(false);
-  const [showItemPicker,    setShowItemPicker]    = useState(false);
-  const [selectedEditorIdx, setSelectedEditorIdx] = useState(null);
-  const [bgRemoving,        setBgRemoving]        = useState(false);
-  const [bgRemoveError,     setBgRemoveError]     = useState(null);
-  const [layerOrder,        setLayerOrder]        = useState(() => confirmedItems.map((_, i) => i));
+  const [showCalendar,   setShowCalendar]   = useState(false);
+  const [showItemPicker, setShowItemPicker] = useState(false);
   const bgFileRef = useRef(null);
-
-  // ── Layer-order helpers ──────────────────────────────────────────────────
-  function bringForward(idx) {
-    setLayerOrder((prev) => {
-      const cur = prev[idx];
-      if (cur >= prev.length - 1) return prev;
-      const swapIdx = prev.findIndex((l) => l === cur + 1);
-      return prev.map((l, i) => i === idx ? cur + 1 : i === swapIdx ? cur : l);
-    });
-  }
-  function sendBackward(idx) {
-    setLayerOrder((prev) => {
-      const cur = prev[idx];
-      if (cur <= 0) return prev;
-      const swapIdx = prev.findIndex((l) => l === cur - 1);
-      return prev.map((l, i) => i === idx ? cur - 1 : i === swapIdx ? cur : l);
-    });
-  }
-  function deleteLayerEntry(idx) {
-    setLayerOrder((prev) => {
-      const deleted = prev[idx];
-      return prev
-        .filter((_, i) => i !== idx)
-        .map((l) => (l > deleted ? l - 1 : l));
-    });
-  }
-  function addLayerEntry() {
-    setLayerOrder((prev) => [...prev, prev.length]);
-  }
 
   const D_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -1100,36 +1068,12 @@ function DraftStep({ photoUrl: initPhotoUrl, confirmedItems, dateStr: initDateSt
     e.target.value = "";
   }
 
-  async function handleRemoveItemBg(idx) {
-    const targetIdx = idx ?? selectedEditorIdx;
-    if (targetIdx === null || targetIdx === undefined) return;
-    const item = editItems[targetIdx];
-    if (!item?.image) return;
-    setBgRemoving(true);
-    setBgRemoveError(null);
-    try {
-      const result = await removeImageBackground(item.image);
-      setEditItems((prev) =>
-        prev.map((it, i) => i === targetIdx ? { ...it, image: result } : it)
-      );
-    } catch (err) {
-      setBgRemoveError(
-        err.message === "CORS_BLOCKED"
-          ? "이미지 접근 권한이 없어요"
-          : "배경 제거에 실패했어요"
-      );
-      setTimeout(() => setBgRemoveError(null), 3000);
-    } finally {
-      setBgRemoving(false);
-    }
-  }
-
   function buildRecord(extra = {}) {
     return {
       itemIds:         editItems.map((i) => i.id),
       photoUrl:        editPhoto ?? null,
       mood:            mood ?? null,
-      customMood:      customMood.trim() || null,
+      customMood:      styleTags.length ? styleTags.join(",") : null,
       note:            "",
       memo,
       isPublic,
@@ -1176,26 +1120,54 @@ function DraftStep({ photoUrl: initPhotoUrl, confirmedItems, dateStr: initDateSt
             </button>
           </div>
 
-          {/* ── Interactive template editor ── */}
-          <div className="flex justify-center" style={{ paddingLeft: 16, paddingRight: 16, paddingBottom: 8 }}>
-            <StylebookTemplateEditor
+          {/* ── Style Board preview (Option B: left photo 62% + right items 38%) ── */}
+          <div className="flex justify-center" style={{ paddingLeft: 16, paddingRight: 16, paddingBottom: 4 }}>
+            <StyleBoardTemplate
               photoUrl={editPhoto}
               items={editItems}
-              layerOrders={layerOrder}
               width={320}
-              onDeleteItem={(idx) => {
-                setEditItems((prev) => prev.filter((_, i) => i !== idx));
-                deleteLayerEntry(idx);
-                setSelectedEditorIdx(null);
-              }}
-              onSelectionChange={setSelectedEditorIdx}
-              onBringForward={bringForward}
-              onSendBackward={sendBackward}
-              onRemoveBg={handleRemoveItemBg}
-              bgRemoving={bgRemoving}
-              bgRemoveError={bgRemoveError}
+              showText={false}
             />
           </div>
+
+          {/* ── Selected item chips — tap × to remove ── */}
+          {editItems.length > 0 && (
+            <div className="px-4 pb-2">
+              <div className="flex flex-wrap gap-1.5">
+                {editItems.map((item, idx) => (
+                  <div
+                    key={item.id ?? idx}
+                    className="flex items-center gap-1 px-2 py-1 rounded-full"
+                    style={{ backgroundColor: "#F3F0EA", border: "1px solid #E5E0D5" }}
+                  >
+                    {(item.image ?? item.image_url) && (
+                      <div className="rounded-full overflow-hidden shrink-0"
+                        style={{ width: 18, height: 18, backgroundColor: "#ECEAE4" }}>
+                        <img
+                          src={item.image ?? item.image_url}
+                          alt=""
+                          style={{ width: "100%", height: "100%", objectFit: "contain", mixBlendMode: "multiply" }}
+                        />
+                      </div>
+                    )}
+                    <span className="text-[10px] font-medium max-w-[72px] truncate"
+                      style={{ color: "#555", fontFamily: FONT }}>
+                      {item.name ?? item.displayName ?? "아이템"}
+                    </span>
+                    <button
+                      onClick={() => setEditItems((prev) => prev.filter((_, i) => i !== idx))}
+                      className="flex items-center justify-center rounded-full active:opacity-60"
+                      style={{ width: 14, height: 14, backgroundColor: "#CCC9C0", flexShrink: 0 }}
+                    >
+                      <svg width="7" height="7" viewBox="0 0 8 8" fill="none">
+                        <path d="M1.5 1.5L6.5 6.5M6.5 1.5L1.5 6.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* ── Action buttons: 배경 업로드 / 아이템 추가 / 배경 삭제 ── */}
           <div className="px-4 pt-1 pb-8 flex gap-2">
@@ -1274,7 +1246,6 @@ function DraftStep({ photoUrl: initPhotoUrl, confirmedItems, dateStr: initDateSt
             onAdd={(item) => {
               setEditItems((prev) => {
                 if (prev.length >= 6) return prev;
-                addLayerEntry();
                 return [...prev, item];
               });
             }}
@@ -1305,11 +1276,12 @@ function DraftStep({ photoUrl: initPhotoUrl, confirmedItems, dateStr: initDateSt
           <p className="text-[10px]" style={{ color: "#CCCCCC", fontFamily: FONT }}>2 / 2</p>
         </div>
         <button
-          onClick={() => onSave(selectedDate, buildRecord())}
+          onClick={() => !isSaving && onSave(selectedDate, buildRecord())}
+          disabled={isSaving}
           className="px-4 py-1.5 rounded-full text-[13px] font-bold active:opacity-80"
-          style={{ backgroundColor: YELLOW, color: DARK, fontFamily: FONT }}
+          style={{ backgroundColor: isSaving ? "#DDD" : YELLOW, color: DARK, fontFamily: FONT, opacity: isSaving ? 0.7 : 1 }}
         >
-          저장
+          {isSaving ? "저장 중…" : "저장"}
         </button>
       </div>
 
@@ -1342,16 +1314,49 @@ function DraftStep({ photoUrl: initPhotoUrl, confirmedItems, dateStr: initDateSt
           </div>
         </div>
 
-        {/* Custom mood */}
+        {/* 마이 스타일 태그 */}
         <div className="px-5 pb-4">
-          <p className="text-[11px] font-bold mb-2" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>
-            나만의 무드 <span style={{ color: "#CCCCCC", fontWeight: 400 }}>(선택)</span>
+          <p className="text-[11px] font-bold mb-1" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>
+            마이 스타일 태그 <span style={{ color: "#CCCCCC", fontWeight: 400 }}>(선택)</span>
           </p>
+          <p className="text-[10px] mb-2" style={{ color: "#CCCCCC", fontFamily: FONT }}>태그를 적어두면 검색이 더 쉬워져요.</p>
+
+          {/* Active tag chips */}
+          {styleTags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-2.5">
+              {styleTags.map((tag, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-full"
+                  style={{ backgroundColor: "#1a1a1a", fontFamily: FONT }}
+                >
+                  <span className="text-[12px] font-medium text-white">{tag}</span>
+                  <button
+                    onClick={() => setStyleTags((prev) => prev.filter((_, j) => j !== i))}
+                    className="text-white leading-none"
+                    style={{ fontSize: 13, opacity: 0.6, lineHeight: 1 }}
+                  >×</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Tag input */}
           <input
             type="text"
-            value={customMood}
-            onChange={(e) => setCustomMood(e.target.value)}
-            placeholder="예: 봄 소풍 느낌, 완전 내 스타일, 오늘은 과감하게"
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                const raw = tagInput.trim().replace(/^#+/, "");
+                if (!raw) return;
+                const tag = `#${raw}`;
+                if (!styleTags.includes(tag)) setStyleTags((prev) => [...prev, tag]);
+                setTagInput("");
+              }
+            }}
+            placeholder="예: #합정출근룩 #촬영날 #비오는날"
             className="w-full px-4 py-3 rounded-xl text-[13px] outline-none"
             style={{ backgroundColor: "#F5F5F5", color: DARK, fontFamily: FONT }}
           />
@@ -1362,7 +1367,7 @@ function DraftStep({ photoUrl: initPhotoUrl, confirmedItems, dateStr: initDateSt
         {/* Private memo */}
         <div className="px-5 pb-4">
           <div className="flex items-center gap-2 mb-2">
-            <p className="text-[11px] font-bold" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>나만의 메모</p>
+            <p className="text-[11px] font-bold" style={{ color: "#AAAAAA", fontFamily: FONT, letterSpacing: "0.04em" }}>메모</p>
             <div className="flex items-center gap-1 px-1.5 py-0.5 rounded" style={{ backgroundColor: "#F0F0F0" }}>
               <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
                 <rect x="1" y="4" width="7" height="5" rx="1" stroke="#AAAAAA" strokeWidth="0.9" />
@@ -1417,11 +1422,12 @@ function DraftStep({ photoUrl: initPhotoUrl, confirmedItems, dateStr: initDateSt
       {/* Save CTA */}
       <div className="px-5 pb-8 pt-3 shrink-0" style={{ borderTop: `1px solid ${DIVIDER}` }}>
         <button
-          onClick={() => onSave(selectedDate, buildRecord())}
+          onClick={() => !isSaving && onSave(selectedDate, buildRecord())}
+          disabled={isSaving}
           className="w-full flex items-center justify-center rounded-2xl font-bold active:opacity-80"
-          style={{ height: 56, backgroundColor: YELLOW, color: DARK, fontFamily: FONT, fontSize: 15 }}
+          style={{ height: 56, backgroundColor: isSaving ? "#DDD" : YELLOW, color: DARK, fontFamily: FONT, fontSize: 15, opacity: isSaving ? 0.7 : 1 }}
         >
-          ⚡ 저장하기
+          {isSaving ? "저장 중…" : "⚡ 저장하기"}
         </button>
       </div>
     </div>
@@ -1507,6 +1513,7 @@ export default function StyleRecordFlow({
   const [photoUrl,     setPhotoUrl]     = useState(null);
   const [matchResults, setMatchResults] = useState([]);
   const [savedDateStr, setSavedDateStr] = useState(dateStr);
+  const [isSaving,     setIsSaving]     = useState(false);
 
   const { weather } = useWeather();
 
@@ -1533,8 +1540,14 @@ export default function StyleRecordFlow({
     setStep("draft");
   }
 
-  function handleDraftSave(selectedDate, draftData) {
-    onSave(selectedDate, draftData);
+  async function handleDraftSave(selectedDate, draftData) {
+    setIsSaving(true);
+    try {
+      await onSave(selectedDate, draftData);
+    } catch (err) {
+      console.error("[StyleRecordFlow] save error:", err);
+    }
+    // Note: isSaving stays true — DraftStep unmounts on step change, no need to reset
     setSavedDateStr(selectedDate);
     setStep("done");
   }
@@ -1582,6 +1595,7 @@ export default function StyleRecordFlow({
           weather={weather}
           onSave={handleDraftSave}
           onClose={initialStep === "draft" ? onClose : () => setStep("matching")}
+          isSaving={isSaving}
         />
       )}
 

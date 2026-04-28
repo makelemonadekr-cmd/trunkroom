@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import html2canvas from "html2canvas";
-import { saveCoordi } from "../../lib/coordiStore";
 import { CLOSET_ITEMS } from "../../constants/mockClosetData";
 import { compressImage, validateImageFile, fitDimensions, buildDataUrl } from "../../lib/imageUtils";
+import { uploadForBgRemoval } from "../../lib/uploadClothing.js";
+import { useAuth }           from "../../hooks/useAuth.js";
+import { getSession }        from "../../services/authService.js";
+import { createStyle, updateStyle, replaceStyleItems } from "../../services/stylesService.js";
+import { uploadStylePhoto } from "../../services/storageService.js";
 
 const FONT = "'Spoqa Han Sans Neo', sans-serif";
 const DARK = "#1a1a1a";
@@ -188,6 +192,7 @@ function SaveSheet({ initialTitle, onClose, onSave, isSaving }) {
 }
 
 export default function CoordiEditorPage({ coordi, onClose, onSaved }) {
+  const { user } = useAuth();
   const [items, setItems] = useState(coordi?.items ?? []);
   const [selectedId, setSelectedId] = useState(null);
   const [bgColor, setBgColor] = useState(coordi?.bgColor ?? "#FFFFFF");
@@ -340,6 +345,21 @@ export default function CoordiEditorPage({ coordi, onClose, onSaved }) {
     if (!item) return;
     setRemovingBg(true);
     try {
+      // ── Try real remove.bg API via server ────────────────────────────────────
+      const { session } = await getSession();
+      const token = session?.access_token ?? null;
+      const blob = await fetch(item.imageUrl).then((r) => r.blob());
+      const file = new File([blob], "item.jpg", { type: blob.type || "image/jpeg" });
+      const result = await uploadForBgRemoval(file, token);
+
+      if (result.bgRemoved && result.processedBase64) {
+        const newUrl = `data:${result.processedMimeType};base64,${result.processedBase64}`;
+        updateItem(item.id, { imageUrl: newUrl });
+        showToast("배경이 제거되었어요");
+        return;
+      }
+
+      // ── Fallback: canvas brightness-threshold ────────────────────────────────
       const img = new Image();
       img.crossOrigin = "anonymous";
       await new Promise((resolve, reject) => {
@@ -364,11 +384,11 @@ export default function CoordiEditorPage({ coordi, onClose, onSaved }) {
         }
       }
       ctx.putImageData(imageData, 0, 0);
-      const newUrl = canvas.toDataURL("image/png");
-      updateItem(item.id, { imageUrl: newUrl });
-      showToast("배경이 제거되었어요");
+      updateItem(item.id, { imageUrl: canvas.toDataURL("image/png") });
+      showToast("배경이 제거되었어요 (로컬 처리)");
     } catch (e) {
-      alert("배경 제거에 실패했어요. 다시 시도해주세요.");
+      console.warn("[CoordiEditor] bg removal failed:", e.message);
+      showToast("배경 제거에 실패했어요");
     } finally {
       setRemovingBg(false);
     }
@@ -503,22 +523,50 @@ export default function CoordiEditorPage({ coordi, onClose, onSaved }) {
     setIsSaving(true);
     try {
       const thumbnail = await exportCanvas();
-      const coordiData = {
-        id: coordi?.id ?? Date.now().toString(),
-        title: title || `코디 ${new Date().toLocaleDateString("ko-KR")}`,
-        thumbnail,
-        items: items.map((item) => ({ ...item })),
-        bgColor,
-        bgImage,
-        createdAt: coordi?.createdAt ?? Date.now(),
-        updatedAt: Date.now(),
-      };
-      saveCoordi(coordiData);
-      setHasChanges(false);
-      setActiveSheet(null);
-      showToast("저장되었어요 ✓");
-      onSaved?.(coordiData);
+      const resolvedTitle = title || `코디 ${new Date().toLocaleDateString("ko-KR")}`;
+
+      if (user?.id) {
+        // Upload canvas thumbnail → storage URL
+        const { url: bgUrl } = await uploadStylePhoto(user.id, thumbnail);
+
+        // style_items: carry position/rotation from canvas items
+        const styleItems = items.map((item, i) => ({
+          clothingItemId: null,          // CoordiEditorPage items don't link to clothing_items
+          imageUrl:       item.imageUrl  ?? null,
+          name:           null,
+          x:              item.x         ?? 0,
+          y:              item.y         ?? 0,
+          scale:          1,
+          rotation:       item.rotation  ?? 0,
+          layer_order:    item.zIndex    ?? i,
+        }));
+
+        const isEdit = !!coordi?.id;
+        const styleData = {
+          title:          resolvedTitle,
+          is_public:      false,
+          background_url: bgUrl ?? null,
+          template_id:    "canvas",
+        };
+
+        if (isEdit) {
+          await updateStyle(coordi.id, styleData);
+          await replaceStyleItems(coordi.id, styleItems);
+        } else {
+          await createStyle(user.id, styleData, styleItems);
+        }
+
+        setHasChanges(false);
+        setActiveSheet(null);
+        showToast("저장되었어요 ✓");
+        onSaved?.({ id: coordi?.id, title: resolvedTitle, thumbnail: bgUrl ?? thumbnail });
+      } else {
+        // Not logged in
+        showToast("로그인 후 저장할 수 있어요");
+        setActiveSheet(null);
+      }
     } catch (e) {
+      console.error("[CoordiEditorPage] save error:", e);
       alert("저장에 실패했어요.");
     } finally {
       setIsSaving(false);
@@ -541,7 +589,7 @@ export default function CoordiEditorPage({ coordi, onClose, onSaved }) {
       <div className="shrink-0 flex items-center justify-between px-4 h-14 bg-white" style={{ borderBottom: `1px solid ${DIVIDER}` }}>
         <button onClick={handleBack} className="w-9 h-9 flex items-center justify-center"><BackIcon /></button>
         <h2 style={{ color: DARK, fontFamily: FONT, fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em" }}>
-          {coordi ? "코디 수정" : "내 코디 만들기"}
+          {coordi ? "스타일 수정" : "스타일 작성"}
         </h2>
         <button onClick={() => setActiveSheet("save")} className="px-3 py-1.5 rounded-full" style={{ backgroundColor: YELLOW }}>
           <span style={{ color: DARK, fontFamily: FONT, fontSize: 12, fontWeight: 700 }}>저장</span>

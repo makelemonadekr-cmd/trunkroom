@@ -18,8 +18,8 @@ import OutfitDetailScreen    from "../../components/OutfitDetailScreen";
 import ProductDetailPage     from "../product/ProductDetailPage";
 import SellerProfilePage     from "./SellerProfilePage";
 import { unsplashUrl }       from "../../lib/imageUtils";
-import { isLiked, getLikeCount, toggleLike } from "../../lib/likesStore";
-import { isFollowing, toggleFollow } from "../../lib/followStore";
+import { useLikes } from "../../lib/likesContext";
+import { useFollow } from "../../lib/followContext";
 import {
   SELLER_PROFILES,
   getAllPublicItems,
@@ -29,12 +29,20 @@ import {
   getSellerOutfits,
   toProductShape,
 } from "../../constants/mockSellerData";
+import { usePublicStyles, usePublicItems, usePublicSellers } from "../../hooks/useDiscovery.js";
 import { STYLE_FILTER_OPTIONS } from "../../constants/styleCategories";
 import { SEASON_FILTER_OPTIONS } from "../../constants/seasonFilters";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
 const YELLOW = "#F5C200";
+
+// ── Mock fill thresholds ───────────────────────────────────────────────────────
+// How many mock items/styles/sellers to show at most.
+// As real Supabase data accumulates the mock count automatically shrinks to zero.
+const ITEM_MOCK_FILL_COUNT   = 20;
+const STYLE_MOCK_FILL_COUNT  = 15;
+const SELLER_MOCK_FILL_COUNT = 8;
 
 // ─── Color map (for public items filter) ──────────────────────────────────────
 const COLOR_HEX = {
@@ -153,26 +161,35 @@ const SEASONS_PUB = ["봄", "여름", "가을", "겨울"];
 
 function PublicItemsTab({ onItemTap, onSellerTap, saleFilterActive, onSaleFilterClear }) {
   const [itemView,      setItemView]     = useState("all"); // "all" | "following"
-  const [followRev,     setFollowRev]    = useState(0);
   const [openPanel,     setOpenPanel]    = useState(null);
   const [catFilters,    setCatFilters]   = useState([]);
   const [colorFilters,  setColorFilters] = useState([]);
   const [seasonFilters, setSeasonFilters] = useState([]);
   const [brandFilters,  setBrandFilters] = useState([]);
-  void followRev;
 
-  // IDs of sellers the user follows
+  const { followedIds } = useFollow();
+
+  // ── Real public items from Supabase ───────────────────────────────────────
+  const { items: publicItems } = usePublicItems();
+
+  // IDs of sellers the user follows (derived from context — reactive)
   const followedSellerIds = useMemo(
-    () => SELLER_PROFILES.filter((s) => isFollowing(s.id)).map((s) => s.id),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [followRev]
+    () => SELLER_PROFILES.filter((s) => followedIds.has(String(s.id))).map((s) => s.id),
+    [followedIds]
   );
 
   const source = useMemo(() => {
-    const base = saleFilterActive ? getAllForSaleItems() : getAllPublicItems();
-    if (itemView === "following") return base.filter((i) => followedSellerIds.includes(i.sellerId));
-    return base;
-  }, [saleFilterActive, itemView, followedSellerIds]);
+    // Real Supabase items first; fill remainder up to ITEM_MOCK_FILL_COUNT with mock items.
+    // As real data accumulates, the mock slice automatically shrinks to zero.
+    const realItems = saleFilterActive ? publicItems.filter((i) => i.isForSale) : publicItems;
+    const mockBase  = saleFilterActive ? getAllForSaleItems() : getAllPublicItems();
+    const mockSlice = mockBase
+      .map((m) => ({ ...m, source: "mock" }))
+      .slice(0, Math.max(0, ITEM_MOCK_FILL_COUNT - realItems.length));
+    const combined = [...realItems, ...mockSlice];
+    if (itemView === "following") return combined.filter((i) => followedSellerIds.includes(i.sellerId));
+    return combined;
+  }, [saleFilterActive, itemView, followedSellerIds, publicItems]);
 
   function togglePanel(key) { setOpenPanel((p) => p === key ? null : p === null ? key : key); }
   function toggle(setter, val) {
@@ -241,7 +258,7 @@ function PublicItemsTab({ onItemTap, onSellerTap, saleFilterActive, onSaleFilter
             return (
               <button
                 key={id}
-                onClick={() => { setItemView(id); setFollowRev((n) => n + 1); }}
+                onClick={() => setItemView(id)}
                 className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all active:opacity-80"
                 style={{
                   backgroundColor: isAct ? "white" : "transparent",
@@ -443,14 +460,13 @@ function PublicItemsTab({ onItemTap, onSellerTap, saleFilterActive, onSaleFilter
 // ─── 2. 스타일북 tab ────────────────────────────────────────────────────────────
 
 function CodibookOutfitCard({ outfit, onTap, onSellerTap }) {
-  const [liked, setLiked] = useState(() => isLiked(outfit.id));
-  const [count, setCount] = useState(() => getLikeCount(outfit.id, outfit.likes ?? 0));
+  const { isLiked, getCount, toggleLike } = useLikes();
+  const liked = isLiked(outfit.id);
+  const count = getCount(outfit.id, outfit.likes ?? 0);
 
   function handleLike(e) {
     e.stopPropagation();
-    const r = toggleLike(outfit.id, outfit.likes ?? 0);
-    setLiked(r.liked);
-    setCount(r.count);
+    toggleLike(outfit.id, outfit.likes ?? 0);
   }
 
   const imgSrc = outfit.previewImage?.includes("unsplash.com")
@@ -521,28 +537,37 @@ function CodibookOutfitCard({ outfit, onTap, onSellerTap }) {
 
 function CodibookDiscoveryTab({ onOutfitTap, onSellerTap }) {
   const [outfitView,   setOutfitView]   = useState("all"); // "all" | "following"
-  const [followRev,    setFollowRev]    = useState(0);
   const [styleFilter,  setStyleFilter]  = useState("전체");
   const [seasonFilter, setSeasonFilter] = useState("전체");
   const [openPanel,    setOpenPanel]    = useState(null); // "style" | "season"
-  void followRev;
 
+  const { followedIds } = useFollow();
+
+  // ── Real public styles from Supabase ──────────────────────────────────────
+  const { styles: publicStyles, loading: stylesLoading } = usePublicStyles();
+
+  // Seller-follow filter derived from context — reactive
   const followedSellerIds = useMemo(
-    () => SELLER_PROFILES.filter((s) => isFollowing(s.id)).map((s) => s.id),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [followRev]
+    () => SELLER_PROFILES.filter((s) => followedIds.has(String(s.id))).map((s) => s.id),
+    [followedIds]
   );
 
   const allOutfits = useMemo(() => {
-    const base = getAllPublicOutfits();
-    if (outfitView === "following") return base.filter((o) => followedSellerIds.includes(o.seller?.id));
-    return base;
-  }, [outfitView, followedSellerIds]);
+    // Real Supabase styles first; fill remainder up to STYLE_MOCK_FILL_COUNT with mock styles.
+    // Mock count automatically shrinks to zero as real data accumulates.
+    const mockBase = getAllPublicOutfits()
+      .map((m) => ({ ...m, source: "mock" }))
+      .slice(0, Math.max(0, STYLE_MOCK_FILL_COUNT - publicStyles.length));
+    const combined = [...publicStyles, ...mockBase];
+    if (outfitView === "following") return combined.filter((o) => followedSellerIds.includes(o.seller?.id));
+    return combined;
+  }, [outfitView, followedSellerIds, publicStyles]);
 
   const followingCount = useMemo(
-    () => getAllPublicOutfits().filter((o) => followedSellerIds.includes(o.seller?.id)).length,
-    [followedSellerIds]
+    () => allOutfits.filter((o) => followedSellerIds.includes(o.seller?.id)).length,
+    [allOutfits, followedSellerIds]
   );
+  void stylesLoading;
 
   const filtered = allOutfits.filter((o) => {
     const styleOk  = styleFilter  === "전체" || o.style === styleFilter;
@@ -570,7 +595,7 @@ function CodibookDiscoveryTab({ onOutfitTap, onSellerTap }) {
             return (
               <button
                 key={id}
-                onClick={() => { setOutfitView(id); setFollowRev((n) => n + 1); }}
+                onClick={() => setOutfitView(id)}
                 className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all active:opacity-80"
                 style={{
                   backgroundColor: isAct ? "white" : "transparent",
@@ -698,8 +723,9 @@ function CodibookDiscoveryTab({ onOutfitTap, onSellerTap }) {
 
 // ─── 3. 셀러 tab ──────────────────────────────────────────────────────────────
 
-function SellerCard({ seller, onTap, onFollowChange, onOutfitPreviewTap, onItemPreviewTap }) {
-  const [following,      setFollowing]      = useState(() => isFollowing(seller.id));
+function SellerCard({ seller, onTap, onOutfitPreviewTap, onItemPreviewTap }) {
+  const { isFollowing, toggleFollow } = useFollow();
+  const following                     = isFollowing(seller.id);
   const [localFollowers, setLocalFollowers] = useState(seller.followers);
 
   const sellerItems   = useMemo(() => getSellerItems(seller.id),   [seller.id]);
@@ -720,9 +746,7 @@ function SellerCard({ seller, onTap, onFollowChange, onOutfitPreviewTap, onItemP
   function handleFollow(e) {
     e.stopPropagation();
     const r = toggleFollow(seller.id);
-    setFollowing(r.following);
     setLocalFollowers((n) => r.following ? n + 1 : n - 1);
-    onFollowChange?.();
   }
 
   return (
@@ -851,13 +875,21 @@ function SellerCard({ seller, onTap, onFollowChange, onOutfitPreviewTap, onItemP
 }
 
 function SellerListTab({ onSellerTap, onOutfitPreviewTap, onItemPreviewTap }) {
-  const [sellerView,     setSellerView]     = useState("all"); // "all" | "following"
-  const [followRevision, setFollowRevision] = useState(0);
+  const [sellerView, setSellerView] = useState("all"); // "all" | "following"
+  const { followedIds }             = useFollow();
+  const { sellers: realSellers }    = usePublicSellers();
 
-  const followed  = SELLER_PROFILES.filter((s) => isFollowing(s.id));
-  void followRevision; // intentional — forces re-render on follow toggle
+  // Merge real sellers (top) with mock fill (bottom).
+  // As real data accumulates, mock fill automatically shrinks to zero.
+  const allSellers = useMemo(() => {
+    const mockFill = SELLER_PROFILES
+      .map((s) => ({ ...s, source: "mock" }))
+      .slice(0, Math.max(0, SELLER_MOCK_FILL_COUNT - realSellers.length));
+    return [...realSellers, ...mockFill];
+  }, [realSellers]);
 
-  const displayed = sellerView === "all" ? SELLER_PROFILES : followed;
+  const followed  = allSellers.filter((s) => followedIds.has(String(s.id)));
+  const displayed = sellerView === "all" ? allSellers : followed;
 
   return (
     <div>
@@ -924,7 +956,6 @@ function SellerListTab({ onSellerTap, onOutfitPreviewTap, onItemPreviewTap }) {
               key={seller.id}
               seller={seller}
               onTap={onSellerTap}
-              onFollowChange={() => setFollowRevision((n) => n + 1)}
               onOutfitPreviewTap={onOutfitPreviewTap}
               onItemPreviewTap={onItemPreviewTap}
             />

@@ -20,7 +20,8 @@ import { requireAuth }     from "./middleware/requireAuth.js";
 import { checkLimit, logUsage } from "./lib/rateLimit.js";
 
 const app  = express();
-const port = process.env.API_PORT || 3001;
+// Railway는 PORT를 자동 주입, 로컬은 API_PORT 또는 3001
+const port = process.env.PORT || process.env.API_PORT || 3001;
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 // Netlify production + 로컬 개발 허용

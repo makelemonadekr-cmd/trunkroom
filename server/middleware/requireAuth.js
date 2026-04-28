@@ -9,9 +9,10 @@
 import { createClient } from "@supabase/supabase-js";
 
 // anon key로 JWT 검증 (service role 불필요)
+// Railway 등 서버 환경에선 SUPABASE_URL, 로컬은 VITE_SUPABASE_URL 사용
 const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.VITE_SUPABASE_ANON_KEY
+  process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
 );
 
 export async function requireAuth(req, res, next) {

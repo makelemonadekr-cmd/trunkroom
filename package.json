@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "start": "node server/index.js",
     "dev": "concurrently -n vite,server -c cyan,yellow \"vite\" \"node server/index.js\"",
     "dev:vite": "vite",
     "dev:server": "node server/index.js",

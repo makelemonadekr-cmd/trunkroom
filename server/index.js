@@ -22,6 +22,25 @@ import { checkLimit, logUsage } from "./lib/rateLimit.js";
 const app  = express();
 const port = process.env.API_PORT || 3001;
 
+// ─── CORS ─────────────────────────────────────────────────────────────────────
+// Netlify production + 로컬 개발 허용
+const ALLOWED_ORIGINS = [
+  "http://localhost:5173",        // Vite dev
+  "http://localhost:4173",        // Vite preview
+  process.env.FRONTEND_URL,       // Railway 환경변수로 주입 (e.g. https://trunkroom.netlify.app)
+].filter(Boolean);
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin ?? "*");
+  }
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
+
 // ─── Middleware ───────────────────────────────────────────────────────────────
 
 // JSON bodies (for /api/analyze-clothing) — 5 MB cap (이미지 압축 후 충분)

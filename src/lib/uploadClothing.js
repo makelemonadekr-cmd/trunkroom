@@ -51,7 +51,9 @@ export async function uploadForBgRemoval(file, accessToken = null) {
   if (!res.ok) {
     let msg = `HTTP ${res.status}`;
     try { msg = (await res.json()).error ?? msg; } catch { /* ignore */ }
-    throw new Error(msg);
+    const err = new Error(msg);
+    if (res.status === 429) err.isRateLimit = true;
+    throw err;
   }
 
   return res.json();
@@ -79,7 +81,9 @@ export async function analyzeClothingImage(imageBase64, mimeType = "image/jpeg",
   if (!res.ok) {
     let msg = `HTTP ${res.status}`;
     try { msg = (await res.json()).error ?? msg; } catch { /* ignore */ }
-    throw new Error(msg);
+    const err = new Error(msg);
+    if (res.status === 429) err.isRateLimit = true;
+    throw err;
   }
 
   return res.json();
@@ -123,6 +127,8 @@ export async function runUploadPipeline(file, {
     try {
       bgResult = await uploadForBgRemoval(file, accessToken);
     } catch (bgErr) {
+      // 429 = rate limit exceeded → propagate immediately, don't silently fall back
+      if (bgErr.isRateLimit) throw bgErr;
       console.warn("[uploadPipeline] bg removal unavailable, using original:", bgErr.message);
       bgResult = {
         bgRemoved:        false,
@@ -145,6 +151,8 @@ export async function runUploadPipeline(file, {
     try {
       analysis = await analyzeClothingImage(displayBase64, displayMimeType, accessToken);
     } catch (analysisErr) {
+      // 429 = rate limit exceeded → propagate immediately
+      if (analysisErr.isRateLimit) throw analysisErr;
       console.warn("[uploadPipeline] analysis unavailable:", analysisErr.message);
       analysis = { success: false, error: analysisErr.message, needsReview: true };
     }

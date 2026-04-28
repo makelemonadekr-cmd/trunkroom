@@ -1,30 +1,20 @@
 # netlify.toml
 # TrunkRoom 프론트엔드 배포 설정 (Netlify)
 #
+# Production branch: main
 # ⚠️  Express API 서버 (/api/*) 는 별도 서버에 배포 후
 #     VITE_AI_BASE_URL 환경변수를 그 URL로 교체해야 AI 기능이 동작함
-#     현재는 프론트엔드 기능만 배포 테스트
 
 [build]
   command = "npm run build"
   publish = "dist"
-  # node_modules 캐시로 빌드 속도 향상
-  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- . ':!README.md'"
 
 [build.environment]
   NODE_VERSION = "20"
 
-# ─── SPA 라우팅 (React Router / 단일 index.html) ─────────────────────────────
+# ─── SPA 라우팅 ───────────────────────────────────────────────────────────────
 # 모든 경로를 index.html 로 fallback — 새로고침 404 방지
 [[redirects]]
   from = "/*"
   to   = "/index.html"
   status = 200
-
-# ─── Branch deploy 설정 ───────────────────────────────────────────────────────
-# real-app-implementation 브랜치: Deploy Preview 활성화
-[context.branch-deploy]
-  command = "npm run build"
-
-[context."real-app-implementation"]
-  command = "npm run build"

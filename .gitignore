@@ -6,3 +6,6 @@ dist/
 .env
 .env.local
 .env.*.local
+
+# Claude Code 내부 작업용 임시 폴더 — never commit
+.claude/worktrees/

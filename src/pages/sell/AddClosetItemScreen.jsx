@@ -396,9 +396,12 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
           setTimeout(() => setPipelineState(null), 1200);
         },
         onError: (err) => {
-          setPipelineError(err.message);
+          const msg = err.isRateLimit
+            ? "오늘 AI 사용 횟수를 모두 사용했어요 😅 내일 다시 이용해주세요!"
+            : err.message;
+          setPipelineError(msg);
           setPipelineState("error");
-          setTimeout(() => setPipelineState(null), 2500);
+          setTimeout(() => setPipelineState(null), err.isRateLimit ? 3500 : 2500);
         },
       });
 

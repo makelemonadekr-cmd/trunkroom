@@ -28,7 +28,7 @@ export async function submitReport({ reporterId, targetType, targetId, reason, r
   const { error } = await supabase.from("reports").insert({
     reporter_id:     reporterId,
     target_type:     targetType,
-    target_id:       targetId,
+    target_id:       String(targetId),
     reason:          trimmed,
     reason_category: reasonCategory,
   });

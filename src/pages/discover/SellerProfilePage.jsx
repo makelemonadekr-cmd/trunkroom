@@ -19,6 +19,10 @@ import { useSellerContent } from "../../hooks/useDiscovery.js";
 import { getSellerItems, getSellerOutfits, getSellerSaleItems, toProductShape } from "../../constants/mockSellerData";
 import { unsplashUrl } from "../../lib/imageUtils";
 import { useLikes } from "../../lib/likesContext";
+import { useAuth } from "../../hooks/useAuth";
+import { blockUser } from "../../services/moderationService";
+import { showToast } from "../../lib/toastUtils";
+import ReportSheet from "../../components/ReportSheet";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
@@ -139,6 +143,7 @@ function EmptyState({ emoji, message }) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function SellerProfilePage({ seller, onBack }) {
+  const { user } = useAuth();
   const { isFollowing, toggleFollow } = useFollow();
   const following                     = isFollowing(seller.id);
   const [activeTab,      setActiveTab]      = useState("items"); // "items" | "codis" | "sale"
@@ -146,6 +151,20 @@ export default function SellerProfilePage({ seller, onBack }) {
   // Internal detail overlays — managed here so z-stacking is clean
   const [selectedItem,   setSelectedItem]   = useState(null); // product shape
   const [selectedOutfit, setSelectedOutfit] = useState(null); // outfit object
+  const [menuOpen,       setMenuOpen]       = useState(false);
+  const [reportOpen,     setReportOpen]     = useState(false);
+
+  const isOwn = user?.id && seller?.id === user.id;
+
+  async function handleBlock() {
+    if (!user?.id || !seller?.id) return;
+    setMenuOpen(false);
+    const ok = window.confirm("이 사용자를 차단하면 더 이상 이 사용자의 콘텐츠가 보이지 않습니다. 차단할까요?");
+    if (!ok) return;
+    const { error } = await blockUser(user.id, seller.id);
+    if (error) showToast("차단 실패: " + (error.message ?? ""), "error");
+    else { showToast("차단 완료", "success"); onBack?.(); }
+  }
 
   // For real (Supabase) sellers, fetch their public content.
   // For mock sellers, useSellerContent(null) returns empty arrays immediately.
@@ -218,6 +237,22 @@ export default function SellerProfilePage({ seller, onBack }) {
             </svg>
             <span style={{ fontFamily: FONT, fontSize: 12, fontWeight: 500, color: "white" }}>뒤로</span>
           </button>
+
+          {/* 3-dot menu (report/block) — hidden for own profile */}
+          {!isOwn && (
+            <button
+              onClick={() => setMenuOpen(true)}
+              className="absolute top-3 right-4 w-9 h-9 flex items-center justify-center rounded-full active:opacity-70"
+              style={{ backgroundColor: "rgba(0,0,0,0.35)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.15)" }}
+              aria-label="더보기"
+            >
+              <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+                <circle cx="4" cy="9" r="1.4" fill="white" />
+                <circle cx="9" cy="9" r="1.4" fill="white" />
+                <circle cx="14" cy="9" r="1.4" fill="white" />
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* Profile info block */}
@@ -384,6 +419,50 @@ export default function SellerProfilePage({ seller, onBack }) {
 
         <div style={{ height: 24 }} />
       </div>
+
+      {/* Action menu (report/block) */}
+      {menuOpen && (
+        <div
+          className="absolute inset-0 z-50 flex items-end"
+          style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+          onClick={() => setMenuOpen(false)}
+        >
+          <div
+            className="w-full bg-white rounded-t-2xl p-2"
+            style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom))", fontFamily: FONT }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => { setMenuOpen(false); setReportOpen(true); }}
+              className="w-full py-3.5 text-[14px] text-left px-4 rounded-xl active:bg-gray-50"
+              style={{ color: "#E84040" }}
+            >
+              🚩 신고하기
+            </button>
+            <button
+              onClick={handleBlock}
+              className="w-full py-3.5 text-[14px] text-left px-4 rounded-xl active:bg-gray-50"
+              style={{ color: "#E84040" }}
+            >
+              🚫 사용자 차단
+            </button>
+            <button
+              onClick={() => setMenuOpen(false)}
+              className="w-full py-3.5 text-[14px] text-left px-4 rounded-xl active:bg-gray-50"
+              style={{ color: "#666" }}
+            >
+              취소
+            </button>
+          </div>
+        </div>
+      )}
+
+      <ReportSheet
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        targetType="profile"
+        targetId={seller?.id}
+      />
     </div>
   );
 }

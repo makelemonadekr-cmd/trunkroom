@@ -20,6 +20,7 @@ import {
   fetchPublicSellers,
   fetchSellerContent,
 } from "../services/discoveryService.js";
+import { useAuth } from "./useAuth.js";
 
 // ── Seller stub (used inside item / style normalizers) ─────────────────────────
 function profileToSellerStub(profile) {
@@ -96,19 +97,21 @@ function normalizePublicSeller(row) {
  * @returns {{ styles: Object[], loading: boolean, refresh: () => void }}
  */
 export function usePublicStyles() {
+  const { user } = useAuth();
+  const viewerId = user?.id ?? null;
   const [styles,  setStyles]  = useState([]);
   const [loading, setLoading] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    const { styles: fetched, error } = await fetchPublicStyles();
+    const { styles: fetched, error } = await fetchPublicStyles({ viewerId });
     setLoading(false);
     if (error) {
       console.warn("[useDiscovery] styles fetch error:", error.message);
     } else {
       setStyles(fetched.map(normalizePublicStyle));
     }
-  }, []);
+  }, [viewerId]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
@@ -121,19 +124,21 @@ export function usePublicStyles() {
  * @returns {{ items: Object[], loading: boolean, refresh: () => void }}
  */
 export function usePublicItems() {
+  const { user } = useAuth();
+  const viewerId = user?.id ?? null;
   const [items,   setItems]   = useState([]);
   const [loading, setLoading] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    const { items: fetched, error } = await fetchPublicItems();
+    const { items: fetched, error } = await fetchPublicItems({ viewerId });
     setLoading(false);
     if (error) {
       console.warn("[useDiscovery] items fetch error:", error.message);
     } else {
       setItems(fetched.map(normalizePublicItem));
     }
-  }, []);
+  }, [viewerId]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
@@ -146,19 +151,21 @@ export function usePublicItems() {
  * @returns {{ sellers: Object[], loading: boolean, refresh: () => void }}
  */
 export function usePublicSellers() {
+  const { user } = useAuth();
+  const viewerId = user?.id ?? null;
   const [sellers, setSellers] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    const { sellers: fetched, error } = await fetchPublicSellers();
+    const { sellers: fetched, error } = await fetchPublicSellers({ viewerId });
     setLoading(false);
     if (error) {
       console.warn("[useDiscovery] sellers fetch error:", error.message);
     } else {
       setSellers(fetched.map(normalizePublicSeller));
     }
-  }, []);
+  }, [viewerId]);
 
   useEffect(() => { refresh(); }, [refresh]);
 

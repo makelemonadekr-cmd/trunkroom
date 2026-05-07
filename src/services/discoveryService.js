@@ -76,7 +76,7 @@ export async function fetchPublicStyles({ limit = 60, viewerId = null } = {}) {
  * @param {{ limit?: number }} [opts]
  * @returns {Promise<{ items: Object[], error: Error|null }>}
  */
-export async function fetchPublicItems({ limit = 80 } = {}) {
+export async function fetchPublicItems({ limit = 80, viewerId = null } = {}) {
   const { data, error } = await supabase
     .from("clothing_items")
     .select("*")
@@ -86,7 +86,7 @@ export async function fetchPublicItems({ limit = 80 } = {}) {
 
   if (error) return { items: [], error };
 
-  const rows     = data ?? [];
+  const rows     = await filterBlocked(data ?? [], viewerId);
   const userIds  = [...new Set(rows.map((r) => r.user_id).filter(Boolean))];
   const profiles = await fetchProfilesMap(userIds);
 
@@ -105,7 +105,7 @@ export async function fetchPublicItems({ limit = 80 } = {}) {
  * @param {{ limit?: number }} [opts]
  * @returns {Promise<{ sellers: Object[], error: Error|null }>}
  */
-export async function fetchPublicSellers({ limit = 30 } = {}) {
+export async function fetchPublicSellers({ limit = 30, viewerId = null } = {}) {
   const { data, error } = await supabase
     .from("profiles")
     .select("id, nickname, bio, avatar_url, instagram_url, created_at")
@@ -114,7 +114,8 @@ export async function fetchPublicSellers({ limit = 30 } = {}) {
     .limit(limit);
 
   if (error) return { sellers: [], error };
-  return { sellers: data ?? [], error: null };
+  const rows = await filterBlocked(data ?? [], viewerId, "id");
+  return { sellers: rows, error: null };
 }
 
 // ─── Per-seller content (for SellerProfilePage overlay) ───────────────────────

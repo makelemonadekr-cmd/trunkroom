@@ -6,7 +6,8 @@ create table if not exists public.reports (
   id              uuid primary key default gen_random_uuid(),
   reporter_id     uuid not null references auth.users(id) on delete cascade,
   target_type     text not null check (target_type in ('style','item','profile','comment')),
-  target_id       uuid not null,
+  -- text (not uuid) so we can reference any target table regardless of pk type
+  target_id       text not null,
   reason          text not null check (char_length(reason) between 1 and 500),
   reason_category text check (reason_category in (
     'spam','harassment','sexual_content','hate_speech','violence',

@@ -706,19 +706,10 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
               <div className="shrink-0 w-1" />
             </div>
           ) : (
-            /* Fallback: show sample outfits from OUTFIT_DATA */
-            <div
-              className="flex gap-3 overflow-x-auto"
-              style={{ scrollbarWidth: "none", paddingLeft: 20, paddingRight: 16 }}
-            >
-              {OUTFIT_DATA.slice(0, 3).map((outfit) => (
-                <StylebookCard
-                  key={outfit.id}
-                  outfit={outfit}
-                  onTap={(o) => setActiveOutfit(o)}
-                />
-              ))}
-              <div className="shrink-0 w-1" />
+            <div className="px-5 py-6 text-center">
+              <p className="text-[12px]" style={{ color: "#999", fontFamily: FONT }}>
+                아직 이 아이템으로 만든 스타일북이 없어요
+              </p>
             </div>
           )}
         </div>

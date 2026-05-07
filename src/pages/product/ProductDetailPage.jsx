@@ -501,6 +501,7 @@ export default function ProductDetailPage({ product, onBack }) {
             style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}>
             {MOCK_ITEM_STYLEBOOKS.map(book => {
               const outfit = OUTFIT_DATA[book.outfitIndex] ?? OUTFIT_DATA[0];
+              if (!outfit) return null;
               return (
                 <button key={book.id} onClick={() => setActiveOutfit(outfit)}
                   className="shrink-0 text-left active:opacity-80" style={{ width: 130 }}>

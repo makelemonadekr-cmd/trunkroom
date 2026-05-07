@@ -10,6 +10,16 @@
  */
 
 import { supabase } from "../lib/supabase.js";
+import { fetchBlockedIds } from "./moderationService.js";
+
+/** Filter out rows authored by users the viewer has blocked. */
+async function filterBlocked(rows, viewerId, userIdField = "user_id") {
+  if (!viewerId || rows.length === 0) return rows;
+  const { ids } = await fetchBlockedIds(viewerId);
+  if (ids.length === 0) return rows;
+  const blocked = new Set(ids);
+  return rows.filter((r) => !blocked.has(r[userIdField]));
+}
 
 // ─── Internal helper ──────────────────────────────────────────────────────────
 
@@ -36,7 +46,7 @@ async function fetchProfilesMap(userIds) {
  * @param {{ limit?: number }} [opts]
  * @returns {Promise<{ styles: Object[], error: Error|null }>}
  */
-export async function fetchPublicStyles({ limit = 60 } = {}) {
+export async function fetchPublicStyles({ limit = 60, viewerId = null } = {}) {
   const { data, error } = await supabase
     .from("styles")
     .select("*")
@@ -46,8 +56,8 @@ export async function fetchPublicStyles({ limit = 60 } = {}) {
 
   if (error) return { styles: [], error };
 
-  const rows    = data ?? [];
-  const userIds = [...new Set(rows.map((r) => r.user_id).filter(Boolean))];
+  const rows     = await filterBlocked(data ?? [], viewerId);
+  const userIds  = [...new Set(rows.map((r) => r.user_id).filter(Boolean))];
   const profiles = await fetchProfilesMap(userIds);
 
   return {

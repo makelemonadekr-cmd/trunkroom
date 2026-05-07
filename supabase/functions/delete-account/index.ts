@@ -53,6 +53,12 @@ serve(async (req: Request) => {
 
     const uid = user.id;
 
+    // Helper: ignore-error delete (some tables may not exist in older envs)
+    const safeDelete = async (table: string, column: string, value: string) => {
+      const { error } = await supabaseAdmin.from(table).delete().eq(column, value);
+      if (error) console.warn(`[delete-account] ${table}.${column}=${value}:`, error.message);
+    };
+
     // ── 1. style_items 삭제 ────────────────────────────────────────────────
     const { data: styleRows } = await supabaseAdmin
       .from("styles")
@@ -67,19 +73,50 @@ serve(async (req: Request) => {
         .in("style_id", styleIds);
     }
 
-    // ── 2. styles 삭제 ─────────────────────────────────────────────────────
-    await supabaseAdmin.from("styles").delete().eq("user_id", uid);
+    // ── 2. styles ──────────────────────────────────────────────────────────
+    await safeDelete("styles", "user_id", uid);
 
-    // ── 3. wear_logs 삭제 ──────────────────────────────────────────────────
-    await supabaseAdmin.from("wear_logs").delete().eq("user_id", uid);
+    // ── 3. wear_logs ──────────────────────────────────────────────────────
+    await safeDelete("wear_logs", "user_id", uid);
 
-    // ── 4. clothing_items 삭제 ─────────────────────────────────────────────
-    await supabaseAdmin.from("clothing_items").delete().eq("user_id", uid);
+    // ── 4. likes (both as actor and as target if applicable) ──────────────
+    await safeDelete("likes", "user_id", uid);
 
-    // ── 5. profiles 삭제 ───────────────────────────────────────────────────
-    await supabaseAdmin.from("profiles").delete().eq("id", uid);
+    // ── 5. follows ────────────────────────────────────────────────────────
+    await safeDelete("follows", "follower_id", uid);
+    await safeDelete("follows", "following_id", uid);
 
-    // ── 6. auth.users 삭제 (Admin API) ─────────────────────────────────────
+    // ── 6. support_inquiries ──────────────────────────────────────────────
+    await safeDelete("support_inquiries", "user_id", uid);
+
+    // ── 7. ai_usage_logs ──────────────────────────────────────────────────
+    await safeDelete("ai_usage_logs", "user_id", uid);
+
+    // ── 8. reports + blocks (moderation) ──────────────────────────────────
+    await safeDelete("reports", "reporter_id", uid);
+    await safeDelete("blocks",  "blocker_id", uid);
+    await safeDelete("blocks",  "blocked_id", uid);
+
+    // ── 9. clothing_items ─────────────────────────────────────────────────
+    await safeDelete("clothing_items", "user_id", uid);
+
+    // ── 10. Storage objects (clothing-images bucket) ──────────────────────
+    try {
+      const { data: files } = await supabaseAdmin
+        .storage.from("clothing-images")
+        .list(uid, { limit: 1000 });
+      if (files && files.length > 0) {
+        const paths = files.map((f) => `${uid}/${f.name}`);
+        await supabaseAdmin.storage.from("clothing-images").remove(paths);
+      }
+    } catch (e) {
+      console.warn("[delete-account] storage cleanup error:", (e as Error).message);
+    }
+
+    // ── 11. profiles ──────────────────────────────────────────────────────
+    await safeDelete("profiles", "id", uid);
+
+    // ── 12. auth.users (Admin API) ────────────────────────────────────────
     const { error: deleteErr } = await supabaseAdmin.auth.admin.deleteUser(uid);
     if (deleteErr) {
       console.error("[delete-account] auth.admin.deleteUser error:", deleteErr.message);

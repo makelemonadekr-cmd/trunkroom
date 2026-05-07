@@ -28,6 +28,10 @@ import { CLOSET_ITEMS } from "../constants/mockClosetData";
 import LazyImage from "./LazyImage";
 import SimilarClosetScreen from "./SimilarClosetScreen";
 import StyleBoardTemplate from "./StyleBoardTemplate";
+import ReportSheet from "./ReportSheet";
+import { useAuth } from "../hooks/useAuth";
+import { blockUser } from "../services/moderationService";
+import { showToast } from "../lib/toastUtils";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
@@ -93,9 +97,25 @@ function ItemRow({ item, last = false, onTap }) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 export default function OutfitDetailScreen({ outfit, onBack, onItemTap, onMakeStyle }) {
+  const { user } = useAuth();
   const [liked,       setLiked]       = useState(false);
   const [likes,       setLikes]       = useState(outfit.likes ?? 0);
   const [similarOpen, setSimilarOpen] = useState(false);
+  const [menuOpen,    setMenuOpen]    = useState(false);
+  const [reportOpen,  setReportOpen]  = useState(false);
+
+  const ownerId = outfit?._profile?.id ?? outfit?.user_id ?? null;
+  const isOwn = ownerId && user?.id && ownerId === user.id;
+
+  async function handleBlock() {
+    if (!user?.id || !ownerId) return;
+    setMenuOpen(false);
+    const ok = window.confirm("이 사용자를 차단하면 더 이상 이 사용자의 콘텐츠가 보이지 않습니다. 차단할까요?");
+    if (!ok) return;
+    const { error } = await blockUser(user.id, ownerId);
+    if (error) showToast("차단 실패: " + (error.message ?? ""), "error");
+    else { showToast("차단 완료", "success"); onBack?.(); }
+  }
 
   function handleLike(e) {
     e.stopPropagation();
@@ -139,6 +159,22 @@ export default function OutfitDetailScreen({ outfit, onBack, onItemTap, onMakeSt
             <path d="M12.5 4L7 10L12.5 16" stroke={DARK} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
+
+        {/* More menu (report/block) — only for non-own content */}
+        {!isOwn && ownerId && (
+          <button
+            onClick={() => setMenuOpen(true)}
+            className="absolute top-4 right-[88px] w-10 h-10 flex items-center justify-center rounded-full"
+            style={{ backgroundColor: "rgba(255,255,255,0.88)", backdropFilter: "blur(8px)" }}
+            aria-label="더보기"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <circle cx="4" cy="9" r="1.4" fill={DARK} />
+              <circle cx="9" cy="9" r="1.4" fill={DARK} />
+              <circle cx="14" cy="9" r="1.4" fill={DARK} />
+            </svg>
+          </button>
+        )}
 
         {/* Like button */}
         <button
@@ -287,6 +323,50 @@ export default function OutfitDetailScreen({ outfit, onBack, onItemTap, onMakeSt
           } : undefined}
         />
       )}
+
+      {/* Action menu (report/block) */}
+      {menuOpen && (
+        <div
+          className="absolute inset-0 z-40 flex items-end"
+          style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+          onClick={() => setMenuOpen(false)}
+        >
+          <div
+            className="w-full bg-white rounded-t-2xl p-2"
+            style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom))", fontFamily: FONT }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => { setMenuOpen(false); setReportOpen(true); }}
+              className="w-full py-3.5 text-[14px] text-left px-4 rounded-xl active:bg-gray-50"
+              style={{ color: "#E84040" }}
+            >
+              🚩 신고하기
+            </button>
+            <button
+              onClick={handleBlock}
+              className="w-full py-3.5 text-[14px] text-left px-4 rounded-xl active:bg-gray-50"
+              style={{ color: "#E84040" }}
+            >
+              🚫 사용자 차단
+            </button>
+            <button
+              onClick={() => setMenuOpen(false)}
+              className="w-full py-3.5 text-[14px] text-left px-4 rounded-xl active:bg-gray-50"
+              style={{ color: "#666" }}
+            >
+              취소
+            </button>
+          </div>
+        </div>
+      )}
+
+      <ReportSheet
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        targetType="style"
+        targetId={outfit?.id}
+      />
     </div>
   );
 }

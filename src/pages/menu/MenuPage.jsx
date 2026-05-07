@@ -1,6 +1,7 @@
 import { useState } from "react";
 import PrivacyPolicyScreen from "../legal/PrivacyPolicyScreen";
 import TermsOfServiceScreen from "../legal/TermsOfServiceScreen";
+import AIDisclosureScreen from "../legal/AIDisclosureScreen";
 import AccountSettingsScreen from "./AccountSettingsScreen";
 import CustomerSupportPage from "../support/CustomerSupportPage";
 import { showToast } from "../../lib/toastUtils";
@@ -218,6 +219,7 @@ export default function MenuPage({ user, onSignOut }) {
       {/* Screen overlays */}
       {screen === "privacy" && <PrivacyPolicyScreen onBack={() => setScreen(null)} />}
       {screen === "terms"   && <TermsOfServiceScreen onBack={() => setScreen(null)} />}
+      {screen === "ai"      && <AIDisclosureScreen onBack={() => setScreen(null)} />}
       {accountOpen && <AccountSettingsScreen onBack={() => { setAccountOpen(false); refreshProfile(); }} />}
       {supportOpen && <CustomerSupportPage onBack={() => setSupportOpen(false)} />}
 
@@ -341,6 +343,12 @@ export default function MenuPage({ user, onSignOut }) {
             label="이용약관"
             icon={<DocumentIcon />}
             onPress={() => setScreen("terms")}
+          />
+          <Row
+            label="AI 이용 안내"
+            icon={<InfoIcon />}
+            subValue="AI 기능 활용 범위 및 한계"
+            onPress={() => setScreen("ai")}
             last
           />
         </RowGroup>

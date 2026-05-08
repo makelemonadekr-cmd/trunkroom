@@ -7,4 +7,3 @@ export const OUTFIT_DATA = [];
 
 export function getOutfitsByStyle(_style) { return []; }
 export function getOutfitsByStyleAndSeason(_style, _season) { return []; }
-export function getOutfitsContainingItem(_itemId, _item = null) { return []; }

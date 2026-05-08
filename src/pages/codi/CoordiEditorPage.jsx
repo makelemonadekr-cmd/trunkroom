@@ -403,7 +403,7 @@ export default function CoordiEditorPage({ coordi, onClose, onSaved }) {
 
     // Validate
     const { valid, error: fileError } = validateImageFile(file);
-    if (!valid) { alert(fileError); return; }
+    if (!valid) { showToast(fileError, "error"); return; }
 
     try {
       // Compress large uploads before adding to canvas
@@ -428,7 +428,7 @@ export default function CoordiEditorPage({ coordi, onClose, onSaved }) {
       setSelectedId(newItem.id);
       setHasChanges(true);
     } catch {
-      alert("이미지를 불러올 수 없어요. 다른 파일을 선택해 주세요.");
+      showToast("이미지를 불러올 수 없어요. 다른 파일을 선택해 주세요.", "error");
     }
   }
 
@@ -490,7 +490,7 @@ export default function CoordiEditorPage({ coordi, onClose, onSaved }) {
       a.click();
       showToast("다운로드되었어요 ✓");
     } catch (e) {
-      alert("다운로드에 실패했어요.");
+      showToast("다운로드에 실패했어요", "error");
     } finally {
       setIsExporting(false);
     }
@@ -513,7 +513,7 @@ export default function CoordiEditorPage({ coordi, onClose, onSaved }) {
         showToast("다운로드되었어요 ✓");
       }
     } catch (e) {
-      if (e.name !== "AbortError") alert("공유에 실패했어요.");
+      if (e.name !== "AbortError") showToast("공유에 실패했어요", "error");
     } finally {
       setIsExporting(false);
     }

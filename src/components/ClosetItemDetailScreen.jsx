@@ -485,7 +485,7 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
         await navigator.share({ title: `${item.brand} ${name}`, text: "내 트렁크룸 아이템이에요!", url: window.location.href });
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        alert("링크가 클립보드에 복사됐어요!");
+        showToast("링크가 복사됐어요 ✓", "success");
       }
     } catch (_) {}
   }

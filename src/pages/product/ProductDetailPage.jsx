@@ -3,6 +3,7 @@ import { zoneItemImg } from "../../lib/localImages";
 import { MAIN_CATEGORIES } from "../../constants/mockClosetData";
 import OutfitDetailScreen from "../../components/OutfitDetailScreen";
 import { OUTFIT_DATA } from "../../constants/mockOutfitData";
+import { showToast } from "../../lib/toastUtils";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
@@ -328,7 +329,7 @@ export default function ProductDetailPage({ product, onBack }) {
         await navigator.share(shareData);
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        alert("링크가 클립보드에 복사됐어요!");
+        showToast("링크가 복사됐어요 ✓", "success");
       }
     } catch (_) {}
   }

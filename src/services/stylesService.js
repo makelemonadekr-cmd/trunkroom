@@ -141,6 +141,32 @@ export async function replaceStyleItems(styleId, items = []) {
   return { error: null };
 }
 
+/**
+ * Fetch all styles that contain a specific clothing item.
+ * Used by ClosetItemDetailScreen to show "이 아이템으로 만든 스타일북".
+ *
+ * @param {string} clothingItemId
+ * @returns {Promise<{ styles: Object[], error: Error|null }>}
+ */
+export async function fetchStylesByItemId(clothingItemId) {
+  if (!clothingItemId) return { styles: [], error: null };
+  const { data, error } = await supabase
+    .from(ITEMS_TABLE)
+    .select("style_id, styles(id, title, background_url, is_public, created_at)")
+    .eq("clothing_item_id", clothingItemId);
+
+  if (error) return { styles: [], error };
+  const styles = (data ?? [])
+    .map((row) => row.styles)
+    .filter(Boolean);
+  // Deduplicate by id (same style can have multiple items from the same closet piece)
+  const seen = new Set();
+  return {
+    styles: styles.filter((s) => { if (seen.has(s.id)) return false; seen.add(s.id); return true; }),
+    error: null,
+  };
+}
+
 // ─── Delete ───────────────────────────────────────────────────────────────────
 
 /**

@@ -11,14 +11,14 @@
  *   • Bottom CTA: "이 아이템으로 스타일북 만들기"
  */
 
-import { useState, useMemo, useRef } from "react";
-import { OUTFIT_DATA, getOutfitsContainingItem } from "../constants/mockOutfitData";
+import { useState, useEffect, useRef } from "react";
 import OutfitDetailScreen from "./OutfitDetailScreen";
 import { MAIN_CATEGORIES } from "../constants/mockClosetData";
 import { showToast } from "../lib/toastUtils";
 import { useAuth }         from "../hooks/useAuth.js";
 import { useWearLogs }     from "../hooks/useWearLogs.js";
 import { updateClosetItem, deleteClosetItem } from "../services/closetService.js";
+import { fetchStylesByItemId } from "../services/stylesService.js";
 
 const FONT = "'Spoqa Han Sans Neo', sans-serif";
 const DARK = "#1a1a1a";
@@ -450,10 +450,22 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
     return `${Math.floor(diff / 365)}년 전 등록`;
   }
 
-  const relatedOutfits = useMemo(
-    () => getOutfitsContainingItem(item.id, item),
-    [item]
-  );
+  // ── Related stylebooks (real Supabase data) ──────────────────────────────
+  const [relatedOutfits, setRelatedOutfits] = useState([]);
+  useEffect(() => {
+    if (!item?.id) return;
+    fetchStylesByItemId(item.id).then(({ styles }) => {
+      // Normalize to the shape StylebookCard expects
+      setRelatedOutfits(
+        styles.map((s) => ({
+          id:           s.id,
+          previewImage: s.background_url ?? "",
+          title:        s.title ?? "스타일북",
+          likes:        0,
+        }))
+      );
+    });
+  }, [item?.id]);
 
   const seasons   = Array.isArray(item.season)    ? item.season    : [item.season].filter(Boolean);
   const styleTags = Array.isArray(item.styleTags) ? item.styleTags : [];

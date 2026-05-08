@@ -165,6 +165,19 @@ export default function App() {
     }
   }
 
+  /**
+   * handleProductSelect — smart router
+   * If the tapped item belongs to the logged-in user, open ClosetItemDetailScreen.
+   * Otherwise open ProductDetailPage (marketplace view).
+   */
+  function handleProductSelect(item) {
+    if (user && item?.user_id && item.user_id === user.id) {
+      setCurrentItem(item);
+    } else {
+      setCurrentProduct(item);
+    }
+  }
+
   // ── Logout / Login state management ──────────────────────────────────────────
   const prevUserRef = useRef(undefined);
   useEffect(() => {
@@ -348,7 +361,7 @@ export default function App() {
             {/* Home — public */}
             {activeTab === "home" && (
               <HomePage
-                onProductSelect={setCurrentProduct}
+                onProductSelect={handleProductSelect}
                 onItemTap={setCurrentItem}
                 onLegalOpen={(type) => setLegalScreen(type)}
                 onGoToRecord={handleStartStyleFlow}
@@ -401,7 +414,7 @@ export default function App() {
             {activeTab === "closet" && user && (
               <ClosetPage
                 key={closetKey}
-                onProductSelect={setCurrentProduct}
+                onProductSelect={handleProductSelect}
                 onItemTap={setCurrentItem}
               />
             )}

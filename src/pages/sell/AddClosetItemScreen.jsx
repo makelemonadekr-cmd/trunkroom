@@ -15,6 +15,12 @@ import { useAuth }     from "../../hooks/useAuth.js";
 import { useAiUsage }  from "../../hooks/useAiUsage.js";
 import { showToast }   from "../../lib/toastUtils.js";
 import { getSession }  from "../../services/authService.js";
+import {
+  SHOE_TABLE_WOMEN, SHOE_TABLE_MEN,
+  WOMEN_TOP_TABLE, MEN_TOP_TABLE,
+  WOMEN_BOTTOM_TABLE,
+  getShoeSizeConversion, getTopSizeConversion,
+} from "../../lib/sizeConversionUtils.js";
 
 const DARK   = "#1a1a1a";
 const YELLOW = "#F5C200";
@@ -49,6 +55,85 @@ const KO_TO_ID = {
 };
 
 const CONDITIONS = ["S급", "A급", "B급", "C급"];
+
+const GENDERS = ["여성", "남성", "공용"];
+
+// Categories that have meaningful size options
+const SIZE_CATS = new Set(["TOP", "BOTTOM", "OUTER", "OPS", "SHOES", "SPORTS"]);
+
+/**
+ * Returns size chip options for the given category + gender.
+ * Each option: { value: string, label: string }
+ */
+function getSizeOptions(category, gender) {
+  if (!SIZE_CATS.has(category)) return [];
+  const isMen = gender === "남성";
+
+  if (category === "SHOES") {
+    const table = isMen ? SHOE_TABLE_MEN : SHOE_TABLE_WOMEN;
+    return table.map((r) => ({ value: String(r.kr), label: String(r.kr) }));
+  }
+
+  if (category === "BOTTOM") {
+    if (isMen) {
+      return [27, 28, 29, 30, 31, 32, 33, 34, 36, 38].map((w) => ({ value: String(w), label: `W${w}` }));
+    }
+    return WOMEN_BOTTOM_TABLE.map((r) => {
+      const kr = r.kr.split("/")[0]; // "44/XS" → "44"
+      return { value: kr, label: r.kr };
+    });
+  }
+
+  // TOP / OUTER / OPS / SPORTS
+  const table = isMen ? MEN_TOP_TABLE : WOMEN_TOP_TABLE;
+  return table.map((r) => ({ value: r.kr, label: `${r.kr}(${r.label})` }));
+}
+
+/**
+ * Returns conversion chips to show when a size is selected.
+ * Returns array of { unit, value } pairs.
+ */
+function getSizeConversions(category, gender, sizeValue) {
+  if (!sizeValue) return [];
+  const isMen = gender === "남성";
+
+  if (category === "SHOES") {
+    const conv = getShoeSizeConversion(sizeValue, gender);
+    if (!conv) return [];
+    return [
+      { unit: "KR", value: `${conv.kr}mm` },
+      { unit: "US", value: conv.us },
+      { unit: "EU", value: conv.eu },
+      { unit: "UK", value: conv.uk },
+      { unit: "JP", value: `${conv.jp}cm` },
+    ];
+  }
+
+  if (category === "BOTTOM") {
+    if (isMen) {
+      return [{ unit: "US/KR", value: `W${sizeValue}` }, { unit: "EU(cm)", value: `${Math.round(parseInt(sizeValue) * 2.54)}cm` }];
+    }
+    const row = WOMEN_BOTTOM_TABLE.find((r) => r.kr.split("/")[0] === sizeValue || r.kr === sizeValue);
+    if (!row) return [];
+    return [
+      { unit: "KR",    value: row.kr },
+      { unit: "US",    value: row.us },
+      { unit: "EU",    value: row.eu },
+      { unit: "UK",    value: row.uk },
+    ];
+  }
+
+  // TOP / OUTER / OPS / SPORTS
+  const conv = getTopSizeConversion(sizeValue, gender);
+  if (!conv) return [];
+  return [
+    { unit: "KR",    value: conv.kr },
+    { unit: "Label", value: conv.label },
+    { unit: "US",    value: conv.us },
+    { unit: "EU",    value: conv.eu },
+    { unit: "UK",    value: conv.uk },
+  ];
+}
 
 const SEASONS     = ["봄", "여름", "가을", "겨울"];
 const STYLE_TAGS  = ["미니멀", "캐주얼", "페미닌", "오피스", "스트릿", "스포티", "빈티지", "포멀", "트렌디", "로맨틱"];
@@ -304,6 +389,8 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
   const [price,          setPrice]           = useState("");
   const [category,       setCategory]        = useState("TOP");
   const [subCategory,    setSubCategory]     = useState("");
+  const [gender,         setGender]          = useState("여성");
+  const [size,           setSize]            = useState("");
   const [color,          setColor]           = useState("");
   const [material,       setMaterial]        = useState("");      // 소재
   const [customMood,     setCustomMood]      = useState("");      // 나만의 무드
@@ -462,6 +549,8 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
       price,
       seasons,
       styleTags,
+      gender:      gender || "여성",
+      size:        size   || "",
     };
 
     setSaved(true);   // show checkmark / loading state immediately
@@ -714,6 +803,93 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
             accent={DARK}
           />
         )}
+
+        {/* Gender */}
+        <div className="mb-4">
+          <label
+            className="block text-[12px] font-bold mb-2.5 tracking-wide"
+            style={{ color: "#888", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+          >
+            성별
+          </label>
+          <div className="flex gap-2">
+            {GENDERS.map((g) => {
+              const isActive = gender === g;
+              return (
+                <button
+                  key={g}
+                  onClick={() => { setGender(g); setSize(""); }}
+                  className="px-4 py-2 rounded-xl text-[13px] font-bold"
+                  style={{
+                    backgroundColor: isActive ? DARK : "#F2F2F2",
+                    color:           isActive ? "white" : "#888",
+                    fontFamily:      "'Spoqa Han Sans Neo', sans-serif",
+                  }}
+                >
+                  {g}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Size — shown for SIZE_CATS categories only */}
+        {SIZE_CATS.has(category) && (() => {
+          const sizeOpts   = getSizeOptions(category, gender);
+          const conversions = getSizeConversions(category, gender, size);
+          const FONT_STYLE  = "'Spoqa Han Sans Neo', sans-serif";
+          return (
+            <div className="mb-4">
+              <label
+                className="block text-[12px] font-bold mb-2.5 tracking-wide"
+                style={{ color: "#888", fontFamily: FONT_STYLE }}
+              >
+                사이즈
+              </label>
+
+              {/* Size chip scroll */}
+              <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+                {sizeOpts.map(({ value, label }) => {
+                  const isActive = size === value;
+                  return (
+                    <button
+                      key={value}
+                      onClick={() => setSize(isActive ? "" : value)}
+                      className="shrink-0 px-3 py-1.5 rounded-xl text-[12px] font-bold"
+                      style={{
+                        backgroundColor: isActive ? DARK : "#F2F2F2",
+                        color:           isActive ? "white" : "#666",
+                        fontFamily:      FONT_STYLE,
+                        whiteSpace:      "nowrap",
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Size conversion row */}
+              {conversions.length > 0 && (
+                <div
+                  className="flex gap-3 mt-2.5 px-1 py-2.5 rounded-xl overflow-x-auto"
+                  style={{ backgroundColor: "#F8F8F8", scrollbarWidth: "none" }}
+                >
+                  {conversions.map(({ unit, value: cv }) => (
+                    <div key={unit} className="shrink-0 flex flex-col items-center min-w-[44px]">
+                      <span className="text-[9px] font-bold tracking-wide" style={{ color: "#AAAAAA", fontFamily: FONT_STYLE }}>
+                        {unit}
+                      </span>
+                      <span className="text-[13px] font-bold mt-0.5" style={{ color: DARK, fontFamily: FONT_STYLE }}>
+                        {cv}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Condition */}
         <div className="mb-4">

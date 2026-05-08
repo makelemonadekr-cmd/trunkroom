@@ -208,7 +208,7 @@ export default function OutfitDetailScreen({ outfit, onBack, onItemTap, onMakeSt
         {/* Bottom overlay */}
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
           <div className="flex flex-wrap gap-1 mb-2">
-            {outfit.season.map((s) => (
+            {(outfit.season ?? []).map((s) => (
               <span key={s} className="text-[9px] px-1.5 py-0.5 rounded-full font-medium"
                 style={{ backgroundColor: "rgba(245,194,0,0.22)", color: YELLOW, fontFamily: FONT, border: "1px solid rgba(245,194,0,0.3)" }}>
                 {s}
@@ -222,7 +222,7 @@ export default function OutfitDetailScreen({ outfit, onBack, onItemTap, onMakeSt
             {outfit.shortDesc}
           </p>
           <div className="flex flex-wrap gap-1 mt-2">
-            {outfit.tags.map((tag) => (
+            {(outfit.tags ?? []).map((tag) => (
               <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded-full"
                 style={{ backgroundColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.72)", fontFamily: FONT }}>
                 #{tag}

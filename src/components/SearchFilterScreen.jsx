@@ -55,6 +55,18 @@ function SectionTitle({ children }) {
   );
 }
 
+/** Horizontal-scroll chip row */
+function ChipRow({ children }) {
+  return (
+    <div
+      className="flex gap-2 overflow-x-auto pb-1"
+      style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
+    >
+      {children}
+    </div>
+  );
+}
+
 function Chip({ label, selected, onToggle, emoji }) {
   return (
     <button
@@ -170,7 +182,6 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
   const [wearOption,    setWearOption]    = useState(null);
   const [notWornInYear, setNotWornInYear] = useState(false);
   const [priceOption,   setPriceOption]   = useState("all");
-  const [hasBox,        setHasBox]        = useState(false);
 
   const isMyCloset = scope === "my";
 
@@ -184,13 +195,12 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
     isMyCloset && wearOption    ? 1 : 0,
     isMyCloset && notWornInYear ? 1 : 0,
     priceOption !== "all"       ? 1 : 0,
-    isMyCloset && hasBox        ? 1 : 0,
   ].reduce((a, b) => a + b, 0);
 
   function reset() {
     setKeyword(""); setCategories([]); setBrands([]); setSizes([]);
     setConditions([]); setWearOption(null); setNotWornInYear(false);
-    setPriceOption("all"); setHasBox(false);
+    setPriceOption("all");
   }
 
   function handleScopeChange(newScope) {
@@ -199,7 +209,6 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
     if (newScope === "public") {
       setWearOption(null);
       setNotWornInYear(false);
-      setHasBox(false);
     }
   }
 
@@ -209,7 +218,7 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
       wearOption:    isMyCloset ? wearOption    : null,
       notWornInYear: isMyCloset ? notWornInYear : false,
       priceOption,
-      hasBox:        isMyCloset ? hasBox        : false,
+      hasBox:        false,
     });
     // Label results by scope
     onSearch(results, scope);
@@ -339,7 +348,7 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
         {/* ② 카테고리 */}
         <Section>
           <SectionTitle>카테고리</SectionTitle>
-          <div className="flex flex-wrap gap-2">
+          <ChipRow>
             {MAIN_CATEGORIES.map((cat) => (
               <Chip
                 key={cat.id}
@@ -349,13 +358,13 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
                 onToggle={() => toggleArr(categories, setCategories, cat.id)}
               />
             ))}
-          </div>
+          </ChipRow>
         </Section>
 
         {/* ③ 브랜드 */}
         <Section>
           <SectionTitle>브랜드</SectionTitle>
-          <div className="flex flex-wrap gap-2">
+          <ChipRow>
             {TOP_BRANDS.map((b) => (
               <Chip
                 key={b}
@@ -364,14 +373,14 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
                 onToggle={() => toggleArr(brands, setBrands, b)}
               />
             ))}
-          </div>
+          </ChipRow>
         </Section>
 
         {/* ④ 사이즈 */}
         <Section>
           <SectionTitle>사이즈</SectionTitle>
           <p className="text-[10px] mb-2" style={{ color: GRAY, fontFamily: FONT }}>의류</p>
-          <div className="flex flex-wrap gap-2 mb-4">
+          <ChipRow>
             {CLOTHES_SIZES.map((s) => (
               <Chip
                 key={s}
@@ -380,9 +389,9 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
                 onToggle={() => toggleArr(sizes, setSizes, s)}
               />
             ))}
-          </div>
-          <p className="text-[10px] mb-2" style={{ color: GRAY, fontFamily: FONT }}>신발 (mm)</p>
-          <div className="flex flex-wrap gap-2">
+          </ChipRow>
+          <p className="text-[10px] mt-3 mb-2" style={{ color: GRAY, fontFamily: FONT }}>신발 (mm)</p>
+          <ChipRow>
             {SHOE_SIZES.map((s) => (
               <Chip
                 key={s}
@@ -391,13 +400,13 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
                 onToggle={() => toggleArr(sizes, setSizes, s)}
               />
             ))}
-          </div>
+          </ChipRow>
         </Section>
 
         {/* ⑤ 상태 */}
         <Section>
           <SectionTitle>상태</SectionTitle>
-          <div className="flex flex-wrap gap-2">
+          <ChipRow>
             {CONDITIONS.map((c) => (
               <Chip
                 key={c}
@@ -406,14 +415,14 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
                 onToggle={() => toggleArr(conditions, setConditions, c)}
               />
             ))}
-          </div>
+          </ChipRow>
         </Section>
 
         {/* ⑥ 착용횟수 — 내 옷장 only */}
         {isMyCloset && (
           <Section>
             <SectionTitle>착용횟수</SectionTitle>
-            <div className="flex flex-wrap gap-2">
+            <ChipRow>
               {WEAR_OPTIONS.map((opt) => (
                 <RadioChip
                   key={opt.value}
@@ -424,7 +433,7 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
                   }
                 />
               ))}
-            </div>
+            </ChipRow>
           </Section>
         )}
 
@@ -443,7 +452,7 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
         {/* ⑧ 가격범위 */}
         <Section>
           <SectionTitle>가격범위</SectionTitle>
-          <div className="flex flex-wrap gap-2">
+          <ChipRow>
             {PRICE_OPTIONS.map((opt) => (
               <RadioChip
                 key={opt.value}
@@ -452,20 +461,8 @@ export default function SearchFilterScreen({ onClose, onSearch }) {
                 onSelect={() => setPriceOption(opt.value)}
               />
             ))}
-          </div>
+          </ChipRow>
         </Section>
-
-        {/* ⑨ 박스여부 — 내 옷장 only */}
-        {isMyCloset && (
-          <Section>
-            <ToggleRow
-              label="박스 있는 아이템만"
-              desc="정품 박스 또는 쇼핑백이 보관된 아이템"
-              value={hasBox}
-              onChange={setHasBox}
-            />
-          </Section>
-        )}
 
         <div style={{ height: 8 }} />
       </div>

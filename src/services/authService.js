@@ -78,7 +78,8 @@ export async function signIn(email, password) {
 export async function signInWithApple() {
   // Try native plugin when running inside Capacitor
   try {
-    const { Capacitor } = await import("@capacitor/core");
+    const corePkg = "@capacitor/core";
+    const { Capacitor } = await import(/* @vite-ignore */ corePkg);
     if (Capacitor?.isNativePlatform?.()) {
       try {
         // Indirect string + @vite-ignore so Vite skips static analysis on optional pkg

@@ -208,9 +208,9 @@ export default function CoordiEditorPage({ coordi, onClose, onSaved }) {
   const gestureRef = useRef({ type: null });
   const fileInputRef = useRef(null);
 
-  function showToast(msg) {
-    setToast(msg);
-    setTimeout(() => setToast(null), 1800);
+  function showToast(msg, type = "info") {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), type === "error" ? 3000 : 1800);
   }
 
   function updateItem(id, changes) {
@@ -388,7 +388,7 @@ export default function CoordiEditorPage({ coordi, onClose, onSaved }) {
       showToast("배경이 제거되었어요 (로컬 처리)");
     } catch (e) {
       console.warn("[CoordiEditor] bg removal failed:", e.message);
-      showToast("배경 제거에 실패했어요");
+      showToast("배경 제거에 실패했어요", "error");
     } finally {
       setRemovingBg(false);
     }
@@ -550,24 +550,28 @@ export default function CoordiEditorPage({ coordi, onClose, onSaved }) {
         };
 
         if (isEdit) {
-          await updateStyle(coordi.id, styleData);
-          await replaceStyleItems(coordi.id, styleItems);
+          const { error: updErr } = await updateStyle(coordi.id, styleData) ?? {};
+          if (updErr) throw updErr;
+          const { error: repErr } = await replaceStyleItems(coordi.id, styleItems) ?? {};
+          if (repErr) throw repErr;
         } else {
-          await createStyle(user.id, styleData, styleItems);
+          const { error: crtErr } = await createStyle(user.id, styleData, styleItems) ?? {};
+          if (crtErr) throw crtErr;
         }
 
         setHasChanges(false);
         setActiveSheet(null);
-        showToast("저장되었어요 ✓");
+        showToast("저장되었어요 ✓", "success");
         onSaved?.({ id: coordi?.id, title: resolvedTitle, thumbnail: bgUrl ?? thumbnail });
       } else {
         // Not logged in
-        showToast("로그인 후 저장할 수 있어요");
+        showToast("로그인 후 저장할 수 있어요", "info");
         setActiveSheet(null);
       }
     } catch (e) {
       console.error("[CoordiEditorPage] save error:", e);
-      alert("저장에 실패했어요.");
+      const isRLS = e?.message?.includes("row-level") || e?.code === "42501";
+      showToast(isRLS ? "저장 권한이 없어요. 다시 로그인해주세요." : "저장에 실패했어요. 다시 시도해주세요.", "error");
     } finally {
       setIsSaving(false);
     }
@@ -707,8 +711,8 @@ export default function CoordiEditorPage({ coordi, onClose, onSaved }) {
       {/* Toast */}
       {toast && (
         <div className="absolute bottom-24 left-0 right-0 flex justify-center z-50 pointer-events-none">
-          <div className="px-4 py-2.5 rounded-full" style={{ backgroundColor: DARK }}>
-            <p className="text-white text-[13px] font-medium" style={{ fontFamily: FONT }}>{toast}</p>
+          <div className="px-4 py-2.5 rounded-full" style={{ backgroundColor: toast.type === "error" ? "#E84040" : DARK }}>
+            <p className="text-white text-[13px] font-medium" style={{ fontFamily: FONT }}>{toast.msg}</p>
           </div>
         </div>
       )}

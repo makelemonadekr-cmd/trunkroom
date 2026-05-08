@@ -2033,7 +2033,11 @@ export default function RecordPage({
   }, [editStyle]);
 
   async function handleSave(dateStr, record) {
-    await saveLog(dateStr, record);
+    const { error } = await saveLog(dateStr, record) ?? {};
+    if (error) {
+      showToast("저장에 실패했어요. 다시 시도해주세요.", "error");
+      return;
+    }
     setSelected(null);
   }
 

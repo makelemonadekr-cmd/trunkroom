@@ -62,16 +62,119 @@ export async function signIn(email, password) {
   return { data, error };
 }
 
+// ─── Sign in with Apple ───────────────────────────────────────────────────────
+
+/**
+ * Sign in with Apple — required by App Store Review Guideline 4.8.
+ *
+ * 1) Native iOS via @capacitor-community/apple-sign-in (preferred for App Store).
+ *    Returns identity token → signInWithIdToken (no browser tab, no redirect).
+ * 2) Browser fallback via supabase.auth.signInWithOAuth (Safari web flow).
+ *
+ * The native plugin is loaded dynamically so missing it doesn't break the build.
+ *
+ * @returns {Promise<{ data, error }>}
+ */
+export async function signInWithApple() {
+  // Try native plugin when running inside Capacitor
+  try {
+    const { Capacitor } = await import("@capacitor/core");
+    if (Capacitor?.isNativePlatform?.()) {
+      try {
+        // Indirect string + @vite-ignore so Vite skips static analysis on optional pkg
+        const pkgName = "@capacitor-community/apple-sign-in";
+        const mod = await import(/* @vite-ignore */ pkgName);
+        const { SignInWithApple } = mod;
+        const servicesId = import.meta.env.VITE_APPLE_SERVICES_ID
+                           || "com.makelemonade.trunkroom.signin";
+        const redirectURI = import.meta.env.VITE_APPLE_REDIRECT_URI
+                           || "https://makelemonade.app/auth/callback";
+        const res = await SignInWithApple.authorize({
+          clientId:    servicesId,
+          redirectURI,
+          scopes:      "email name",
+        });
+        const idToken = res?.response?.identityToken;
+        if (!idToken) throw new Error("Apple identity token missing");
+
+        const { data, error } = await supabase.auth.signInWithIdToken({
+          provider: "apple",
+          token: idToken,
+        });
+        return { data, error };
+      } catch (pluginErr) {
+        console.warn("[signInWithApple] native plugin failed, falling back to OAuth:", pluginErr?.message);
+      }
+    }
+  } catch {
+    // @capacitor/core not installed — use OAuth
+  }
+
+  // Browser / fallback path
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "apple",
+    options: {
+      redirectTo: typeof window !== "undefined" ? `${window.location.origin}/` : undefined,
+    },
+  });
+  return { data, error };
+}
+
 // ─── Sign Out ─────────────────────────────────────────────────────────────────
 
 /**
+ * Keys that hold per-user state in localStorage.
+ * MUST be cleared on signOut so the next user on the same device starts fresh.
+ */
+const PER_USER_LOCAL_KEYS = [
+  "trunkroom_user",
+  "trunkroom_follow_v1",
+  "trunkroom_likes_v1",
+  "trunkroom_size_v1",
+  "trunkroom_coordi",
+  "trunkroom_closet_v2",
+  "trunkroom_wear_history_v1",
+  "trunkroom_laundry_v1",
+  "trunkroom_notif_reads",
+  "trunkroom_favorites_v1",
+];
+
+/**
+ * Clear all per-user localStorage entries.
+ */
+export function clearLocalUserData() {
+  try {
+    for (const key of PER_USER_LOCAL_KEYS) {
+      localStorage.removeItem(key);
+    }
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith("trunkroom_"))
+      .filter((k) => !k.endsWith("_seeded_v1"))
+      .filter((k) => !k.endsWith("_seeded_v2"))
+      .filter((k) => k !== "trunkroom_onboarded")
+      .forEach((k) => {
+        if (!PER_USER_LOCAL_KEYS.includes(k)) localStorage.removeItem(k);
+      });
+  } catch { /* ignore — localStorage unavailable */ }
+}
+
+/**
  * Sign out the current user.
- * Clears the session from Supabase's localStorage storage.
+ * Uses scope "local" for reliability, then nukes leftover sb-* keys.
  *
  * @returns {Promise<{ error }>}
  */
 export async function signOut() {
-  const { error } = await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut({ scope: "local" });
+
+  // Nuke leftover sb-* keys so next getSession() returns null
+  try {
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith("sb-"))
+      .forEach((k) => localStorage.removeItem(k));
+  } catch { /* ignore */ }
+
+  clearLocalUserData();
   return { error };
 }
 

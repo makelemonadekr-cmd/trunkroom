@@ -8,6 +8,7 @@
  */
 
 import { supabase } from "../lib/supabase.js";
+import { uploadStylePhoto } from "./storageService.js";
 
 const TABLE = "wear_logs";
 
@@ -44,6 +45,17 @@ export async function fetchWearLogs(userId) {
  * @returns {Promise<{ log: Object|null, error: Error|null }>}
  */
 export async function upsertWearLog(userId, dateStr, { itemIds = [], note = "", photoUrl = null } = {}) {
+  // Upload photo to Supabase Storage if it's a local data URI (not already a URL)
+  let finalPhotoUrl = photoUrl ?? null;
+  if (finalPhotoUrl && typeof finalPhotoUrl === "string" && !/^https?:\/\//i.test(finalPhotoUrl)) {
+    try {
+      const { url, error: upErr } = await uploadStylePhoto(userId, finalPhotoUrl);
+      if (!upErr && url) finalPhotoUrl = url;
+    } catch (e) {
+      console.warn("[wearLogs] photo upload failed, keeping original:", e?.message);
+    }
+  }
+
   const { data, error } = await supabase
     .from(TABLE)
     .upsert(
@@ -52,7 +64,7 @@ export async function upsertWearLog(userId, dateStr, { itemIds = [], note = "", 
         date_str: dateStr,
         item_ids: itemIds,
         note:     note ?? "",
-        photo_url: photoUrl ?? null,
+        photo_url: finalPhotoUrl,
       },
       { onConflict: "user_id,date_str" }
     )

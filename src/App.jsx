@@ -1,19 +1,27 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import TrunkRoomOnboarding from "./pages/onboarding/TrunkRoomOnboarding";
 import { TOAST_EVENT } from "./lib/toastUtils";
+// Eager: 4 main bottom-nav pages (switching between them must be instant)
 import HomePage from "./pages/home/HomePage";
 import ClosetPage from "./pages/closet/ClosetPage";
 import DiscoveryPage from "./pages/discover/DiscoveryPage";
 import RecordPage from "./pages/record/RecordPage";
-import ProductDetailPage from "./pages/product/ProductDetailPage";
-import ClosetItemDetailScreen from "./components/ClosetItemDetailScreen";
-import MenuPage from "./pages/menu/MenuPage";
-import PrivacyPolicyScreen from "./pages/legal/PrivacyPolicyScreen";
-import TermsOfServiceScreen from "./pages/legal/TermsOfServiceScreen";
+// Lazy: secondary overlays / rarely-opened screens
+const ProductDetailPage      = lazy(() => import("./pages/product/ProductDetailPage"));
+const SellerProfilePage      = lazy(() => import("./pages/discover/SellerProfilePage"));
+const ClosetItemDetailScreen = lazy(() => import("./components/ClosetItemDetailScreen"));
+const MenuPage               = lazy(() => import("./pages/menu/MenuPage"));
+const PrivacyPolicyScreen    = lazy(() => import("./pages/legal/PrivacyPolicyScreen"));
+const TermsOfServiceScreen   = lazy(() => import("./pages/legal/TermsOfServiceScreen"));
+const AuthScreen             = lazy(() => import("./features/auth/AuthScreen"));
 import BottomNav from "./components/BottomNav";
-import AuthScreen from "./features/auth/AuthScreen";
 import { useAuth } from "./hooks/useAuth.js";
 import { signOut } from "./services/authService.js";
+
+// Tiny full-bleed white fallback for lazy chunks
+function LazyFallback() {
+  return <div className="absolute inset-0 bg-white" />;
+}
 
 const FONT         = "'Spoqa Han Sans Neo', sans-serif";
 const DARK         = "#1a1a1a";
@@ -128,6 +136,7 @@ export default function App() {
   );
   const [activeTab,        setActiveTab]        = useState("home");
   const [currentProduct,   setCurrentProduct]   = useState(null);
+  const [activeSeller,     setActiveSeller]      = useState(null);
   const [currentItem,      setCurrentItem]       = useState(null);
   const [legalScreen,      setLegalScreen]       = useState(null);
   const [autoOpenFlow,     setAutoOpenFlow]      = useState(false);
@@ -166,6 +175,7 @@ export default function App() {
     if (prevUser != null && user === null) {
       // ── User just signed out → reset state ──────────────────────────────────
       setCurrentProduct(null);
+      setActiveSeller(null);
       setCurrentItem(null);
       setLegalScreen(null);
       setAutoOpenFlow(false);
@@ -333,7 +343,7 @@ export default function App() {
           )}
 
           {/* ── Pages (always rendered once auth has resolved) ── */}
-          {!authLoading && (<>
+          {!authLoading && (<Suspense fallback={<LazyFallback />}>
 
             {/* Home — public */}
             {activeTab === "home" && (
@@ -345,13 +355,20 @@ export default function App() {
                 onGoToDiscover={handleGoToDiscover}
                 onEditStyle={handleEditStyle}
                 onMakeStyle={handleMakeStyleWithItem}
+                onSellerOpen={setActiveSeller}
                 stylesSavedTick={stylesSavedTick}
               />
             )}
 
             {/* Discover — public */}
             {activeTab === "discover" && (
-              <DiscoveryPage initialTab={discoverTab} />
+              <DiscoveryPage
+                initialTab={discoverTab}
+                onLoginRequest={() => {
+                  pendingActionRef.current = null;
+                  setShowAuthGate(true);
+                }}
+              />
             )}
 
             {/* Menu — public (shows limited content for guests) */}
@@ -408,7 +425,20 @@ export default function App() {
               <ProductDetailPage
                 product={currentProduct}
                 onBack={() => setCurrentProduct(null)}
+                onLoginRequest={() => { pendingActionRef.current = null; setShowAuthGate(true); }}
+                onSellerOpen={setActiveSeller}
               />
+            )}
+
+            {/* Seller profile overlay (above product detail) */}
+            {activeSeller && (
+              <div className="absolute inset-0 z-[120] bg-white">
+                <SellerProfilePage
+                  seller={activeSeller}
+                  onBack={() => setActiveSeller(null)}
+                  onLoginRequest={() => { pendingActionRef.current = null; setShowAuthGate(true); }}
+                />
+              </div>
             )}
 
             {/* Legal screen overlays */}
@@ -448,7 +478,7 @@ export default function App() {
               </div>
             )}
 
-          </>)}
+          </Suspense>)}
           {/* ── end page area ── */}
 
         </div>

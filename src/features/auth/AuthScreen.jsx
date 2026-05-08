@@ -14,7 +14,7 @@
  */
 
 import { useState, useRef } from "react";
-import { signIn, signUp, resetPassword, updatePassword } from "../../services/authService";
+import { signIn, signUp, resetPassword, updatePassword, signInWithApple } from "../../services/authService";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
@@ -112,11 +112,20 @@ function ErrorMsg({ msg }) {
 // ─── Login view ───────────────────────────────────────────────────────────────
 
 function LoginView({ onGoSignUp, onGoForgot, onClose }) {
-  const [email,    setEmail]    = useState("");
-  const [password, setPassword] = useState("");
-  const [error,    setError]    = useState("");
-  const [loading,  setLoading]  = useState(false);
+  const [email,        setEmail]        = useState("");
+  const [password,     setPassword]     = useState("");
+  const [error,        setError]        = useState("");
+  const [loading,      setLoading]      = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   const pwRef = useRef(null);
+
+  async function handleAppleLogin() {
+    setError("");
+    setAppleLoading(true);
+    const { error: err } = await signInWithApple();
+    setAppleLoading(false);
+    if (err) setError("Apple 로그인에 실패했어요. 다시 시도해주세요.");
+  }
 
   async function handleLogin() {
     if (!email.trim() || !password)  { setError("이메일과 비밀번호를 입력해주세요."); return; }
@@ -222,6 +231,33 @@ function LoginView({ onGoSignUp, onGoForgot, onClose }) {
           <span className="text-[11px]" style={{ color: "#CCCCCC", fontFamily: FONT }}>또는</span>
           <div className="flex-1 h-px" style={{ backgroundColor: "#EEEEEE" }} />
         </div>
+
+        {/* Apple login button */}
+        <button
+          onClick={handleAppleLogin}
+          disabled={appleLoading}
+          className="w-full flex items-center justify-center gap-2 rounded-2xl font-bold active:opacity-80"
+          style={{
+            height:          56,
+            backgroundColor: appleLoading ? "#555" : "#1a1a1a",
+            color:           "#ffffff",
+            fontFamily:      FONT,
+            fontSize:        15,
+          }}
+        >
+          {appleLoading ? (
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ animation: "spin 0.8s linear infinite" }}>
+              <path d="M9 1.5a7.5 7.5 0 1 1-5.3 2.2" stroke="white" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          ) : (
+            <>
+              <svg width="17" height="20" viewBox="0 0 17 20" fill="white">
+                <path d="M13.57 10.6c-.02-2.46 2.01-3.65 2.1-3.71-1.15-1.68-2.93-1.9-3.56-1.93-1.52-.15-2.97.9-3.74.9-.78 0-1.98-.88-3.25-.85-1.67.02-3.21.97-4.07 2.46-1.74 3.02-.45 7.49 1.25 9.93.83 1.2 1.81 2.55 3.1 2.5 1.25-.05 1.72-.8 3.23-.8 1.5 0 1.93.8 3.24.78 1.34-.02 2.19-1.22 3.01-2.42.95-1.38 1.34-2.73 1.36-2.8-.03-.01-2.64-1.01-2.67-4.06zm-2.5-7.47c.69-.83 1.15-1.99.02-3.13-1.1.04-2.43.74-3.14 1.56C7.28 2.37 6.74 3.56 7.68 4.56c1.02-.03 2.08-.7 3.4-1.43z"/>
+              </svg>
+              Apple로 로그인
+            </>
+          )}
+        </button>
 
         {/* Sign up link */}
         <button

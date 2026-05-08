@@ -25,9 +25,6 @@ import { useStyles }   from "../../hooks/useStyles.js";
 import {
   MAIN_CATEGORIES,
   SUBCATEGORIES,
-  CLOSET_ITEMS,
-  getItemsByCategory,
-  getItemsBySubcategory,
 } from "../../constants/mockClosetData";
 import { filterClosetItemsByPiece } from "../../lib/filterClosetItemsByPiece";
 import SimilarClosetScreen from "../../components/SimilarClosetScreen";
@@ -134,7 +131,7 @@ function TodayRecordCard({ onRecordToday, todayRecord: todayRecordProp, closetIt
   const FONT = "'Spoqa Han Sans Neo', sans-serif";
 
   // Closet lookup: use real items from Supabase if available, else mock
-  const allItems = (closetItemsProp && closetItemsProp.length > 0) ? closetItemsProp : CLOSET_ITEMS;
+  const allItems = (closetItemsProp && closetItemsProp.length > 0) ? closetItemsProp : closetItems;
 
   // Wear-log items fallback (when no style exists)
   const wearLogIds = todayRecord?.itemIds ?? [];
@@ -595,7 +592,7 @@ function ClosetMiniCardDark({ item, onTap }) {
 // ─── Inline closet filter panel (expands inside recommendation card) ──────────
 
 // closetItems: real items passed from WeatherSection (normalised to mock shape).
-// Falls back to CLOSET_ITEMS mock data when null/undefined.
+// Falls back to closetItems mock data when null/undefined.
 function ClosetItemsByPiece({ piece, onItemTap, closetItems }) {
   const items = filterClosetItemsByPiece(piece, closetItems ?? undefined);
 
@@ -673,7 +670,7 @@ const TEMP_PREFS = [
 // closetItems: real user closet items from Supabase (passed from HomePage root).
 // Currently the weather recommendation copy (outfit.keyword / pieces) is still mock-based.
 // Passing real closetItems through here makes it trivial to switch the piece-filter panel
-// from CLOSET_ITEMS → real data when ready — just remove the `?? undefined` fallback below.
+// from closetItems → real data when ready — just remove the `?? undefined` fallback below.
 function WeatherSection({ onExpand, onItemTap, closetItems }) {
   const { weather, loading } = useWeather();
   const [selectedPiece, setSelectedPiece] = useState(null);
@@ -980,15 +977,18 @@ const COMMUNITY_TODAY_POSTS = [
 // ─── Community Style Detail Screen ───────────────────────────────────────────
 // Opens when user taps a community post. Shows outfit photo + metadata + worn items.
 
-function CommunityStyleDetailScreen({ post, onBack, onItemTap }) {
+function CommunityStyleDetailScreen({ post, onBack, onItemTap, closetItems = [] }) {
   const FONT = "'Spoqa Han Sans Neo', sans-serif";
   const [similarOpen, setSimilarOpen] = useState(false);
 
-  // Pick a few sample closet items to "suggest" as worn items for the post
-  // In a real app these would come from post.itemIds; here we pick plausible ones
-  const suggestedItems = CLOSET_ITEMS
-    .slice(0, 6)
-    .filter((_, i) => [0, 2, 4].includes(i));
+  // Resolve worn items: use post.itemIds against real closet, or first few closet items
+  const suggestedItems = (post?.itemIds ?? [])
+    .map((id) => closetItems.find((i) => i.id === id))
+    .filter(Boolean)
+    .slice(0, 3)
+    .concat(closetItems.slice(0, 3))
+    .filter((v, i, a) => a.findIndex((x) => x.id === v.id) === i)
+    .slice(0, 3);
 
   return (
     <div className="absolute inset-0 z-30 flex flex-col bg-white overflow-hidden">
@@ -1169,6 +1169,7 @@ function CommunityTodaySection({ onItemTap, onGoToDiscover }) {
           post={activePost}
           onBack={() => setActivePost(null)}
           onItemTap={onItemTap}
+          closetItems={closetItems}
         />
       )}
 
@@ -1554,7 +1555,7 @@ function ClosetMiniCard({ item, onSelect }) {
 }
 
 // ─── Categories component ─────────────────────────────────────────────────────
-function Categories({ onMorePress, onItemSelect, onItemTap }) {
+function Categories({ onMorePress, onItemSelect, onItemTap, closetItems = [] }) {
   const FONT = "'Spoqa Han Sans Neo', sans-serif";
   const DARK = "#1a1a1a";
   const [selected, setSelected] = useState(null);
@@ -1566,7 +1567,9 @@ function Categories({ onMorePress, onItemSelect, onItemTap }) {
   }
 
   const subs     = selected ? SUBCATEGORIES[selected] : null;
-  const subItems = activeSub ? getItemsBySubcategory(activeSub) : [];
+  const subItems = activeSub
+    ? closetItems.filter((i) => (i.subCategory ?? i.sub_category) === activeSub)
+    : [];
 
   return (
     <div className="pt-3 pb-6 bg-white">
@@ -1858,7 +1861,7 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
     if (relatedRoute === "unworn_list") {
       const cutoff = new Date();
       cutoff.setFullYear(cutoff.getFullYear() - 1);
-      const items = CLOSET_ITEMS.filter(
+      const items = closetItems.filter(
         (i) => !i.lastWornAt || new Date(i.lastWornAt) < cutoff
       );
       setFullList({ title: "오래 안 입은 아이템", items });
@@ -1867,7 +1870,7 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
 
     // "자주 입는 아이템" — sorted by wearCount desc
     if (relatedRoute === "worn_list") {
-      const items = [...CLOSET_ITEMS]
+      const items = [...closetItems]
         .filter((i) => (i.wearCount ?? 0) > 0)
         .sort((a, b) => (b.wearCount ?? 0) - (a.wearCount ?? 0))
         .slice(0, 20);
@@ -1879,7 +1882,7 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
     if (relatedRoute === "sell_flow") {
       const cutoff = new Date();
       cutoff.setFullYear(cutoff.getFullYear() - 1);
-      const items = CLOSET_ITEMS.filter(
+      const items = closetItems.filter(
         (i) => !i.lastWornAt || new Date(i.lastWornAt) < cutoff
       );
       setFullList({ title: "판매 추천 아이템", items });
@@ -1888,19 +1891,19 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
 
     // "관리 필요" — items never worn (미착용 + 새상품급)
     if (relatedRoute === "manage_items") {
-      const items = CLOSET_ITEMS.filter(
+      const items = closetItems.filter(
         (i) => (i.wearCount ?? 0) === 0 && !i.lastWornAt
       );
       setFullList({
         title: "관리가 필요한 아이템",
-        items: items.length > 0 ? items : CLOSET_ITEMS.slice(0, 12),
+        items: items.length > 0 ? items : closetItems.slice(0, 12),
       });
       return;
     }
 
     // "계절 전환" — items that include 봄 season
     if (relatedRoute === "seasonal_items") {
-      const items = CLOSET_ITEMS.filter((i) => i.season?.includes("봄"));
+      const items = closetItems.filter((i) => i.season?.includes("봄"));
       setFullList({ title: "봄 시즌 아이템", items });
       return;
     }
@@ -1909,7 +1912,7 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
     if (relatedRoute === "closet_view") {
       setFullList({
         title: "팔로우한 옷장 새 아이템",
-        items: CLOSET_ITEMS.filter((i) => i.mainCategory === "아우터").slice(0, 15),
+        items: closetItems.filter((i) => i.mainCategory === "아우터").slice(0, 15),
       });
       return;
     }
@@ -1917,11 +1920,11 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
     // "스타일 기반" — filter by relatedStyle tag
     if (relatedRoute === "style_results") {
       const items = relatedStyle
-        ? CLOSET_ITEMS.filter((i) => i.styleTags?.includes(relatedStyle))
+        ? closetItems.filter((i) => i.styleTags?.includes(relatedStyle))
         : [];
       setFullList({
         title: relatedStyle ? `${relatedStyle} 스타일 아이템` : "추천 아이템",
-        items: items.length > 0 ? items : CLOSET_ITEMS.slice(0, 12),
+        items: items.length > 0 ? items : closetItems.slice(0, 12),
       });
       return;
     }
@@ -2020,6 +2023,7 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
         <Categories
           onMorePress={(data) => setFullList(data)}
           onItemSelect={onItemTap}
+          closetItems={closetItems}
         />
 
         {/* ⑤ Community — what others wore today / this week */}

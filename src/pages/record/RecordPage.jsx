@@ -14,6 +14,7 @@ import {
 import { useAuth }     from "../../hooks/useAuth.js";
 import { showToast }   from "../../lib/toastUtils.js";
 import { useWearLogs } from "../../hooks/useWearLogs.js";
+import { useCloset }   from "../../hooks/useCloset.js";
 import { useStyles }   from "../../hooks/useStyles.js";
 import { uploadStylePhoto } from "../../services/storageService.js";
 import { createStyle, updateStyle, replaceStyleItems } from "../../services/stylesService.js";
@@ -22,8 +23,20 @@ import StylebookTemplate   from "../../components/StylebookTemplate";
 import StyleBoardTemplate  from "../../components/StyleBoardTemplate.jsx";
 import { extractColors } from "../../lib/colorExtractor";
 import StyleRecordFlow from "../../components/StyleRecordFlow";
-import { CLOSET_ITEMS } from "../../constants/mockClosetData";
 import FullListScreen from "../closet/FullListScreen";
+
+function normalizeItem(dbItem) {
+  if (!dbItem) return null;
+  return {
+    ...dbItem,
+    displayName:  dbItem.display_name  ?? dbItem.name,
+    mainCategory: dbItem.main_category,
+    subCategory:  dbItem.sub_category,
+    image:        dbItem.image_url,
+    isForSale:    dbItem.is_for_sale,
+    styleTags:    dbItem.style_tags ?? [],
+  };
+}
 
 const FONT    = "'Spoqa Han Sans Neo', sans-serif";
 const DARK    = "#1a1a1a";
@@ -76,7 +89,7 @@ function dedupeByImage(items) {
 
 function StyleBoardView({ itemIds, size = 240 }) {
   const items = itemIds
-    .map((id) => CLOSET_ITEMS.find((i) => i.id === id))
+    .map((id) => closetItems.find((i) => i.id === id))
     .filter(Boolean)
     .slice(0, 4);
 
@@ -137,7 +150,7 @@ function StyleBoardView({ itemIds, size = 240 }) {
 
 function StylebookCreatorSheet({
   itemIds:      itemIdsProp,
-  initialItems: initialItemsProp = [],   // pre-resolved item objects (bypasses CLOSET_ITEMS lookup)
+  initialItems: initialItemsProp = [],   // pre-resolved item objects (bypasses closetItems lookup)
   dateStr,
   photoUrl:     initPhotoUrl = null,
   editStyle     = null,   // when set → edit-mode: pre-populate fields, save via updateStyle
@@ -180,7 +193,7 @@ function StylebookCreatorSheet({
   // If initialItems were passed directly (real Supabase items), use them as-is.
   const selectedItems = initialItemsProp.length > 0
     ? initialItemsProp
-    : itemIds.map((id) => CLOSET_ITEMS.find((i) => i.id === id)).filter(Boolean);
+    : itemIds.map((id) => closetItems.find((i) => i.id === id)).filter(Boolean);
 
   // Auto-extract colors whenever the photo changes
   useEffect(() => {
@@ -591,8 +604,8 @@ function DayRecordSheet({ dateStr, record, onSave, onDelete, onClose }) {
 
   const CATS = ["전체", "상의", "하의", "아우터", "원피스", "신발", "가방", "액세서리", "스포츠"];
   const displayItems = catFilter === "전체"
-    ? CLOSET_ITEMS
-    : CLOSET_ITEMS.filter((i) => i.mainCategory === catFilter);
+    ? closetItems
+    : closetItems.filter((i) => i.mainCategory === catFilter);
 
   function toggleItem(id) {
     setSelectedIds((prev) =>
@@ -684,7 +697,7 @@ function DayRecordSheet({ dateStr, record, onSave, onDelete, onClose }) {
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
 
             {selectedIds.map((id) => {
-              const item = CLOSET_ITEMS.find((i) => i.id === id);
+              const item = closetItems.find((i) => i.id === id);
               if (!item) return null;
               return (
                 <div key={id} className="relative shrink-0 rounded-xl overflow-hidden" style={{ width: 52, height: 64, backgroundColor: "#F5F5F5" }}>
@@ -826,7 +839,7 @@ function TodayCard({ todayStyles = [], onNewStyle, onEditStyle }) {
   const thumbItems = latestStyle
     ? (latestStyle.items && latestStyle.items.length > 0
         ? latestStyle.items
-        : (latestStyle.itemIds ?? []).map((id) => CLOSET_ITEMS.find((i) => i.id === id)).filter(Boolean))
+        : (latestStyle.itemIds ?? []).map((id) => closetItems.find((i) => i.id === id)).filter(Boolean))
     : [];
 
   return (
@@ -997,7 +1010,7 @@ function CalendarSection({ history, onDayTap }) {
             const isToday = idx === 6;
             const record  = history[dateStr];
             const firstItem = record?.itemIds?.[0]
-              ? CLOSET_ITEMS.find((i) => i.id === record.itemIds[0])
+              ? closetItems.find((i) => i.id === record.itemIds[0])
               : null;
             const dow = date.getDay();
 
@@ -1047,7 +1060,7 @@ function CalendarSection({ history, onDayTap }) {
               const thumbUrl  = hasRecord
                 ? (rec.photoUrl ?? (() => {
                     const firstId = rec.itemIds?.[0];
-                    return firstId ? (CLOSET_ITEMS.find((i) => i.id === firstId)?.image ?? null) : null;
+                    return firstId ? (closetItems.find((i) => i.id === firstId)?.image ?? null) : null;
                   })())
                 : null;
               return (
@@ -1486,7 +1499,7 @@ function MyStylebooksScreen({ onBack, onItemTap, onMakeStyle, onEditStyle }) {
               // Prefer real items from Supabase style_items; fall back to mock lookup
               const thumbItems = (c.items && c.items.length > 0)
                 ? c.items
-                : (c.itemIds ?? []).map((id) => CLOSET_ITEMS.find((i) => i.id === id)).filter(Boolean);
+                : (c.itemIds ?? []).map((id) => closetItems.find((i) => i.id === id)).filter(Boolean);
               const dateLabel = c.dateStr
                 || (c.updatedAt ? new Date(c.updatedAt).toLocaleDateString("ko-KR", { month: "short", day: "numeric" }) : "");
               return (
@@ -1578,7 +1591,7 @@ function RecentRecordsSection({ records, onTap }) {
     let thumbItem = null;
     if (!photoUrl && itemIds?.length) {
       for (const id of itemIds) {
-        const candidate = CLOSET_ITEMS.find((i) => i.id === id);
+        const candidate = closetItems.find((i) => i.id === id);
         if (candidate?.image && !shownImages.has(candidate.image)) {
           thumbItem = candidate;
           shownImages.add(candidate.image);
@@ -1587,7 +1600,7 @@ function RecentRecordsSection({ records, onTap }) {
       }
       // Fallback: if all images were seen, just use the first item
       if (!thumbItem) {
-        thumbItem = CLOSET_ITEMS.find((i) => i.id === itemIds[0]) ?? null;
+        thumbItem = closetItems.find((i) => i.id === itemIds[0]) ?? null;
       }
     }
     return { dateStr, itemIds, note, photoUrl, thumbItem };
@@ -1640,7 +1653,7 @@ function MostWornSection({ onItemTap, history = {} }) {
   const sorted = useMemo(() => {
     const freq = getItemWearFrequency(history);
     return dedupeByImage(
-      CLOSET_ITEMS
+      closetItems
         .filter((item) => freq.has(item.id))
         .sort((a, b) => (freq.get(b.id) ?? 0) - (freq.get(a.id) ?? 0))
     ).slice(0, 8).map((item) => ({ item, count: freq.get(item.id) ?? 0 }));
@@ -1678,7 +1691,7 @@ function LaundrySection({ onItemTap }) {
   const laundryItems = useMemo(() => {
     return getItemsNeedingWash(2) // threshold = 2 wears
       .map(({ itemId, wearsSinceWash, lastWashedAt }) => ({
-        item:           CLOSET_ITEMS.find((i) => i.id === itemId),
+        item:           closetItems.find((i) => i.id === itemId),
         wearsSinceWash,
         lastWashedAt,
       }))
@@ -1753,7 +1766,7 @@ function NotWornSection({ onItemTap, history = {} }) {
     const lastWorn  = getItemLastWornDates(history);
     const today     = localDateStr(new Date());
     return dedupeByImage(
-      CLOSET_ITEMS
+      closetItems
         .map((item) => ({
           item,
           daysSince: lastWorn.has(item.id)
@@ -1809,7 +1822,7 @@ function StyleTips({ onTipAction, history = {} }) {
     const freqMap   = getItemWearFrequency(history);
     const today     = localDateStr(new Date());
 
-    const longUnwornItems = CLOSET_ITEMS.filter((item) => {
+    const longUnwornItems = closetItems.filter((item) => {
       const lw = lastWorn.get(item.id);
       if (!lw) return true;
       return Math.floor((new Date(today) - new Date(lw + "T12:00:00")) / 86400000) >= 90;
@@ -1817,17 +1830,17 @@ function StyleTips({ onTipAction, history = {} }) {
 
     const laundryRaw   = getItemsNeedingWash(2);
     const laundryItems = laundryRaw
-      .map(({ itemId }) => CLOSET_ITEMS.find((i) => i.id === itemId))
+      .map(({ itemId }) => closetItems.find((i) => i.id === itemId))
       .filter(Boolean);
 
     // Top worn items (≥5 times) — good for new outfit combos
-    const topItems = CLOSET_ITEMS
+    const topItems = closetItems
       .filter((i) => (freqMap.get(i.id) ?? 0) >= 5)
       .sort((a, b) => (freqMap.get(b.id) ?? 0) - (freqMap.get(a.id) ?? 0))
       .slice(0, 10);
 
     // Total items worn at least once
-    const wornCount = CLOSET_ITEMS.filter((i) => (freqMap.get(i.id) ?? 0) > 0).length;
+    const wornCount = closetItems.filter((i) => (freqMap.get(i.id) ?? 0) > 0).length;
 
     return { longUnwornItems, laundryCount: laundryRaw.length, laundryItems, topItems, wornCount };
   }, [history]); // eslint-disable-line
@@ -1932,10 +1945,10 @@ function StyleTips({ onTipAction, history = {} }) {
             <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>📊</span>
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
-                옷장 활용률 {Math.round((wornCount / Math.max(CLOSET_ITEMS.length, 1)) * 100)}%
+                옷장 활용률 {Math.round((wornCount / Math.max(closetItems.length, 1)) * 100)}%
               </p>
               <p className="text-[11px] mt-0.5" style={{ color: "#8855BB", fontFamily: FONT }}>
-                총 {CLOSET_ITEMS.length}개 중 {wornCount}개를 착용했어요
+                총 {closetItems.length}개 중 {wornCount}개를 착용했어요
               </p>
             </div>
           </div>
@@ -1979,6 +1992,8 @@ export default function RecordPage({
 
   // ── Supabase auth + wear logs + styles ──────────────────────────────────────
   const { user } = useAuth();
+  const { items: rawClosetItems } = useCloset(user?.id);
+  const closetItems = useMemo(() => rawClosetItems.map(normalizeItem).filter(Boolean), [rawClosetItems]);
   const {
     history,
     stats,
@@ -2058,9 +2073,9 @@ export default function RecordPage({
         else finalPhotoUrl = null;
       }
 
-      // Build style_items carrying image + name from CLOSET_ITEMS mock lookup
+      // Build style_items carrying image + name from closetItems mock lookup
       const styleItems = (record.itemIds ?? []).map((id) => {
-        const item = CLOSET_ITEMS.find((i) => i.id === id);
+        const item = closetItems.find((i) => i.id === id);
         return {
           clothingItemId: id,
           imageUrl:       item?.image ?? item?.image_url ?? null,
@@ -2119,17 +2134,17 @@ export default function RecordPage({
       setShowStreak(true);
     } else if (key === "items") {
       const freq = getItemWearFrequency(history);
-      const sorted = CLOSET_ITEMS
+      const sorted = closetItems
         .filter((i) => freq.has(i.id))
         .sort((a, b) => (freq.get(b.id) ?? 0) - (freq.get(a.id) ?? 0));
-      setFullList({ title: "기록된 아이템 전체", items: sorted.length > 0 ? sorted : CLOSET_ITEMS.slice(0, 20) });
+      setFullList({ title: "기록된 아이템 전체", items: sorted.length > 0 ? sorted : closetItems.slice(0, 20) });
     } else if (key === "days") {
       // Show all history entries as items
       const wornIds = new Set(
         Object.values(history).flatMap((rec) => rec.itemIds ?? [])
       );
-      const wornItems = CLOSET_ITEMS.filter((i) => wornIds.has(i.id));
-      setFullList({ title: "총 기록 아이템", items: wornItems.length > 0 ? wornItems : CLOSET_ITEMS.slice(0, 20) });
+      const wornItems = closetItems.filter((i) => wornIds.has(i.id));
+      setFullList({ title: "총 기록 아이템", items: wornItems.length > 0 ? wornItems : closetItems.slice(0, 20) });
     }
   }
 
@@ -2217,6 +2232,7 @@ export default function RecordPage({
           }}
           initialItems={prefilledItemRef.current ? [prefilledItemRef.current] : []}
           initialStep={prefilledItemRef.current ? "draft" : "photo"}
+          closetItems={closetItems}
         />
       )}
 

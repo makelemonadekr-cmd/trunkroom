@@ -12,7 +12,6 @@
  */
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { CLOSET_ITEMS } from "../constants/mockClosetData";
 import { useWeather }   from "../hooks/useWeather";
 import StyleBoardTemplate from "./StyleBoardTemplate";
 
@@ -35,7 +34,7 @@ const MOOD_OPTIONS = [
 ];
 
 // ─── Simulate AI analysis ─────────────────────────────────────────────────────
-// Groups CLOSET_ITEMS by category and returns 3 candidates per category.
+// Groups closetItems by category and returns 3 candidates per category.
 // In production this would be a real CV/AI call.
 
 const MATCH_CATEGORIES = [
@@ -51,7 +50,7 @@ const MATCH_CATEGORIES = [
 
 function simulateAnalysis() {
   return MATCH_CATEGORIES.map((cat) => {
-    const pool = CLOSET_ITEMS.filter((i) => i.mainCategory === cat.id);
+    const pool = closetItems.filter((i) => i.mainCategory === cat.id);
     if (pool.length === 0) return null;
     // Shuffle deterministically using a simple hash
     const shuffled = [...pool].sort((a, b) =>
@@ -321,7 +320,7 @@ function AnalyzingStep({ photoUrl, onDone }) {
 function CategoryPickerSheet({ categoryId, onSelect, onClose }) {
   const [query, setQuery] = useState("");
   const items = useMemo(() => {
-    const pool = CLOSET_ITEMS.filter((i) => i.mainCategory === categoryId);
+    const pool = closetItems.filter((i) => i.mainCategory === categoryId);
     if (!query.trim()) return pool;
     const q = query.toLowerCase();
     return pool.filter((i) =>
@@ -674,7 +673,7 @@ function MatchingStep({ photoUrl, matchResults, onUpdate, onNext, onClose }) {
 function AllItemsPickerSheet({ existingIds, onAdd, onClose }) {
   const [query, setQuery] = useState("");
   const items = useMemo(() => {
-    const base = CLOSET_ITEMS.filter((i) => !existingIds.includes(i.id));
+    const base = closetItems.filter((i) => !existingIds.includes(i.id));
     if (!query.trim()) return base;
     const q = query.toLowerCase();
     return base.filter((i) =>
@@ -1508,6 +1507,7 @@ export default function StyleRecordFlow({
   onGoToStylebook,
   initialItems = [],      // pre-filled items → skip directly to draft step
   initialStep  = "photo", // "photo" | "draft"
+  closetItems  = [],
 }) {
   const [step,         setStep]         = useState(initialStep);
   const [photoUrl,     setPhotoUrl]     = useState(null);

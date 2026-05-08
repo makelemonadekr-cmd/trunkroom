@@ -15,7 +15,8 @@
  */
 
 import { useState } from "react";
-import { CLOSET_ITEMS } from "../constants/mockClosetData";
+import { useAuth }   from "../hooks/useAuth.js";
+import { useCloset } from "../hooks/useCloset.js";
 import SimilarClosetScreen from "./SimilarClosetScreen";
 import StylebookTemplate from "./StylebookTemplate";
 import StyleBoardTemplate from "./StyleBoardTemplate.jsx";
@@ -263,6 +264,16 @@ export default function StylebookDetailScreen({
   onProductSelect,
   onMakeStyle,
 }) {
+  const { user } = useAuth();
+  const { items: rawItems } = useCloset(user?.id);
+  const closetItems = rawItems.map((r) => ({
+    id:          r.id,
+    name:        r.name        || "아이템",
+    displayName: r.display_name ?? r.name ?? "아이템",
+    image:       r.image_url   ?? null,
+    mainCategory: r.main_category ?? "기타",
+  }));
+
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [similarOpen,   setSimilarOpen]   = useState(false);
 
@@ -271,7 +282,7 @@ export default function StylebookDetailScreen({
 
   // Resolve item objects from stored IDs
   const items = (coordi.itemIds ?? [])
-    .map((id) => CLOSET_ITEMS.find((i) => i.id === id))
+    .map((id) => closetItems.find((i) => i.id === id))
     .filter(Boolean);
 
   // mood = preset ID (e.g. "casual") → MOOD_MAP lookup for emoji chip

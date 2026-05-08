@@ -24,12 +24,12 @@
  */
 
 import { useState } from "react";
-import { CLOSET_ITEMS } from "../constants/mockClosetData";
 import LazyImage from "./LazyImage";
 import SimilarClosetScreen from "./SimilarClosetScreen";
 import StyleBoardTemplate from "./StyleBoardTemplate";
 import ReportSheet from "./ReportSheet";
 import { useAuth } from "../hooks/useAuth";
+import { useCloset } from "../hooks/useCloset.js";
 import { blockUser } from "../services/moderationService";
 import { showToast } from "../lib/toastUtils";
 
@@ -98,6 +98,15 @@ function ItemRow({ item, last = false, onTap }) {
 // ─── Root ─────────────────────────────────────────────────────────────────────
 export default function OutfitDetailScreen({ outfit, onBack, onItemTap, onMakeStyle }) {
   const { user } = useAuth();
+  const { items: rawItems } = useCloset(user?.id);
+  const closetItems = rawItems.map((r) => ({
+    id:          r.id,
+    name:        r.name        || "아이템",
+    displayName: r.display_name ?? r.name ?? "아이템",
+    image:       r.image_url   ?? null,
+    mainCategory: r.main_category ?? "기타",
+  }));
+
   const [liked,       setLiked]       = useState(false);
   const [likes,       setLikes]       = useState(outfit.likes ?? 0);
   const [similarOpen, setSimilarOpen] = useState(false);
@@ -123,14 +132,17 @@ export default function OutfitDetailScreen({ outfit, onBack, onItemTap, onMakeSt
     setLikes((n) => (liked ? n - 1 : n + 1));
   }
 
-  // Resolve item records from CLOSET_ITEMS by itemIds
+  // Try to resolve from current user's closet (works when viewing own outfits)
   const resolvedItems = (outfit.itemIds ?? [])
-    .map((id) => CLOSET_ITEMS.find((item) => item.id === id))
+    .map((id) => closetItems.find((item) => item.id === id))
     .filter(Boolean);
-
-  // Fallback: show first 3 CLOSET_ITEMS in the correct category range
-  const displayItems =
-    resolvedItems.length > 0 ? resolvedItems : CLOSET_ITEMS.slice(0, 3);
+  // Also try outfit.items if pre-resolved by caller
+  const directItems = Array.isArray(outfit.items) ? outfit.items : [];
+  const displayItems = directItems.length > 0
+    ? directItems
+    : resolvedItems.length > 0
+      ? resolvedItems
+      : [];
 
   return (
     <div className="absolute inset-0 z-20 flex flex-col bg-white overflow-hidden">

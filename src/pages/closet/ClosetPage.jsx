@@ -6,7 +6,6 @@ import MySizePage from "./MySizePage";
 import LazyImage from "../../components/LazyImage";
 import {
   MAIN_CATEGORIES,
-  CLOSET_ITEMS,
 } from "../../constants/mockClosetData";
 import { useFavorites } from "../../lib/favoritesStore";
 import {
@@ -332,11 +331,11 @@ function FilterSheet({ filters, onApply, onClose }) {
 
   // Derive unique colors + brands from actual data
   const allColors = useMemo(
-    () => [...new Set(CLOSET_ITEMS.map((i) => i.color).filter(Boolean))].sort(),
+    () => [...new Set([].map((i) => i.color).filter(Boolean))].sort(),
     []
   );
   const allBrands = useMemo(
-    () => [...new Set(CLOSET_ITEMS.map((i) => i.brand).filter(Boolean))].sort(),
+    () => [...new Set([].map((i) => i.brand).filter(Boolean))].sort(),
     []
   );
 
@@ -1068,18 +1067,18 @@ function DonutChart({ data, total }) {
   );
 }
 
-function InsightsSection({ onMore }) {
+function InsightsSection({ onMore, items = [] }) {
   const catData = useMemo(() => {
     const counts = {};
-    CLOSET_ITEMS.forEach((item) => {
+    items.forEach((item) => {
       const cat = item.mainCategory ?? "기타";
       counts[cat] = (counts[cat] ?? 0) + 1;
     });
     return Object.entries(counts)
       .map(([label, count]) => ({ label, count, color: CAT_COLORS[label] ?? "#CCC" }))
       .sort((a, b) => b.count - a.count);
-  }, []);
-  const total = CLOSET_ITEMS.length;
+  }, [items]);
+  const total = items.length;
 
   return (
     <div className="mx-4 mb-4 rounded-2xl overflow-hidden" style={{ border: `1px solid ${DIVIDER}`, backgroundColor: "white" }}>
@@ -1117,27 +1116,27 @@ function InsightsSection({ onMore }) {
   );
 }
 
-function InsightsDetailScreen({ onBack, history = {} }) {
-  const total       = CLOSET_ITEMS.length;
+function InsightsDetailScreen({ onBack, history = {}, items = [] }) {
+  const total       = items.length;
   const wearFreq    = useMemo(() => getItemWearFrequency(history), [history]);
   const lastWornMap = useMemo(() => getItemLastWornDates(history), [history]);
   const todayLocal  = useMemo(() => localDateStr(new Date()), []);
 
   const catData = useMemo(() => {
     const counts = {};
-    CLOSET_ITEMS.forEach((item) => {
+    items.forEach((item) => {
       const cat = item.mainCategory ?? "기타";
       counts[cat] = (counts[cat] ?? 0) + 1;
     });
     return Object.entries(counts)
       .map(([label, count]) => ({ label, count, color: CAT_COLORS[label] ?? "#CCC" }))
       .sort((a, b) => b.count - a.count);
-  }, []);
+  }, [items]);
 
   const catWearData = useMemo(() => {
     const catFreq = {};
     wearFreq.forEach((count, itemId) => {
-      const item = CLOSET_ITEMS.find((i) => i.id === itemId);
+      const item = items.find((i) => i.id === itemId);
       if (!item) return;
       const cat = item.mainCategory ?? "기타";
       catFreq[cat] = (catFreq[cat] ?? 0) + count;
@@ -1149,42 +1148,42 @@ function InsightsDetailScreen({ onBack, history = {} }) {
         emoji: MAIN_CATEGORIES.find((c) => c.label === label)?.emoji ?? "👗",
       }))
       .sort((a, b) => b.count - a.count);
-  }, [wearFreq]);
+  }, [wearFreq, items]);
 
   const topWorn = useMemo(() =>
-    CLOSET_ITEMS
+    items
       .filter((item) => wearFreq.has(item.id))
       .sort((a, b) => (wearFreq.get(b.id) ?? 0) - (wearFreq.get(a.id) ?? 0))
       .slice(0, 6)
       .map((item) => ({ item, count: wearFreq.get(item.id) ?? 0 })),
-  [wearFreq]);
+  [wearFreq, items]);
 
   const dormantItems = useMemo(() =>
-    CLOSET_ITEMS.filter((item) => {
+    items.filter((item) => {
       const lw = lastWornMap.get(item.id);
       if (!lw) return true;
       return Math.floor((new Date(todayLocal) - new Date(lw + "T12:00:00")) / 86400000) >= 30;
     }).length,
-  [lastWornMap, todayLocal]);
+  [lastWornMap, todayLocal, items]);
 
   const brandData = useMemo(() => {
     const counts = {};
-    CLOSET_ITEMS.forEach((item) => {
+    items.forEach((item) => {
       const b = item.brand ?? "기타";
       counts[b] = (counts[b] ?? 0) + 1;
     });
     return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  }, []);
+  }, [items]);
 
   const seasonData = useMemo(() => {
     const counts = { 봄: 0, 여름: 0, 가을: 0, 겨울: 0 };
-    CLOSET_ITEMS.forEach((item) => {
+    items.forEach((item) => {
       (item.season ?? []).forEach((s) => { if (counts[s] !== undefined) counts[s]++; });
     });
     return Object.entries(counts).map(([label, count]) => ({ label, count }));
-  }, []);
+  }, [items]);
 
-  const wornCount    = CLOSET_ITEMS.filter((i) => wearFreq.has(i.id)).length;
+  const wornCount    = items.filter((i) => wearFreq.has(i.id)).length;
   const laundryCount = getItemsNeedingWash(2).length;
   const maxCatWear   = catWearData[0]?.count ?? 1;
   const maxBrand     = brandData[0]?.[1]     ?? 1;
@@ -1545,7 +1544,7 @@ export default function ClosetPage({ onProductSelect, onItemTap, onOpenOutfitEdi
 
       {/* Insights detail overlay */}
       {showInsights && (
-        <InsightsDetailScreen history={history} onBack={() => setShowInsights(false)} />
+        <InsightsDetailScreen history={history} onBack={() => setShowInsights(false)} items={closetItems} />
       )}
 
       {/* ── 코디 만들기 FAB ── */}

@@ -565,7 +565,7 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
     if (saveErr) {
       setSaved(false);
       console.error("[AddClosetItemScreen] 저장 실패:", saveErr.message);
-      // TODO: show global toast
+      showToast("아이템 저장에 실패했어요", "error");
       return;
     }
 

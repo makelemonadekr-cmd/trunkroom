@@ -35,14 +35,25 @@ function profileToSellerStub(profile) {
 
 // ── Normalise a `styles` row → CodibookOutfitCard shape ───────────────────────
 function normalizePublicStyle(row) {
+  // custom_mood is a comma-separated style tag string, e.g. "캐주얼,미니멀"
+  const styleTags = (row.custom_mood ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
   return {
     id:           row.id,
     title:        row.title       || "제목 없음",
     previewImage: row.background_url ?? null,
     color:        "#F2F2F2",
     bgColor:      "#F2F2F2",
-    style:        row.mood        ?? null,
-    season:       [],
+    // `mood` is the primary style label (set by StylebookCreatorSheet).
+    // Fall back to the first parsed style tag if mood is absent.
+    style:        row.mood ?? styleTags[0] ?? null,
+    styleTags,
+    season:       Array.isArray(row.season) ? row.season : [],
+    tags:         styleTags,
+    shortDesc:    row.memo ?? null,
     likes:        0,
     dateStr:      row.date_str    ?? null,
     seller:       profileToSellerStub(row._profile ?? null),

@@ -79,6 +79,8 @@ export async function addClosetItem(userId, formData, imageBase64, mimeType) {
     source:        "manual",
     notes:         formData.desc       || null,
     is_public:     true,
+    size:          formData.size       || null,
+    gender:        formData.gender     || "여성",
   };
 
   const { data, error } = await supabase

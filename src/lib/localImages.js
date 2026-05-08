@@ -13,7 +13,7 @@
  *   tops: 136 · bottoms: 88 · outerwear: 63 · dress: 11 · coordi: 410
  *
  * ── COORDI ZONE MAP (non-overlapping, total used: 0–139) ─────────────────────
- *   outfits     [  0, 25]  OUTFIT_DATA + CodiPage cards
+ *   outfits     [  0, 25]  OUTFIT_DATA (legacy — real styles via Supabase)
  *   weather     [ 25, 10]  weatherRecommendation images
  *   styleBooks  [ 35, 10]  HomePage STYLE_BOOKS cards
  *   cleanout    [ 45,  5]  CleanoutServiceScreen cards
@@ -85,7 +85,7 @@ export const COORDI_ALL = _coordiAll;
  * @type {Record<string, [number, number]>}
  */
 export const COORDI_ZONES = {
-  outfits:      [0,   25],  // OUTFIT_DATA + CodiPage — 0-24
+  outfits:      [0,   25],  // OUTFIT_DATA legacy — 0-24
   weather:      [25,  10],  // weatherRecommendation — 25-34
   styleBooks:   [35,  10],  // HomePage STYLE_BOOKS — 35-44
   cleanout:     [45,   5],  // CleanoutServiceScreen — 45-49

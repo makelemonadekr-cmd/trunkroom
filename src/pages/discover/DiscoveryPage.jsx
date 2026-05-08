@@ -172,12 +172,6 @@ function PublicItemsTab({ onItemTap, onSellerTap, saleFilterActive, onSaleFilter
   // ── Real public items from Supabase ───────────────────────────────────────
   const { items: publicItems } = usePublicItems();
 
-  // IDs of sellers the user follows (derived from context — reactive)
-  const followedSellerIds = useMemo(
-    () => SELLER_PROFILES.filter((s) => followedIds.has(String(s.id))).map((s) => s.id),
-    [followedIds]
-  );
-
   const source = useMemo(() => {
     // Real Supabase items first; fill remainder up to ITEM_MOCK_FILL_COUNT with mock items.
     // As real data accumulates, the mock slice automatically shrinks to zero.
@@ -187,9 +181,10 @@ function PublicItemsTab({ onItemTap, onSellerTap, saleFilterActive, onSaleFilter
       .map((m) => ({ ...m, source: "mock" }))
       .slice(0, Math.max(0, ITEM_MOCK_FILL_COUNT - realItems.length));
     const combined = [...realItems, ...mockSlice];
-    if (itemView === "following") return combined.filter((i) => followedSellerIds.includes(i.sellerId));
+    // followedIds contains both real UUIDs and mock int IDs (as strings)
+    if (itemView === "following") return combined.filter((i) => followedIds.has(String(i.sellerId)));
     return combined;
-  }, [saleFilterActive, itemView, followedSellerIds, publicItems]);
+  }, [saleFilterActive, itemView, followedIds, publicItems]);
 
   function togglePanel(key) { setOpenPanel((p) => p === key ? null : p === null ? key : key); }
   function toggle(setter, val) {
@@ -546,12 +541,6 @@ function CodibookDiscoveryTab({ onOutfitTap, onSellerTap }) {
   // ── Real public styles from Supabase ──────────────────────────────────────
   const { styles: publicStyles, loading: stylesLoading } = usePublicStyles();
 
-  // Seller-follow filter derived from context — reactive
-  const followedSellerIds = useMemo(
-    () => SELLER_PROFILES.filter((s) => followedIds.has(String(s.id))).map((s) => s.id),
-    [followedIds]
-  );
-
   const allOutfits = useMemo(() => {
     // Real Supabase styles first; fill remainder up to STYLE_MOCK_FILL_COUNT with mock styles.
     // Mock count automatically shrinks to zero as real data accumulates.
@@ -559,18 +548,30 @@ function CodibookDiscoveryTab({ onOutfitTap, onSellerTap }) {
       .map((m) => ({ ...m, source: "mock" }))
       .slice(0, Math.max(0, STYLE_MOCK_FILL_COUNT - publicStyles.length));
     const combined = [...publicStyles, ...mockBase];
-    if (outfitView === "following") return combined.filter((o) => followedSellerIds.includes(o.seller?.id));
+    // followedIds contains both real UUIDs and mock int IDs (as strings)
+    if (outfitView === "following") {
+      return combined.filter((o) => {
+        const sid = o.seller?.id ?? o.userId;
+        return sid && followedIds.has(String(sid));
+      });
+    }
     return combined;
-  }, [outfitView, followedSellerIds, publicStyles]);
+  }, [outfitView, followedIds, publicStyles]);
 
   const followingCount = useMemo(
-    () => allOutfits.filter((o) => followedSellerIds.includes(o.seller?.id)).length,
-    [allOutfits, followedSellerIds]
+    () => allOutfits.filter((o) => {
+      const sid = o.seller?.id ?? o.userId;
+      return sid && followedIds.has(String(sid));
+    }).length,
+    [allOutfits, followedIds]
   );
   void stylesLoading;
 
   const filtered = allOutfits.filter((o) => {
-    const styleOk  = styleFilter  === "전체" || o.style === styleFilter;
+    // Match style: check primary `style` field OR the styleTags array (for real Supabase rows)
+    const styleOk  = styleFilter  === "전체"
+      || o.style === styleFilter
+      || (o.styleTags ?? o.tags ?? []).includes(styleFilter);
     const seasonOk = seasonFilter === "전체" || (o.season ?? []).includes(seasonFilter);
     return styleOk && seasonOk;
   });

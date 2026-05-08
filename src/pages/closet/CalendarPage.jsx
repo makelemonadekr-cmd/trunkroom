@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAuth }     from "../../hooks/useAuth.js";
 import { useWearLogs } from "../../hooks/useWearLogs.js";
-import { CLOSET_ITEMS } from "../../constants/mockClosetData";
+import { useCloset }   from "../../hooks/useCloset.js";
 import { showToast }   from "../../lib/toastUtils.js";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
@@ -28,6 +28,16 @@ function firstDayOfWeek(year, month) {   // 0=Sun..6=Sat
 
 const MONTH_NAMES = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
 const DAY_NAMES   = ["일","월","화","수","목","금","토"];
+
+function normalizeItem(dbItem) {
+  return {
+    id:           dbItem.id,
+    name:         dbItem.name        || "아이템",
+    displayName:  dbItem.display_name ?? dbItem.name ?? "아이템",
+    image:        dbItem.image_url   ?? null,
+    mainCategory: dbItem.main_category ?? "기타",
+  };
+}
 
 // ─── Stats bar ────────────────────────────────────────────────────────────────
 
@@ -64,10 +74,10 @@ function StatsBar({ stats }) {
 
 // ─── Day cell ─────────────────────────────────────────────────────────────────
 
-function DayCell({ day, dateStr, isToday, record, onTap }) {
+function DayCell({ day, dateStr, isToday, record, onTap, closetItems = [] }) {
   const hasRecord  = !!record;
   const firstItem  = hasRecord && record.itemIds?.length > 0
-    ? CLOSET_ITEMS.find((i) => i.id === record.itemIds[0])
+    ? closetItems.find((i) => i.id === record.itemIds[0])
     : null;
 
   const isSun = new Date(dateStr + "T12:00:00").getDay() === 0;
@@ -137,7 +147,7 @@ function DayCell({ day, dateStr, isToday, record, onTap }) {
 // ─── Day Record Sheet ─────────────────────────────────────────────────────────
 // Bottom sheet for recording items worn on a selected day.
 
-function DayRecordSheet({ dateStr, record, onSave, onDelete, onClose }) {
+function DayRecordSheet({ dateStr, record, onSave, onDelete, onClose, closetItems = [] }) {
   const [selectedIds, setSelectedIds] = useState(record?.itemIds ?? []);
   const [note, setNote]               = useState(record?.note ?? "");
   const [catFilter, setCatFilter]     = useState("전체");
@@ -145,8 +155,8 @@ function DayRecordSheet({ dateStr, record, onSave, onDelete, onClose }) {
   const CATS = ["전체", "상의", "하의", "아우터", "원피스"];
 
   const displayItems = catFilter === "전체"
-    ? CLOSET_ITEMS
-    : CLOSET_ITEMS.filter((i) => i.mainCategory === catFilter);
+    ? closetItems
+    : closetItems.filter((i) => i.mainCategory === catFilter);
 
   function toggleItem(id) {
     setSelectedIds((prev) =>
@@ -220,7 +230,7 @@ function DayRecordSheet({ dateStr, record, onSave, onDelete, onClose }) {
             </p>
             <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
               {selectedIds.map((id) => {
-                const item = CLOSET_ITEMS.find((i) => i.id === id);
+                const item = closetItems.find((i) => i.id === id);
                 if (!item) return null;
                 return (
                   <div
@@ -381,7 +391,7 @@ function DayRecordSheet({ dateStr, record, onSave, onDelete, onClose }) {
 
 // ─── Main CalendarPage ─────────────────────────────────────────────────────────
 
-export default function CalendarPage() {
+export default function CalendarPage({ onClose }) {
   const today = new Date();
   const [year,  setYear]  = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth()); // 0-based
@@ -389,6 +399,8 @@ export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState(null); // "YYYY-MM-DD" | null
 
   const { user }                                = useAuth();
+  const { items: rawItems } = useCloset(user?.id);
+  const closetItems = useMemo(() => rawItems.map(normalizeItem), [rawItems]);
   const { history, stats, saveLog, removeLog }  = useWearLogs(user?.id);
 
   function prevMonth() {
@@ -438,6 +450,23 @@ export default function CalendarPage() {
 
   return (
     <div className="flex flex-col h-full bg-white overflow-hidden">
+
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between px-4 shrink-0" style={{ height: 50, borderBottom: "1px solid #F0F0F0" }}>
+        <button
+          onClick={onClose}
+          className="w-9 h-9 flex items-center justify-center rounded-full"
+          style={{ backgroundColor: "#F2F2F2" }}
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M11 4L6 9L11 14" stroke="#1a1a1a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <p className="text-[16px] font-bold" style={{ color: "#1a1a1a", fontFamily: "'Spoqa Han Sans Neo', sans-serif", letterSpacing: "-0.02em" }}>
+          착용 기록
+        </p>
+        <div style={{ width: 36 }} />
+      </div>
 
       {/* ── Stats bar ── */}
       <div className="pt-4 pb-3 shrink-0">
@@ -510,6 +539,7 @@ export default function CalendarPage() {
                   isToday={dateStr === todayStr}
                   record={history[dateStr] ?? null}
                   onTap={handleDayTap}
+                  closetItems={closetItems}
                 />
               </div>
             );
@@ -539,6 +569,7 @@ export default function CalendarPage() {
           onSave={handleSave}
           onDelete={handleDelete}
           onClose={() => setSelectedDate(null)}
+          closetItems={closetItems}
         />
       )}
     </div>

@@ -8,6 +8,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import AutoDetectLoadingState from "../../components/AutoDetectLoadingState.jsx";
 import AutoDetectedBadge      from "../../components/AutoDetectedBadge.jsx";
+import UpgradeSheet           from "../../components/UpgradeSheet.jsx";
 import { runUploadPipeline }  from "../../lib/uploadClothing.js";
 import { validateImageFile, compressImage } from "../../lib/imageUtils.js";
 import { addClosetItem as saveToSupabase } from "../../services/closetService.js";
@@ -399,6 +400,7 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
   const [styleTags,      setStyleTags]       = useState([]);
 
   const [saved,          setSaved]           = useState(false);
+  const [showUpgrade,    setShowUpgrade]     = useState(false);
 
   const fileInputRef = useRef(null);
   const MAX_PHOTOS   = 6;
@@ -483,12 +485,14 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
           setTimeout(() => setPipelineState(null), 1200);
         },
         onError: (err) => {
-          const msg = err.isRateLimit
-            ? "오늘 AI 사용 횟수를 모두 사용했어요 😅 내일 다시 이용해주세요!"
-            : err.message;
-          setPipelineError(msg);
-          setPipelineState("error");
-          setTimeout(() => setPipelineState(null), err.isRateLimit ? 3500 : 2500);
+          if (err.isRateLimit) {
+            setPipelineState(null);
+            setShowUpgrade(true);
+          } else {
+            setPipelineError(err.message);
+            setPipelineState("error");
+            setTimeout(() => setPipelineState(null), 2500);
+          }
         },
       });
 
@@ -583,6 +587,9 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
 
   return (
     <div className="absolute inset-0 z-30 flex flex-col bg-white overflow-hidden">
+
+      {/* Freemium paywall sheet */}
+      <UpgradeSheet open={showUpgrade} onClose={() => setShowUpgrade(false)} />
 
       {/* Hidden file input — capture="environment" for camera, none for gallery */}
       <input

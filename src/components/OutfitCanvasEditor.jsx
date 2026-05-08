@@ -13,7 +13,7 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { CLOSET_ITEMS, MAIN_CATEGORIES } from "../constants/mockClosetData";
+import { useCloset }        from "../hooks/useCloset.js";
 import { extractColors } from "../lib/colorExtractor";
 import { useAuth }          from "../hooks/useAuth.js";
 import { createStyle }      from "../services/stylesService.js";
@@ -236,24 +236,42 @@ export default function OutfitCanvasEditor({
   onClose,
 }) {
   const { user } = useAuth();
+  const { items: rawItems } = useCloset(user?.id);
+  // Normalize DB items to the shape this editor expects
+  const closetItems = rawItems.map((r) => ({
+    id:          r.id,
+    name:        r.name        || "아이템",
+    displayName: r.display_name ?? r.name ?? "아이템",
+    image:       r.image_url   ?? null,
+    mainCategory: r.main_category ?? "기타",
+  }));
 
   // ── Canvas items state ──────────────────────────────────────────────────────
-  const [items, setItems] = useState(() => {
-    const imgs = initialItemIds
-      .map((id) => CLOSET_ITEMS.find((ci) => ci.id === id)?.image)
-      .filter(Boolean);
-    const pl = getInitialPlacements(imgs.length);
-    return imgs.map((imgSrc, i) => ({
-      id:        uid(),
-      imgSrc,
-      x:         pl[i].x,
-      y:         pl[i].y,
-      w:         pl[i].w,
-      h:         pl[i].h,
-      zIndex:    i + 1,
-      bgRemoved: false,
-    }));
-  });
+  const [items, setItems] = useState([]);
+
+  // Populate canvas items from initialItemIds once real closet items are available
+  useEffect(() => {
+    if (!initialItemIds.length || !rawItems.length) return;
+    // Only run once (when items first load and canvas is still empty from initialIds)
+    setItems((prev) => {
+      // Don't re-populate if user already made changes
+      if (prev.length > 0) return prev;
+      const imgs = initialItemIds
+        .map((id) => rawItems.find((ci) => ci.id === id)?.image_url)
+        .filter(Boolean);
+      const pl = getInitialPlacements(imgs.length);
+      return imgs.map((imgSrc, i) => ({
+        id:        uid(),
+        imgSrc,
+        x:         pl[i].x,
+        y:         pl[i].y,
+        w:         pl[i].w,
+        h:         pl[i].h,
+        zIndex:    i + 1,
+        bgRemoved: false,
+      }));
+    });
+  }, [rawItems, initialItemIds]); // eslint-disable-line
 
   const [selectedId,  setSelectedId]  = useState(null);
   const [bgColor,     setBgColor]     = useState("#FFFFFF");
@@ -421,10 +439,10 @@ export default function OutfitCanvasEditor({
           template_id:    "canvas",
         };
         const styleItems = initialItemIds.map((id) => {
-          const ci = CLOSET_ITEMS.find((c) => c.id === id);
+          const ci = closetItems.find((c) => c.id === id);
           return {
             clothingItemId: id,
-            imageUrl:       ci?.image ?? ci?.image_url ?? null,
+            imageUrl:       ci?.image ?? null,
             name:           ci?.name  ?? ci?.displayName ?? null,
           };
         });
@@ -444,7 +462,7 @@ export default function OutfitCanvasEditor({
   }
 
   // ── Filtered items for picker ─────────────────────────────────────────────────
-  const pickerItems = CLOSET_ITEMS.filter(
+  const pickerItems = closetItems.filter(
     (i) => i.image && (catFilter === "전체" || i.mainCategory === catFilter)
   );
 

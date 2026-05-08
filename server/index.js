@@ -57,18 +57,20 @@ const upload = multer({
 
 /**
  * POST /api/remove-background
- * 인증 필요. 일일 10회 제한.
+ * 인증 필요. 무료 월 5회 제한 (프리미엄 무제한).
  */
 app.post("/api/remove-background", requireAuth, upload.single("image"), async (req, res) => {
   const userId = req.userId;
 
-  // 1. 일일 한도 확인
-  const { allowed, used, limit } = await checkLimit(userId, "remove_background");
+  // 1. 월간 한도 확인
+  const { allowed, used, limit, isPremium } = await checkLimit(userId, "remove_background");
   if (!allowed) {
     return res.status(429).json({
-      error: `오늘 배경 제거를 ${limit}회 모두 사용했어요. 내일 다시 사용할 수 있어요.`,
+      error: `이번 달 AI 사용 ${limit}회를 모두 사용했어요. 프리미엄으로 업그레이드하면 무제한으로 이용할 수 있어요.`,
       used,
       limit,
+      isPremium,
+      upgradeRequired: true,
     });
   }
 
@@ -107,18 +109,20 @@ app.post("/api/remove-background", requireAuth, upload.single("image"), async (r
 
 /**
  * POST /api/analyze-clothing
- * 인증 필요. 일일 10회 제한.
+ * 인증 필요. 무료 월 5회 제한 (프리미엄 무제한).
  */
 app.post("/api/analyze-clothing", requireAuth, async (req, res) => {
   const userId = req.userId;
 
-  // 1. 일일 한도 확인
-  const { allowed, used, limit } = await checkLimit(userId, "analyze_clothing");
+  // 1. 월간 한도 확인
+  const { allowed, used, limit, isPremium } = await checkLimit(userId, "analyze_clothing");
   if (!allowed) {
     return res.status(429).json({
-      error: `오늘 AI 분석을 ${limit}회 모두 사용했어요. 내일 다시 사용할 수 있어요.`,
+      error: `이번 달 AI 사용 ${limit}회를 모두 사용했어요. 프리미엄으로 업그레이드하면 무제한으로 이용할 수 있어요.`,
       used,
       limit,
+      isPremium,
+      upgradeRequired: true,
     });
   }
 
@@ -146,18 +150,23 @@ app.post("/api/analyze-clothing", requireAuth, async (req, res) => {
 
 /**
  * GET /api/ai-usage
- * 오늘 남은 AI 사용 횟수 조회 (UI 표시용).
+ * 이번 달 남은 AI 사용 횟수 조회 (UI 표시용).
  * 인증 필요.
+ * 프리미엄 유저는 isPremium: true, remaining: null 반환.
  */
 app.get("/api/ai-usage", requireAuth, async (req, res) => {
   const userId = req.userId;
-  const [analyze, removeBg] = await Promise.all([
-    checkLimit(userId, "analyze_clothing"),
-    checkLimit(userId, "remove_background"),
-  ]);
+  // checkLimit은 통합 카운트를 반환하므로 한 번만 호출
+  const result = await checkLimit(userId, "analyze_clothing");
+  const remaining = result.isPremium ? null : Math.max(0, result.limit - result.used);
   res.json({
-    analyze:  { used: analyze.used,  limit: analyze.limit,  remaining: analyze.limit  - analyze.used  },
-    removeBg: { used: removeBg.used, limit: removeBg.limit, remaining: removeBg.limit - removeBg.used },
+    isPremium: result.isPremium,
+    used:      result.isPremium ? 0 : result.used,
+    limit:     result.isPremium ? null : result.limit,
+    remaining,
+    // legacy shape — analyze / removeBg each mirror the combined counter
+    analyze:  { used: result.used, limit: result.limit, remaining },
+    removeBg: { used: result.used, limit: result.limit, remaining },
   });
 });
 

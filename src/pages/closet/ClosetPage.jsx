@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import FullListScreen from "./FullListScreen";
 import AddClosetItemScreen from "../sell/AddClosetItemScreen";
+import CleanoutServiceScreen from "../sell/CleanoutServiceScreen.jsx";
 import MySizePage from "./MySizePage";
 import LazyImage from "../../components/LazyImage";
 import {
@@ -484,21 +485,21 @@ function InsightsBanner({ onInsights }) {
 }
 
 // ─── 내 옷장 관리 팁 (collapsible) ────────────────────────────────────────────
-function TipsBanner({ onTipAction, history = {} }) {
+function TipsBanner({ onTipAction, onOpenCleanout, items = [], history = {} }) {
   const [tipsOpen, setTipsOpen] = useState(false);
 
   const { longUnwornItems, laundryItems } = useMemo(() => {
     const lastWorn = getItemLastWornDates(history);
     const today    = localDateStr(new Date());
-    const longUnwornItems = CLOSET_ITEMS.filter((item) => {
+    const longUnwornItems = items.filter((item) => {
       const lw = lastWorn.get(item.id);
       if (!lw) return true;
       return Math.floor((new Date(today) - new Date(lw + "T12:00:00")) / 86400000) >= 90;
     });
     const laundryRaw   = getItemsNeedingWash(2);
-    const laundryItems = laundryRaw.map(({ itemId }) => CLOSET_ITEMS.find((i) => i.id === itemId)).filter(Boolean);
+    const laundryItems = laundryRaw.map(({ itemId }) => items.find((i) => i.id === itemId)).filter(Boolean);
     return { longUnwornItems, laundryItems };
-  }, [history]);
+  }, [history, items]);
 
   const tipCount = longUnwornItems.length + laundryItems.length;
 
@@ -573,6 +574,27 @@ function TipsBanner({ onTipAction, history = {} }) {
               </div>
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
                 <path d="M4.5 2L9 6.5L4.5 11" stroke="#C09050" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
+
+          {longUnwornItems.length > 0 && (
+            <button
+              onClick={onOpenCleanout}
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 active:opacity-75 text-left w-full"
+              style={{ backgroundColor: "#F0FBF4", border: "1px solid #C8EDDA" }}
+            >
+              <span style={{ fontSize: 20, lineHeight: 1 }}>♻️</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-bold" style={{ color: "#1A6B3A", fontFamily: FONT }}>
+                  이런 방법도 있어요
+                </p>
+                <p className="text-[10px] mt-0.5" style={{ color: "#5A9B72", fontFamily: FONT }}>
+                  리세일·기부 서비스로 옷장 정리하기
+                </p>
+              </div>
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                <path d="M4.5 2L9 6.5L4.5 11" stroke="#5A9B72" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
           )}
@@ -1400,7 +1422,7 @@ function PhotoSourceSheet({ onSelect, onClose }) {
 }
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
-export default function ClosetPage({ onProductSelect, onItemTap }) {
+export default function ClosetPage({ onProductSelect, onItemTap, onOpenOutfitEditor }) {
   const { user }                      = useAuth();
   const { items: dbItems, loading: closetLoading, refresh } = useCloset(user?.id);
   const { profile }                   = useProfile(user?.id);
@@ -1415,6 +1437,7 @@ export default function ClosetPage({ onProductSelect, onItemTap }) {
   const [showSourceSheet, setShowSourceSheet] = useState(false);
   const [mySizeOpen,      setMySizeOpen]      = useState(false);
   const [showInsights,    setShowInsights]    = useState(false);
+  const [showCleanout,    setShowCleanout]    = useState(false);
 
   function handleSourceSelect(source) {
     setPhotoSource(source);
@@ -1449,7 +1472,12 @@ export default function ClosetPage({ onProductSelect, onItemTap }) {
         <InsightsBanner onInsights={() => setShowInsights(true)} />
 
         {/* ── 관리 팁 ── */}
-        <TipsBanner history={history} onTipAction={(data) => setFullList(data)} />
+        <TipsBanner
+          history={history}
+          items={closetItems}
+          onTipAction={(data) => setFullList(data)}
+          onOpenCleanout={() => setShowCleanout(true)}
+        />
 
         {/* ── Items + filters ── */}
         {closetLoading ? (
@@ -1486,6 +1514,13 @@ export default function ClosetPage({ onProductSelect, onItemTap }) {
         />
       )}
 
+      {/* CleanoutServiceScreen overlay */}
+      {showCleanout && (
+        <div className="absolute inset-0 z-50 bg-white">
+          <CleanoutServiceScreen onBack={() => setShowCleanout(false)} />
+        </div>
+      )}
+
       {/* Photo source picker sheet */}
       {showSourceSheet && (
         <PhotoSourceSheet
@@ -1511,6 +1546,23 @@ export default function ClosetPage({ onProductSelect, onItemTap }) {
       {/* Insights detail overlay */}
       {showInsights && (
         <InsightsDetailScreen history={history} onBack={() => setShowInsights(false)} />
+      )}
+
+      {/* ── 코디 만들기 FAB ── */}
+      {onOpenOutfitEditor && (
+        <button
+          onClick={onOpenOutfitEditor}
+          className="absolute bottom-4 right-4 flex items-center gap-2 px-4 py-3 rounded-2xl shadow-lg active:opacity-80 transition-opacity z-10"
+          style={{ backgroundColor: "#1a1a1a", color: "white", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <rect x="1" y="1" width="6" height="6" rx="1.5" stroke="white" strokeWidth="1.4" />
+            <rect x="9" y="1" width="6" height="6" rx="1.5" stroke="white" strokeWidth="1.4" />
+            <rect x="1" y="9" width="6" height="6" rx="1.5" stroke="white" strokeWidth="1.4" />
+            <path d="M12 9v6M9 12h6" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+          </svg>
+          <span className="text-[13px] font-bold">코디 만들기</span>
+        </button>
       )}
     </div>
   );

@@ -4,6 +4,7 @@ import TermsOfServiceScreen from "../legal/TermsOfServiceScreen";
 import AIDisclosureScreen from "../legal/AIDisclosureScreen";
 import AccountSettingsScreen from "./AccountSettingsScreen";
 import CustomerSupportPage from "../support/CustomerSupportPage";
+import UpgradeSheet from "../../components/UpgradeSheet.jsx";
 import { showToast } from "../../lib/toastUtils";
 import { useProfile } from "../../hooks/useProfile.js";
 import {
@@ -173,6 +174,13 @@ const NotionIcon = () => (
   </svg>
 );
 
+const CrownIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <path d="M2 13H16L14 7L10.5 10L9 6L7.5 10L4 7L2 13Z" stroke="#F5C200" strokeWidth="1.4" strokeLinejoin="round" />
+    <path d="M2 13H16" stroke="#F5C200" strokeWidth="1.4" strokeLinecap="round" />
+  </svg>
+);
+
 // ─── Logout icon ─────────────────────────────────────────────────────────────
 
 const LogoutIcon = () => (
@@ -194,9 +202,13 @@ export default function MenuPage({ user, onSignOut }) {
   const [appInfoOpen,  setAppInfoOpen]  = useState(false);
   const [supportOpen,  setSupportOpen]  = useState(false);
   const [signingOut,   setSigningOut]   = useState(false);
+  const [showUpgrade,  setShowUpgrade]  = useState(false);
 
   // Load real profile from Supabase
   const { profile, refresh: refreshProfile } = useProfile(user?.id);
+
+  // Plan tier — read directly from profile (no token needed)
+  const isPremium = profile?.is_premium === true;
 
   // Prefer Supabase nickname → auth metadata → email prefix
   const displayName = profile?.nickname
@@ -222,6 +234,7 @@ export default function MenuPage({ user, onSignOut }) {
       {screen === "ai"      && <AIDisclosureScreen onBack={() => setScreen(null)} />}
       {accountOpen && <AccountSettingsScreen onBack={() => { setAccountOpen(false); refreshProfile(); }} />}
       {supportOpen && <CustomerSupportPage onBack={() => setSupportOpen(false)} />}
+      <UpgradeSheet open={showUpgrade} onClose={() => setShowUpgrade(false)} />
 
       {/* ── Header ── */}
       <div
@@ -275,19 +288,69 @@ export default function MenuPage({ user, onSignOut }) {
                 {displayEmail}
               </p>
             </div>
-            <div className="flex items-center gap-2.5 shrink-0">
-              <span
-                className="text-[10px] font-bold px-2.5 py-1 rounded-full"
-                style={{ backgroundColor: "#F5C200", color: DARK, fontFamily: FONT }}
-              >
-                MY CLOSET
-              </span>
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Plan badge */}
+              {isPremium ? (
+                <span
+                  className="text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1"
+                  style={{ backgroundColor: "#F5C200", color: DARK, fontFamily: FONT }}
+                >
+                  👑 프리미엄
+                </span>
+              ) : (
+                <span
+                  className="text-[10px] font-bold px-2.5 py-1 rounded-full"
+                  style={{ backgroundColor: "rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.55)", fontFamily: FONT }}
+                >
+                  무료 플랜
+                </span>
+              )}
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path d="M5 3L9 7L5 11" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
           </div>
         </button>
+
+        {/* ── 플랜 업그레이드 (무료 유저만) ── */}
+        {!isPremium && (
+          <>
+            <SectionLabel>플랜</SectionLabel>
+            <div className="mx-4">
+              <button
+                onClick={() => setShowUpgrade(true)}
+                className="w-full rounded-2xl overflow-hidden active:opacity-75 transition-opacity text-left"
+                style={{ border: "2px solid #F5C200" }}
+              >
+                <div
+                  className="px-5 py-4 flex items-center justify-between"
+                  style={{ background: "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)" }}
+                >
+                  <div>
+                    <p
+                      className="text-[11px] font-bold tracking-[0.1em] uppercase mb-1"
+                      style={{ color: "#F5C200", fontFamily: FONT }}
+                    >
+                      TRUNKROOM PREMIUM
+                    </p>
+                    <p className="text-[14px] font-bold text-white" style={{ fontFamily: FONT, letterSpacing: "-0.02em" }}>
+                      AI 기능 무제한으로 업그레이드
+                    </p>
+                    <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.45)", fontFamily: FONT }}>
+                      월 ₩3,900 · 연 ₩34,900 (3달 무료)
+                    </p>
+                  </div>
+                  <div
+                    className="flex items-center justify-center rounded-full shrink-0 ml-3"
+                    style={{ width: 36, height: 36, backgroundColor: "#F5C200" }}
+                  >
+                    <CrownIcon />
+                  </div>
+                </div>
+              </button>
+            </div>
+          </>
+        )}
 
         {/* ── 회사소개 ── */}
         <SectionLabel>회사소개</SectionLabel>

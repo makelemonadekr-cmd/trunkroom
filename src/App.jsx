@@ -14,6 +14,8 @@ const MenuPage               = lazy(() => import("./pages/menu/MenuPage"));
 const PrivacyPolicyScreen    = lazy(() => import("./pages/legal/PrivacyPolicyScreen"));
 const TermsOfServiceScreen   = lazy(() => import("./pages/legal/TermsOfServiceScreen"));
 const AuthScreen             = lazy(() => import("./features/auth/AuthScreen"));
+const CalendarPage       = lazy(() => import("./pages/closet/CalendarPage"));
+const OutfitCanvasEditor = lazy(() => import("./components/OutfitCanvasEditor"));
 import BottomNav from "./components/BottomNav";
 import { useAuth } from "./hooks/useAuth.js";
 import { signOut } from "./services/authService.js";
@@ -145,6 +147,8 @@ export default function App() {
   const [editStylePending, setEditStylePending]  = useState(null);
   const [closetKey,        setClosetKey]         = useState(0);
   const [stylesSavedTick,  setStylesSavedTick]   = useState(0);
+  const [showCalendar,      setShowCalendar]      = useState(false);
+  const [showOutfitEditor,  setShowOutfitEditor]  = useState(false);
 
   // ── Guest mode: auth gate modal + AuthScreen overlay ─────────────────────────
   const [showAuthGate,   setShowAuthGate]   = useState(false);
@@ -407,6 +411,7 @@ export default function App() {
                 editStyle={editStylePending}
                 onEditStyleHandled={() => setEditStylePending(null)}
                 onStyleSaved={handleStyleSaved}
+                onOpenCalendar={() => setShowCalendar(true)}
               />
             )}
 
@@ -416,6 +421,7 @@ export default function App() {
                 key={closetKey}
                 onProductSelect={handleProductSelect}
                 onItemTap={setCurrentItem}
+                onOpenOutfitEditor={() => setShowOutfitEditor(true)}
               />
             )}
 
@@ -489,6 +495,21 @@ export default function App() {
                   }}
                 />
               </div>
+            )}
+
+            {/* ── CalendarPage overlay ── */}
+            {showCalendar && user && (
+              <div className="absolute inset-0 z-[90] bg-white">
+                <CalendarPage onClose={() => setShowCalendar(false)} />
+              </div>
+            )}
+
+            {/* ── OutfitCanvasEditor overlay ── */}
+            {showOutfitEditor && user && (
+              <OutfitCanvasEditor
+                onClose={() => setShowOutfitEditor(false)}
+                onSave={() => { setShowOutfitEditor(false); handleStyleSaved(); }}
+              />
             )}
 
           </Suspense>)}

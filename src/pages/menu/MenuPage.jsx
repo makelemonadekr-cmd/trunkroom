@@ -337,7 +337,7 @@ export default function MenuPage({ user, onSignOut }) {
                       AI 기능 무제한으로 업그레이드
                     </p>
                     <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.45)", fontFamily: FONT }}>
-                      월 ₩3,900 · 연 ₩34,900 (3달 무료)
+                      월 ₩5,900 · 연 ₩54,900 (3달 무료)
                     </p>
                   </div>
                   <div

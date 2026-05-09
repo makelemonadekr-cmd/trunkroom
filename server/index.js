@@ -57,7 +57,7 @@ const upload = multer({
 
 /**
  * POST /api/remove-background
- * 인증 필요. 무료 월 5회 제한 (프리미엄 무제한).
+ * 인증 필요. 무료 월 1회 / 프리미엄 20회.
  */
 app.post("/api/remove-background", requireAuth, upload.single("image"), async (req, res) => {
   const userId = req.userId;
@@ -66,7 +66,7 @@ app.post("/api/remove-background", requireAuth, upload.single("image"), async (r
   const { allowed, used, limit, isPremium } = await checkLimit(userId, "remove_background");
   if (!allowed) {
     return res.status(429).json({
-      error: `이번 달 AI 사용 ${limit}회를 모두 사용했어요. 프리미엄으로 업그레이드하면 무제한으로 이용할 수 있어요.`,
+      error: `이번 달 배경 제거 ${limit}회를 모두 사용했어요. 프리미엄으로 업그레이드하면 월 20회까지 이용할 수 있어요.`,
       used,
       limit,
       isPremium,
@@ -109,7 +109,7 @@ app.post("/api/remove-background", requireAuth, upload.single("image"), async (r
 
 /**
  * POST /api/analyze-clothing
- * 인증 필요. 무료 월 5회 제한 (프리미엄 무제한).
+ * 인증 필요. 무료 월 10회 / 프리미엄 무제한.
  */
 app.post("/api/analyze-clothing", requireAuth, async (req, res) => {
   const userId = req.userId;
@@ -118,7 +118,7 @@ app.post("/api/analyze-clothing", requireAuth, async (req, res) => {
   const { allowed, used, limit, isPremium } = await checkLimit(userId, "analyze_clothing");
   if (!allowed) {
     return res.status(429).json({
-      error: `이번 달 AI 사용 ${limit}회를 모두 사용했어요. 프리미엄으로 업그레이드하면 무제한으로 이용할 수 있어요.`,
+      error: `이번 달 AI 분석 ${limit}회를 모두 사용했어요. 프리미엄으로 업그레이드하면 무제한으로 이용할 수 있어요.`,
       used,
       limit,
       isPremium,
@@ -156,17 +156,35 @@ app.post("/api/analyze-clothing", requireAuth, async (req, res) => {
  */
 app.get("/api/ai-usage", requireAuth, async (req, res) => {
   const userId = req.userId;
-  // checkLimit은 통합 카운트를 반환하므로 한 번만 호출
-  const result = await checkLimit(userId, "analyze_clothing");
-  const remaining = result.isPremium ? null : Math.max(0, result.limit - result.used);
+
+  // action별 카운트를 병렬로 조회
+  const [analyzeResult, removeBgResult] = await Promise.all([
+    checkLimit(userId, "analyze_clothing"),
+    checkLimit(userId, "remove_background"),
+  ]);
+
+  const isPremium = analyzeResult.isPremium;
+
+  const analyzeRemaining  = isPremium ? null : Math.max(0, analyzeResult.limit  - analyzeResult.used);
+  const removeBgRemaining = isPremium ? null : Math.max(0, removeBgResult.limit - removeBgResult.used);
+
   res.json({
-    isPremium: result.isPremium,
-    used:      result.isPremium ? 0 : result.used,
-    limit:     result.isPremium ? null : result.limit,
-    remaining,
-    // legacy shape — analyze / removeBg each mirror the combined counter
-    analyze:  { used: result.used, limit: result.limit, remaining },
-    removeBg: { used: result.used, limit: result.limit, remaining },
+    isPremium,
+    // top-level 요약: 두 action 중 더 많이 쓴 쪽 기준
+    used:      isPremium ? 0 : analyzeResult.used + removeBgResult.used,
+    limit:     isPremium ? null : analyzeResult.limit + removeBgResult.limit,
+    remaining: isPremium ? null : analyzeRemaining + removeBgRemaining,
+    // action별 상세
+    analyze: {
+      used:      isPremium ? 0 : analyzeResult.used,
+      limit:     isPremium ? null : analyzeResult.limit,
+      remaining: analyzeRemaining,
+    },
+    removeBg: {
+      used:      isPremium ? 0 : removeBgResult.used,
+      limit:     isPremium ? null : removeBgResult.limit,
+      remaining: removeBgRemaining,
+    },
   });
 });
 
@@ -176,7 +194,7 @@ app.get("/api/health", (_req, res) => {
   res.json({
     ok:              true,
     openai:          !!process.env.OPENAI_API_KEY,
-    removeBg:        !!process.env.REMOVE_BG_API_KEY,
+    photoroom:       !!process.env.PHOTOROOM_API_KEY,
     rateLimitActive: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
   });
 });
@@ -185,7 +203,7 @@ app.get("/api/health", (_req, res) => {
 
 app.listen(port, () => {
   console.log(`[server] listening on http://localhost:${port}`);
-  if (!process.env.OPENAI_API_KEY)          console.warn("[server] ⚠️  OPENAI_API_KEY not set");
-  if (!process.env.REMOVE_BG_API_KEY)       console.warn("[server] ⚠️  REMOVE_BG_API_KEY not set");
+  if (!process.env.OPENAI_API_KEY)            console.warn("[server] ⚠️  OPENAI_API_KEY not set");
+  if (!process.env.PHOTOROOM_API_KEY)         console.warn("[server] ⚠️  PHOTOROOM_API_KEY not set");
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) console.warn("[server] ⚠️  SUPABASE_SERVICE_ROLE_KEY not set — rate limiting disabled");
 });

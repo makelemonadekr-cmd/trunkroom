@@ -4,8 +4,10 @@
  * AI API 월간 사용 횟수 제한 + 로그 기록.
  * service role key로 RLS를 우회해 서버에서 직접 INSERT합니다.
  *
- * Free tier : 월 5회 (analyze + removeBg 합산)
- * Premium   : 무제한
+ * Free tier :
+ *   - remove_background : 월 1회
+ *   - analyze_clothing  : 월 10회
+ * Premium   : 무제한 (Infinity)
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -18,8 +20,17 @@ function getAdminClient() {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
-// 무료 월간 한도 (action별 구분 없이 통합 5회)
-const FREE_MONTHLY_LIMIT = 5;
+// 무료 월간 한도 (action별 구분)
+const FREE_LIMITS = {
+  remove_background: 1,
+  analyze_clothing:  10,
+};
+
+// 프리미엄 월간 한도
+const PREMIUM_LIMITS = {
+  remove_background: 20,
+  analyze_clothing:  Infinity,
+};
 
 // ── Premium check ─────────────────────────────────────────────────────────────
 
@@ -60,41 +71,44 @@ export async function isUserPremium(userId) {
  * @returns {Promise<{ used: number, limit: number, allowed: boolean, isPremium: boolean }>}
  */
 export async function checkLimit(userId, action) {
-  // 프리미엄 유저는 제한 없음
+  // 프리미엄 유저 — action별 프리미엄 한도 반환
   const premium = await isUserPremium(userId);
+  const premLimit = PREMIUM_LIMITS[action] ?? Infinity;
   if (premium) {
-    return { used: 0, limit: Infinity, allowed: true, isPremium: true };
+    return { used: 0, limit: premLimit, allowed: true, isPremium: true };
   }
+
+  const freeLimit = FREE_LIMITS[action] ?? 0;
 
   const admin = getAdminClient();
   if (!admin) {
     console.warn("[rateLimit] SUPABASE_SERVICE_ROLE_KEY not set — rate limiting disabled");
-    return { used: 0, limit: FREE_MONTHLY_LIMIT, allowed: true, isPremium: false };
+    return { used: 0, limit: freeLimit, allowed: true, isPremium: false };
   }
 
   // 이번 달 1일 00:00:00 UTC
   const now = new Date();
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
-  // 두 action 모두 합산 (통합 월 5회)
+  // 해당 action만 카운트
   const { count, error } = await admin
     .from("ai_usage_logs")
     .select("*", { count: "exact", head: true })
     .eq("user_id", userId)
-    .in("action", ["analyze_clothing", "remove_background"])
+    .eq("action", action)
     .eq("billed", true)
     .gte("created_at", monthStart.toISOString());
 
   if (error) {
     console.warn("[rateLimit] count query failed:", error.message);
-    return { used: 0, limit: FREE_MONTHLY_LIMIT, allowed: true, isPremium: false };
+    return { used: 0, limit: freeLimit, allowed: true, isPremium: false };
   }
 
   const used = count ?? 0;
   return {
     used,
-    limit: FREE_MONTHLY_LIMIT,
-    allowed: used < FREE_MONTHLY_LIMIT,
+    limit: freeLimit,
+    allowed: used < freeLimit,
     isPremium: false,
   };
 }

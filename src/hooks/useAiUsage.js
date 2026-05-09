@@ -8,24 +8,26 @@
  *   const { isPremium, used, limit, remaining, loading, refresh } = useAiUsage(accessToken)
  *
  * 프리미엄 유저: isPremium = true, remaining = null (무제한)
- * 무료 유저:    isPremium = false, remaining = 0~5
+ * 무료 유저:    isPremium = false, analyze.remaining = 0~10, removeBg.remaining = 0~1
  */
 
 import { useState, useEffect, useCallback } from "react";
 
-const FREE_LIMIT = 5;
-const DEFAULT_USAGE = { used: 0, limit: FREE_LIMIT, remaining: FREE_LIMIT };
+const FREE_ANALYZE_LIMIT  = 10;
+const FREE_REMOVE_LIMIT   = 1;
+const DEFAULT_ANALYZE = { used: 0, limit: FREE_ANALYZE_LIMIT, remaining: FREE_ANALYZE_LIMIT };
+const DEFAULT_REMOVE  = { used: 0, limit: FREE_REMOVE_LIMIT,  remaining: FREE_REMOVE_LIMIT  };
 
 export function useAiUsage(accessToken) {
   const [isPremium, setIsPremium] = useState(false);
   const [used,      setUsed]      = useState(0);
-  const [limit,     setLimit]     = useState(FREE_LIMIT);
-  const [remaining, setRemaining] = useState(FREE_LIMIT);
+  const [limit,     setLimit]     = useState(FREE_ANALYZE_LIMIT + FREE_REMOVE_LIMIT);
+  const [remaining, setRemaining] = useState(FREE_ANALYZE_LIMIT + FREE_REMOVE_LIMIT);
   const [loading,   setLoading]   = useState(false);
 
-  // Legacy shape — kept for existing callers (AddClosetItemScreen uses analyze/removeBg)
-  const [analyze,  setAnalyze]  = useState(DEFAULT_USAGE);
-  const [removeBg, setRemoveBg] = useState(DEFAULT_USAGE);
+  // Per-action shapes — used by AddClosetItemScreen
+  const [analyze,  setAnalyze]  = useState(DEFAULT_ANALYZE);
+  const [removeBg, setRemoveBg] = useState(DEFAULT_REMOVE);
 
   const fetch_ = useCallback(async () => {
     if (!accessToken) return;
@@ -41,8 +43,8 @@ export function useAiUsage(accessToken) {
       const prem = data.isPremium ?? false;
       setIsPremium(prem);
       setUsed(data.used ?? 0);
-      setLimit(data.limit ?? FREE_LIMIT);
-      setRemaining(data.remaining ?? (prem ? null : FREE_LIMIT));
+      setLimit(data.limit ?? FREE_ANALYZE_LIMIT + FREE_REMOVE_LIMIT);
+      setRemaining(data.remaining ?? (prem ? null : FREE_ANALYZE_LIMIT + FREE_REMOVE_LIMIT));
 
       // Legacy per-action shapes
       if (data.analyze)  setAnalyze(data.analyze);

@@ -19,8 +19,8 @@ const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 // ── Feature list ──────────────────────────────────────────────────────────────
 
 const FEATURES = [
-  { icon: "🔄", text: "AI 배경 제거 무제한" },
-  { icon: "🧠", text: "AI 카테고리 자동 분석 무제한" },
+  { icon: "🔄", text: "AI 배경 제거 월 20회 (무료는 월 1회)" },
+  { icon: "🧠", text: "AI 분석 무제한 (무료는 월 10회)" },
   { icon: "⚡", text: "빠른 처리 우선 순위" },
   { icon: "🌟", text: "프리미엄 전용 기능 우선 제공" },
 ];
@@ -150,7 +150,8 @@ export default function UpgradeSheet({ open, onClose }) {
           >
             <span style={{ fontSize: 20 }}>⚠️</span>
             <p className="text-[13px] leading-snug" style={{ color: "#7A6100", fontFamily: FONT }}>
-              무료 AI 사용 횟수(월 <strong>5회</strong>)를 모두 사용했어요.
+              이번 달 무료 AI 사용 횟수를 모두 사용했어요.<br />
+              <strong>배경 제거 월 1회 · AI 분석 월 10회</strong>
             </p>
           </div>
 
@@ -173,15 +174,15 @@ export default function UpgradeSheet({ open, onClose }) {
             <PlanCard
               highlight
               title="연간 플랜"
-              price="₩34,900 / 년"
-              sub="월 ₩2,908 — 3달 무료 혜택"
+              price="₩54,900 / 년"
+              sub="월 ₩4,575 — 3달 무료 혜택"
               badge="가장 인기 🔥"
               onSelect={() => handleSubscribe("annual")}
             />
             {/* Monthly */}
             <PlanCard
               title="월간 플랜"
-              price="₩3,900 / 월"
+              price="₩5,900 / 월"
               sub="매월 자동 갱신"
               onSelect={() => handleSubscribe("monthly")}
             />

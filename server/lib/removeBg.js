@@ -1,20 +1,21 @@
 /**
  * removeBg.js
  *
- * Wrapper for the Photoroom Segment API.
+ * Wrapper for the remove.bg API.
  * Called only from the server — never from the browser.
  *
- * To swap providers later:
- *   1. Replace the `removeBg` function body.
+ * To swap providers later (e.g. Photoroom):
+ *   1. Replace the function body.
  *   2. Keep the same return shape: { bgRemoved, processedBase64, processedMimeType, error }.
+ *   3. Update env var: REMOVE_BG_API_KEY → PHOTOROOM_API_KEY
  *
- * Env var required: PHOTOROOM_API_KEY
+ * Env var required: REMOVE_BG_API_KEY
  */
 
-const PHOTOROOM_ENDPOINT = "https://sdk.photoroom.com/v1/segment";
+const REMOVE_BG_ENDPOINT = "https://api.remove.bg/v1.0/removebg";
 
 /**
- * Remove the background from an image buffer using Photoroom Segment API.
+ * Remove the background from an image buffer.
  *
  * @param {Buffer} imageBuffer — raw image bytes
  * @param {string} mimeType   — e.g. "image/jpeg" or "image/png"
@@ -26,15 +27,15 @@ const PHOTOROOM_ENDPOINT = "https://sdk.photoroom.com/v1/segment";
  * }>}
  */
 export async function removeBg(imageBuffer, mimeType = "image/jpeg") {
-  const apiKey = process.env.PHOTOROOM_API_KEY;
+  const apiKey = process.env.REMOVE_BG_API_KEY;
 
   if (!apiKey) {
-    console.warn("[removeBg] PHOTOROOM_API_KEY is not set — skipping background removal.");
+    console.warn("[removeBg] REMOVE_BG_API_KEY is not set — skipping background removal.");
     return {
       bgRemoved: false,
       processedBase64: null,
       processedMimeType: "image/png",
-      error: "PHOTOROOM_API_KEY not configured",
+      error: "REMOVE_BG_API_KEY not configured",
     };
   }
 
@@ -43,24 +44,26 @@ export async function removeBg(imageBuffer, mimeType = "image/jpeg") {
     const blob = new Blob([imageBuffer], { type: mimeType });
     const form = new FormData();
     form.append("image_file", blob, "image.jpg");
+    form.append("size", "auto");
+    form.append("format", "png");
+    form.append("bg_color", ""); // transparent
 
-    const res = await fetch(PHOTOROOM_ENDPOINT, {
+    const res = await fetch(REMOVE_BG_ENDPOINT, {
       method: "POST",
-      headers: { "x-api-key": apiKey },
+      headers: { "X-Api-Key": apiKey },
       body: form,
     });
 
     if (!res.ok) {
-      // Photoroom returns JSON on error
-      let errMsg = `Photoroom HTTP ${res.status}`;
+      // remove.bg returns JSON on error
+      let errMsg = `remove.bg HTTP ${res.status}`;
       try {
         const errBody = await res.json();
-        errMsg = errBody.message ?? errBody.error ?? errMsg;
+        errMsg = errBody.errors?.[0]?.title ?? errMsg;
       } catch { /* ignore */ }
       throw new Error(errMsg);
     }
 
-    // Photoroom returns PNG binary directly
     const resultBuffer = Buffer.from(await res.arrayBuffer());
     return {
       bgRemoved: true,

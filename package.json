@@ -12,6 +12,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/cli": "^8.3.3",
+    "@capacitor/core": "^8.3.3",
+    "@capacitor/ios": "^8.3.3",
     "@supabase/supabase-js": "^2.104.1",
     "@tailwindcss/vite": "^4.2.3",
     "dotenv": "^16.4.5",
@@ -26,6 +29,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^9.1.0",
     "tailwindcss": "^4.2.3",
+    "typescript": "^6.0.3",
     "vite": "^6.0.5"
   }
 }

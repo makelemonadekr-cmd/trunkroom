@@ -194,7 +194,7 @@ app.get("/api/health", (_req, res) => {
   res.json({
     ok:              true,
     openai:          !!process.env.OPENAI_API_KEY,
-    removeBg:        !!process.env.REMOVE_BG_API_KEY,
+    photoroom:       !!process.env.PHOTOROOM_API_KEY,
     rateLimitActive: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
   });
 });
@@ -204,6 +204,6 @@ app.get("/api/health", (_req, res) => {
 app.listen(port, () => {
   console.log(`[server] listening on http://localhost:${port}`);
   if (!process.env.OPENAI_API_KEY)            console.warn("[server] ⚠️  OPENAI_API_KEY not set");
-  if (!process.env.REMOVE_BG_API_KEY)         console.warn("[server] ⚠️  REMOVE_BG_API_KEY not set");
+  if (!process.env.PHOTOROOM_API_KEY)         console.warn("[server] ⚠️  PHOTOROOM_API_KEY not set");
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) console.warn("[server] ⚠️  SUPABASE_SERVICE_ROLE_KEY not set — rate limiting disabled");
 });

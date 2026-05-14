@@ -829,7 +829,7 @@ function DayRecordSheet({ dateStr, record, closetItems = [], onSave, onDelete, o
  *   onNewStyle   () => void open new style creation
  *   onEditStyle  (s) => void open existing style in edit mode
  */
-function TodayCard({ todayStyles = [], onNewStyle, onEditStyle }) {
+function TodayCard({ todayStyles = [], closetItems = [], onNewStyle, onEditStyle }) {
   const hasStyle   = todayStyles.length > 0;
   const latestStyle = todayStyles[0] ?? null; // newest first (sorted by created_at desc)
 
@@ -914,7 +914,7 @@ function TodayCard({ todayStyles = [], onNewStyle, onEditStyle }) {
 
 // ─── CalendarSection (weekly / monthly) ──────────────────────────────────────
 
-function CalendarSection({ history, onDayTap }) {
+function CalendarSection({ history, closetItems = [], onDayTap }) {
   const [mode,  setMode]  = useState("weekly"); // "weekly" | "monthly"
   const today   = new Date();
   const [year,  setYear]  = useState(today.getFullYear());
@@ -1438,7 +1438,7 @@ function StreakBanner({ stats, onTap }) {
 // ─── My Stylebooks Screen ─────────────────────────────────────────────────────
 // Full-screen overlay: shows all saved stylebooks. Launched from Record page.
 
-function MyStylebooksScreen({ onBack, onItemTap, onMakeStyle, onEditStyle }) {
+function MyStylebooksScreen({ onBack, closetItems = [], onItemTap, onMakeStyle, onEditStyle }) {
   const { user: styleUser }                              = useAuth();
   const { styles: coordiList, removeStyle, refresh }     = useStyles(styleUser?.id);
   const [detailOpen,    setDetailOpen]    = useState(null);  // coordi object
@@ -1583,7 +1583,7 @@ function MyStylebooksScreen({ onBack, onItemTap, onMakeStyle, onEditStyle }) {
 
 // ─── Recent Records ───────────────────────────────────────────────────────────
 
-function RecentRecordsSection({ records, onTap }) {
+function RecentRecordsSection({ records, closetItems = [], onTap }) {
   if (records.length === 0) return null;
 
   // Per-record, pick the first item whose image hasn't been used by a previous record.
@@ -1651,7 +1651,7 @@ function RecentRecordsSection({ records, onTap }) {
 
 // ─── Most Worn ────────────────────────────────────────────────────────────────
 
-function MostWornSection({ onItemTap, history = {} }) {
+function MostWornSection({ onItemTap, closetItems = [], history = {} }) {
   const sorted = useMemo(() => {
     const freq = getItemWearFrequency(history);
     return dedupeByImage(
@@ -1686,7 +1686,7 @@ function MostWornSection({ onItemTap, history = {} }) {
 
 // ─── Laundry Section ─────────────────────────────────────────────────────────
 
-function LaundrySection({ onItemTap }) {
+function LaundrySection({ onItemTap, closetItems = [] }) {
   const [washConfirm, setWashConfirm] = useState(null);
   const [refreshKey,  setRefreshKey]  = useState(0);
 
@@ -1763,7 +1763,7 @@ function LaundrySection({ onItemTap }) {
 
 // ─── Not Worn ─────────────────────────────────────────────────────────────────
 
-function NotWornSection({ onItemTap, history = {} }) {
+function NotWornSection({ onItemTap, closetItems = [], history = {} }) {
   const sorted = useMemo(() => {
     const lastWorn  = getItemLastWornDates(history);
     const today     = localDateStr(new Date());
@@ -2180,6 +2180,7 @@ export default function RecordPage({
         {/* 1. 오늘의 스타일 현황 — Supabase styles 기반 (wear_log 아님) */}
         <TodayCard
           todayStyles={(allStylesList ?? []).filter((s) => s.dateStr === TODAY)}
+          closetItems={closetItems}
           onNewStyle={() => setStyleFlowDate(TODAY)}
           onEditStyle={(style) => setEditStyleData(style)}
         />
@@ -2192,7 +2193,7 @@ export default function RecordPage({
         />
 
         {/* 3. 스타일 캘린더 */}
-        <CalendarSection history={history} onDayTap={openDayRecord} />
+        <CalendarSection history={history} closetItems={closetItems} onDayTap={openDayRecord} />
 
         {/* 4. 연속 기록 streak banner */}
         <StreakBanner stats={stats} onTap={() => setShowStreak(true)} />
@@ -2293,6 +2294,7 @@ export default function RecordPage({
       {stylebooksOpen && (
         <MyStylebooksScreen
           onBack={() => setStylebooksOpen(false)}
+          closetItems={closetItems}
           onItemTap={onItemSelect}
           onMakeStyle={(item) => {
             setStylebooksOpen(false);

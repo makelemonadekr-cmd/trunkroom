@@ -247,7 +247,7 @@ function PublicItemsTab({ onItemTap, onSellerTap, saleFilterActive, onSaleFilter
             const isAct = itemView === id;
             const followingCount = (() => {
               const base = saleFilterActive ? getAllForSaleItems() : getAllPublicItems();
-              return base.filter((i) => followedSellerIds.includes(i.sellerId)).length;
+              return base.filter((i) => followedIds.has(String(i.sellerId))).length;
             })();
             const showBadge = id === "following" && followingCount > 0;
             return (

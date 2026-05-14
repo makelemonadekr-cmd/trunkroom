@@ -29,7 +29,7 @@ import {
   getSellerOutfits,
   toProductShape,
 } from "../../constants/mockSellerData";
-import { usePublicStyles, usePublicItems, usePublicSellers } from "../../hooks/useDiscovery.js";
+import { usePublicStyles, usePublicItems, usePublicSellers, useSellerContent } from "../../hooks/useDiscovery.js";
 import { STYLE_FILTER_OPTIONS } from "../../constants/styleCategories";
 import { SEASON_FILTER_OPTIONS } from "../../constants/seasonFilters";
 
@@ -729,8 +729,11 @@ function SellerCard({ seller, onTap, onOutfitPreviewTap, onItemPreviewTap }) {
   const following                     = isFollowing(seller.id);
   const [localFollowers, setLocalFollowers] = useState(seller.followers);
 
-  const sellerItems   = useMemo(() => getSellerItems(seller.id),   [seller.id]);
-  const sellerOutfits = useMemo(() => getSellerOutfits(seller.id), [seller.id]);
+  // Real sellers → Supabase fetch; mock sellers → empty (stubs deprecated).
+  const isRealSeller = seller.source === "real";
+  const { items: realItems, styles: realStyles } = useSellerContent(isRealSeller ? seller.id : null);
+  const sellerItems   = isRealSeller ? realItems  : getSellerItems(seller.id);
+  const sellerOutfits = isRealSeller ? realStyles : getSellerOutfits(seller.id);
 
   // Most-liked outfit (sort descending by likes)
   const topOutfit = useMemo(

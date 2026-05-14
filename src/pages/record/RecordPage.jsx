@@ -2161,22 +2161,7 @@ export default function RecordPage({
         className="flex items-center justify-between px-5 shrink-0"
         style={{ height: 50, borderBottom: `1px solid ${DIVIDER}` }}
       >
-        {onOpenCalendar ? (
-          <button
-            onClick={onOpenCalendar}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold active:opacity-70"
-            style={{ backgroundColor: "#F2F2F2", color: "#555", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <rect x="1" y="2" width="12" height="11" rx="2" stroke="currentColor" strokeWidth="1.3" />
-              <path d="M1 6h12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-              <path d="M4 1v2M10 1v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-            </svg>
-            전체 캘린더
-          </button>
-        ) : (
-          <div style={{ width: 34 }} />
-        )}
+        <div style={{ width: 34 }} />
         <h1 className="text-[17px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>기록</h1>
         <button
           onClick={() => setStyleFlowDate(TODAY)}

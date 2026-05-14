@@ -87,7 +87,7 @@ function dedupeByImage(items) {
 // Arranges selected item thumbnails into a mood-board grid.
 // This is the "generated" coordi image — a practical composed view.
 
-function StyleBoardView({ itemIds, size = 240 }) {
+function StyleBoardView({ itemIds, closetItems = [], size = 240 }) {
   const items = itemIds
     .map((id) => closetItems.find((i) => i.id === id))
     .filter(Boolean)
@@ -151,6 +151,7 @@ function StyleBoardView({ itemIds, size = 240 }) {
 function StylebookCreatorSheet({
   itemIds:      itemIdsProp,
   initialItems: initialItemsProp = [],   // pre-resolved item objects (bypasses closetItems lookup)
+  closetItems = [],
   dateStr,
   photoUrl:     initPhotoUrl = null,
   editStyle     = null,   // when set → edit-mode: pre-populate fields, save via updateStyle
@@ -594,7 +595,7 @@ function StylebookCreatorSheet({
 
 // ─── DayRecordSheet ───────────────────────────────────────────────────────────
 
-function DayRecordSheet({ dateStr, record, onSave, onDelete, onClose }) {
+function DayRecordSheet({ dateStr, record, closetItems = [], onSave, onDelete, onClose }) {
   const [selectedIds, setSelectedIds]   = useState(record?.itemIds ?? []);
   const [note,        setNote]          = useState(record?.note    ?? "");
   const [photoUrl,    setPhotoUrl]      = useState(record?.photoUrl ?? null);
@@ -631,6 +632,7 @@ function DayRecordSheet({ dateStr, record, onSave, onDelete, onClose }) {
       <StylebookCreatorSheet
         itemIds={selectedIds}
         dateStr={dateStr}
+        closetItems={closetItems}
         onSave={() => {
           setShowStylebook(false);
           onClose();
@@ -1814,7 +1816,7 @@ function NotWornSection({ onItemTap, history = {} }) {
 // A. ❄️  오래 안 입은 옷 N개 발견! 팔아서 돈을 버는 것은 어때요?
 // B. 🧺  세탁 타임! N개 아이템이 세탁 타임. 완료 표시로 착용 횟수를 리셋하세요
 
-function StyleTips({ onTipAction, history = {} }) {
+function StyleTips({ onTipAction, history = {}, closetItems = [] }) {
   const [open, setOpen] = useState(false);
 
   const { longUnwornItems, laundryCount, laundryItems, topItems, wornCount } = useMemo(() => {
@@ -2210,7 +2212,7 @@ export default function RecordPage({
         <StreakBanner stats={stats} onTap={() => setShowStreak(true)} />
 
         {/* 5. 내 스타일 관리 팁 (토글) */}
-        <StyleTips history={history} onTipAction={(data) => setFullList(data)} />
+        <StyleTips history={history} closetItems={closetItems} onTipAction={(data) => setFullList(data)} />
 
         <div style={{ height: 24 }} />
       </div>
@@ -2242,6 +2244,7 @@ export default function RecordPage({
           itemIds={stylebookData.itemIds}
           dateStr={stylebookData.dateStr}
           photoUrl={stylebookData.photoUrl}
+          closetItems={closetItems}
           onSave={() => {
             setStylebookData(null);
             setStyleFlowDate(null);
@@ -2257,6 +2260,7 @@ export default function RecordPage({
         <DayRecordSheet
           dateStr={selectedDate}
           record={selectedRecord}
+          closetItems={closetItems}
           onSave={handleSave}
           onDelete={handleDelete}
           onClose={() => setSelected(null)}
@@ -2274,6 +2278,7 @@ export default function RecordPage({
         <StylebookCreatorSheet
           initialItems={[makeStyleItem]}
           dateStr={TODAY}
+          closetItems={closetItems}
           onSave={() => {
             setMakeStyleItem(null);
             refreshStyles();
@@ -2289,6 +2294,7 @@ export default function RecordPage({
           itemIds={editStyleData.itemIds ?? []}
           dateStr={editStyleData.dateStr ?? TODAY}
           editStyle={editStyleData}
+          closetItems={closetItems}
           onSave={() => {
             setEditStyleData(null);
             refreshStyles();

@@ -33,7 +33,7 @@ export function useAiUsage(accessToken) {
     if (!accessToken) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/ai-usage", {
+      const res = await fetch(`${import.meta.env.VITE_AI_BASE_URL ?? ""}/api/ai-usage`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (!res.ok) return;

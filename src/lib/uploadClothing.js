@@ -2,9 +2,12 @@
  * uploadClothing.js
  *
  * Client-side helpers for the clothing upload pipeline.
- * All calls hit the Express API server via Vite's /api proxy.
- * Secret keys never leave the server.
+ * On web (Netlify) /api is proxied to the API server.
+ * On Capacitor iOS the WebView runs at capacitor://localhost so we MUST
+ * prefix with the absolute API base URL.
  */
+
+const API_BASE = import.meta.env.VITE_AI_BASE_URL ?? "";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -42,7 +45,7 @@ export async function uploadForBgRemoval(file, accessToken = null) {
   form.append("image", file);
 
   const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
-  const res = await fetch("/api/remove-background", {
+  const res = await fetch(`${API_BASE}/api/remove-background`, {
     method: "POST",
     headers,
     body: form,
@@ -69,7 +72,7 @@ export async function uploadForBgRemoval(file, accessToken = null) {
  * @returns {Promise<ClothingAnalysis>}
  */
 export async function analyzeClothingImage(imageBase64, mimeType = "image/jpeg", accessToken = null) {
-  const res = await fetch("/api/analyze-clothing", {
+  const res = await fetch(`${API_BASE}/api/analyze-clothing`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

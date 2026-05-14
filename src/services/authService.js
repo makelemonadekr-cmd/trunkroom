@@ -111,12 +111,21 @@ export async function signInWithApple() {
     // @capacitor/core not installed — use OAuth
   }
 
-  // Browser / fallback path
+  // Browser / fallback path — never use capacitor://localhost as redirect.
+  // If running inside Capacitor WebView, the OAuth flow will fail anyway
+  // because the redirect target can't deep-link back into the app
+  // (the native @capacitor-community/apple-sign-in plugin handles that case).
+  const origin = (typeof window !== "undefined" && window.location.origin) || "";
+  const isCapacitor = origin.startsWith("capacitor://") || origin.startsWith("ionic://");
+  if (isCapacitor) {
+    return {
+      data: null,
+      error: new Error("Apple 로그인은 현재 버전에서 지원되지 않아요. 이메일 로그인을 이용해주세요."),
+    };
+  }
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "apple",
-    options: {
-      redirectTo: typeof window !== "undefined" ? `${window.location.origin}/` : undefined,
-    },
+    options: { redirectTo: `${origin}/` },
   });
   return { data, error };
 }
@@ -213,9 +222,13 @@ export async function getCurrentUser() {
  * @returns {Promise<{ data, error }>}
  */
 export async function resetPassword(email) {
-  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
-  });
+  // Never use capacitor://localhost — Mail clients can't open it.
+  // Send users to the web app's recovery handler instead.
+  const origin = (typeof window !== "undefined" && window.location.origin) || "";
+  const redirectTo = origin.startsWith("capacitor://") || !origin
+    ? "https://trunkroom.netlify.app"
+    : origin;
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
   return { data, error };
 }
 

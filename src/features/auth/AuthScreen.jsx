@@ -225,6 +225,12 @@ function LoginView({ onGoSignUp, onGoForgot, onClose }) {
           ) : "로그인"}
         </button>
 
+        {/* Apple Sign-In — hidden on Capacitor iOS until native plugin is wired up.
+            Email/password auth covers App Store policy since we don't offer
+            other third-party social logins (Guideline 4.8 not triggered). */}
+        {(typeof window === "undefined" ||
+          !window.location.origin.startsWith("capacitor://")) && (
+        <>
         {/* Divider */}
         <div className="flex items-center gap-3 my-1">
           <div className="flex-1 h-px" style={{ backgroundColor: "#EEEEEE" }} />
@@ -258,6 +264,8 @@ function LoginView({ onGoSignUp, onGoForgot, onClose }) {
             </>
           )}
         </button>
+        </>
+        )}
 
         {/* Sign up link */}
         <button

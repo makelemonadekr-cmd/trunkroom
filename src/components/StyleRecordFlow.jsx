@@ -48,7 +48,7 @@ const MATCH_CATEGORIES = [
   { id: "스포츠",   emoji: "🎽", label: "스포츠"   },
 ];
 
-function simulateAnalysis() {
+function simulateAnalysis(closetItems = []) {
   return MATCH_CATEGORIES.map((cat) => {
     const pool = closetItems.filter((i) => i.mainCategory === cat.id);
     if (pool.length === 0) return null;
@@ -317,7 +317,7 @@ function AnalyzingStep({ photoUrl, onDone }) {
 
 // ─── STEP 3: Item matching ─────────────────────────────────────────────────────
 
-function CategoryPickerSheet({ categoryId, onSelect, onClose }) {
+function CategoryPickerSheet({ categoryId, closetItems = [], onSelect, onClose }) {
   const [query, setQuery] = useState("");
   const items = useMemo(() => {
     const pool = closetItems.filter((i) => i.mainCategory === categoryId);
@@ -399,7 +399,7 @@ function CategoryPickerSheet({ categoryId, onSelect, onClose }) {
   );
 }
 
-function MatchingStep({ photoUrl, matchResults, onUpdate, onNext, onClose }) {
+function MatchingStep({ photoUrl, matchResults, closetItems = [], onUpdate, onNext, onClose }) {
   const [pickerFor, setPickerFor] = useState(null); // categoryId | null
 
   const confirmedCount = matchResults.filter((r) => r.status === "confirmed").length;
@@ -657,6 +657,7 @@ function MatchingStep({ photoUrl, matchResults, onUpdate, onNext, onClose }) {
       {pickerFor && (
         <CategoryPickerSheet
           categoryId={pickerFor}
+          closetItems={closetItems}
           onSelect={(item) => {
             const idx = matchResults.findIndex((r) => r.categoryId === pickerFor);
             if (idx !== -1) swapItem(idx, item);
@@ -670,7 +671,7 @@ function MatchingStep({ photoUrl, matchResults, onUpdate, onNext, onClose }) {
 
 // ─── All-items picker sheet ───────────────────────────────────────────────────
 
-function AllItemsPickerSheet({ existingIds, onAdd, onClose }) {
+function AllItemsPickerSheet({ existingIds, closetItems = [], onAdd, onClose }) {
   const [query, setQuery] = useState("");
   const items = useMemo(() => {
     const base = closetItems.filter((i) => !existingIds.includes(i.id));
@@ -1037,7 +1038,7 @@ function ItemsGrid({ items }) {
   );
 }
 
-function DraftStep({ photoUrl: initPhotoUrl, confirmedItems, dateStr: initDateStr, weather, onSave, onClose, isSaving = false }) {
+function DraftStep({ photoUrl: initPhotoUrl, confirmedItems, dateStr: initDateStr, weather, closetItems = [], onSave, onClose, isSaving = false }) {
   const [subStep,      setSubStep]      = useState("layout");
   const [selectedDate, setSelectedDate] = useState(initDateStr);
   const [editPhoto,    setEditPhoto]    = useState(initPhotoUrl);
@@ -1242,6 +1243,7 @@ function DraftStep({ photoUrl: initPhotoUrl, confirmedItems, dateStr: initDateSt
         {showItemPicker && (
           <AllItemsPickerSheet
             existingIds={editItems.map((i) => i.id)}
+            closetItems={closetItems}
             onAdd={(item) => {
               setEditItems((prev) => {
                 if (prev.length >= 6) return prev;
@@ -1521,7 +1523,7 @@ export default function StyleRecordFlow({
 
   function handlePhotoChosen(dataUrl) {
     setPhotoUrl(dataUrl);
-    const results = simulateAnalysis();
+    const results = simulateAnalysis(closetItems);
     setMatchResults(results);
     setStep("analyzing");
   }
@@ -1581,6 +1583,7 @@ export default function StyleRecordFlow({
         <MatchingStep
           photoUrl={photoUrl}
           matchResults={matchResults}
+          closetItems={closetItems}
           onUpdate={updateMatchResult}
           onNext={handleMatchingNext}
           onClose={onClose}
@@ -1593,6 +1596,7 @@ export default function StyleRecordFlow({
           confirmedItems={confirmedItems}
           dateStr={dateStr}
           weather={weather}
+          closetItems={closetItems}
           onSave={handleDraftSave}
           onClose={initialStep === "draft" ? onClose : () => setStep("matching")}
           isSaving={isSaving}

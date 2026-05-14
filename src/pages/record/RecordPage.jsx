@@ -2032,10 +2032,11 @@ export default function RecordPage({
   }, [autoOpenFlow]);
 
   // When "이 아이템으로 스타일 만들기" fires from ClosetItemDetailScreen.
-  // Open StylebookCreatorSheet directly with the item pre-selected.
+  // Open StyleRecordFlow (draft step) with the item pre-selected — same as 오늘의 코디 만들기.
   useEffect(() => {
     if (prefilledItem) {
-      setMakeStyleItem(prefilledItem);
+      prefilledItemRef.current = prefilledItem;
+      setStyleFlowDate(TODAY);
       onPrefilledHandled?.();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

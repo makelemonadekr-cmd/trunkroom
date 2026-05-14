@@ -130,8 +130,7 @@ function TodayRecordCard({ onRecordToday, todayRecord: todayRecordProp, closetIt
   const hasRecord   = todayStyles.length > 0 || !!todayRecord;
   const FONT = "'Spoqa Han Sans Neo', sans-serif";
 
-  // Closet lookup: use real items from Supabase if available, else mock
-  const allItems = (closetItemsProp && closetItemsProp.length > 0) ? closetItemsProp : closetItems;
+  const allItems = closetItemsProp ?? [];
 
   // Wear-log items fallback (when no style exists)
   const wearLogIds = todayRecord?.itemIds ?? [];

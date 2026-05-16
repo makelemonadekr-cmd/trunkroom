@@ -47,8 +47,17 @@ async function main() {
   const userId = auth.user.id;
   console.log(`✓ Logged in. user_id = ${userId}`);
 
-  // 2. Clear any previously seeded items for clean re-runs
-  console.log("🧹 Clearing existing closet items for this user…");
+  // 2. Clear any previously seeded data for clean re-runs.
+  // Order matters: wear_logs first (references items), then styles (cascades style_items),
+  // then clothing_items last.
+  console.log("🧹 Clearing existing wear_logs / styles / closet items…");
+  await supabase.from("wear_logs").delete().eq("user_id", userId);
+  // Get existing style ids so we can blow away orphaned style_items first
+  const { data: existing } = await supabase.from("styles").select("id").eq("user_id", userId);
+  if (existing?.length) {
+    await supabase.from("style_items").delete().in("style_id", existing.map((s) => s.id));
+  }
+  await supabase.from("styles").delete().eq("user_id", userId);
   const { error: delErr } = await supabase.from("clothing_items").delete().eq("user_id", userId);
   if (delErr) console.warn("  (delete warn — ok if first run):", delErr.message);
 
@@ -108,10 +117,16 @@ async function main() {
       .single();
     if (sErr) { console.warn("  style insert err:", sErr.message); continue; }
 
-    const itemRows = s.picks.map((id) => ({
-      style_id:           style.id,
-      clothing_item_id:   id,
-    }));
+    const itemRows = s.picks.map((id, idx) => {
+      const it = insertedItems.find((x) => x.id === id);
+      return {
+        style_id:         style.id,
+        clothing_item_id: id,
+        item_image_url:   it?.image_url ?? null,
+        item_name:        it?.name      ?? null,
+        layer_order:      idx,
+      };
+    });
     const { error: siErr } = await supabase.from("style_items").insert(itemRows);
     if (siErr) console.warn("  style_items err:", siErr.message);
     else console.log(`  ✓ "${s.title}" (${s.picks.length} items)`);

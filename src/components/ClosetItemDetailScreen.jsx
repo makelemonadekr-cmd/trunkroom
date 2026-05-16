@@ -11,7 +11,7 @@
  *   • Bottom CTA: "이 아이템으로 스타일북 만들기"
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import OutfitDetailScreen from "./OutfitDetailScreen";
 import { MAIN_CATEGORIES } from "../constants/mockClosetData";
 import { showToast } from "../lib/toastUtils";

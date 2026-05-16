@@ -2325,7 +2325,22 @@ export default function RecordPage({
       )}
 
       {/* StylebookCreatorSheet — edit-mode (from TodayRecordCard or MyStylebooks edit button) */}
-      {editStyleData && (
+      {/* Edit existing style.
+          Canvas-saved styles open in OutfitCanvasEditor (same as creation flow).
+          Board/template styles open in StylebookCreatorSheet. */}
+      {editStyleData && (editStyleData.templateId === "canvas" || editStyleData.template_id === "canvas") && (
+        <OutfitCanvasEditor
+          initialItemIds={editStyleData.itemIds ?? []}
+          dateStr={editStyleData.dateStr ?? TODAY}
+          onClose={() => setEditStyleData(null)}
+          onSave={() => {
+            setEditStyleData(null);
+            refreshStyles();
+            onStyleSaved?.();
+          }}
+        />
+      )}
+      {editStyleData && editStyleData.templateId !== "canvas" && editStyleData.template_id !== "canvas" && (
         <StylebookCreatorSheet
           itemIds={editStyleData.itemIds ?? []}
           dateStr={editStyleData.dateStr ?? TODAY}

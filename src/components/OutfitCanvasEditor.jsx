@@ -201,24 +201,6 @@ function IcoBg() {
     </svg>
   );
 }
-function IcoDownload() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <path d="M11 4V14M7 10L11 14L15 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M4 16V18C4 18.6 4.4 19 5 19H17C17.6 19 18 18.6 18 18V16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-function IcoShare() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <circle cx="17" cy="5"  r="2.5" stroke="currentColor" strokeWidth="1.5" />
-      <circle cx="5"  cy="11" r="2.5" stroke="currentColor" strokeWidth="1.5" />
-      <circle cx="17" cy="17" r="2.5" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M7.5 10L14.5 6M7.5 12L14.5 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
 function IcoResize() {
   return (
     <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
@@ -411,15 +393,7 @@ export default function OutfitCanvasEditor({
     e.target.value = "";
   }
 
-  // ── Download ─────────────────────────────────────────────────────────────────
-  async function handleDownload() {
-    const dataUrl = await composeToDataUrl(items, bgColor);
-    const a       = document.createElement("a");
-    a.href        = dataUrl;
-    a.download    = `style-${Date.now()}.jpg`;
-    a.click();
-  }
-
+  // Download / share moved to StylebookDetailScreen (post-save, owner-only).
   // ── Save ──────────────────────────────────────────────────────────────────────
   async function handleConfirmSave() {
     setSaving(true);

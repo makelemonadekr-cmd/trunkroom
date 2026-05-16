@@ -116,7 +116,14 @@ export default function OutfitDetailScreen({ outfit, onBack, onItemTap, onMakeSt
   const [menuOpen,    setMenuOpen]    = useState(false);
   const [reportOpen,  setReportOpen]  = useState(false);
 
-  const ownerId = outfit?._profile?.id ?? outfit?.user_id ?? null;
+  // Public styles from useDiscovery emit `userId` + `seller`, not `_profile`/`user_id`.
+  // Mock outfits emit `seller.id`. Support every shape so block/report works.
+  const ownerId =
+    outfit?.seller?.id ??
+    outfit?.userId ??
+    outfit?.user_id ??
+    outfit?._profile?.id ??
+    null;
   const isOwn = ownerId && user?.id && ownerId === user.id;
 
   async function handleBlock() {

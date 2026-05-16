@@ -30,15 +30,22 @@ function normalizeStyleRow(dbStyle) {
                        .map((si) => si.clothing_item_id)
                        .filter(Boolean),
     // full item objects — image + name carried from style_items.item_image_url / item_name
-    // populated when saved via StylebookCreatorSheet (which writes imageUrl + name)
+    // plus the canvas layout (position/scale/rotation/layer_order) so reopening a saved
+    // style in OutfitCanvasEditor restores the exact arrangement.
     items:           (dbStyle.style_items ?? [])
                        .map((si) => ({
                          id:        si.clothing_item_id,
                          image:     si.item_image_url ?? null,
                          image_url: si.item_image_url ?? null,
                          name:      si.item_name      ?? null,
+                         x:         si.position_x ?? 0,
+                         y:         si.position_y ?? 0,
+                         scale:     si.scale      ?? 1,
+                         rotation:  si.rotation   ?? 0,
+                         layerOrder:si.layer_order?? 0,
                        }))
-                       .filter((it) => it.id),
+                       .filter((it) => it.id)
+                       .sort((a, b) => a.layerOrder - b.layerOrder),
     customMood:      dbStyle.custom_mood ?? null,   // personal # tags
     extractedColors: [],
     updatedAt:       dbStyle.updated_at,

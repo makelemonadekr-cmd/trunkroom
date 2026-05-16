@@ -65,6 +65,7 @@ function normalizePublicStyle(row) {
 // ── Normalise a `clothing_items` row → PublicItemCard / SellerItemCard shape ──
 function normalizePublicItem(row) {
   return {
+    ...row,
     id:           row.id,
     name:         row.name                        || "아이템",
     displayName:  (row.display_name ?? row.name)  || "아이템",
@@ -72,12 +73,20 @@ function normalizePublicItem(row) {
     color:        row.color                       ?? "",
     size:         row.size                        ?? "",
     mainCategory: row.main_category ?? row.category ?? "기타",
-    category:     row.main_category ?? "기타",
+    subCategory:  row.sub_category                ?? "",
+    category:     row.main_category               ?? "기타",
     season:       row.season                      ?? [],
+    styleTags:    row.style_tags                  ?? [],
     image:        row.image_url                   ?? null,
+    imageUrls:    row.image_urls                  ?? [],
+    condition:    row.condition                   ?? "",
+    notes:        row.notes                       ?? "",
+    sellStatus:   row.sell_status                 ?? "",
+    isPublic:     row.is_public                   ?? true,
     isForSale:    row.is_for_sale                 ?? false,
     price:        row.price                       ?? 0,
     sellerId:     row.user_id,
+    userId:       row.user_id,
     seller:       profileToSellerStub(row._profile ?? null),
     source:       "real",
   };

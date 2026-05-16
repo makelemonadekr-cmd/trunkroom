@@ -629,12 +629,12 @@ export default function OutfitCanvasEditor({
 
       {/* ── Bottom toolbar ── */}
       <div className="shrink-0 flex items-center" style={{ height: 70 }}>
+        {/* Download / share intentionally removed — they belong AFTER save,
+            not during canvas editing. */}
         {[
-          { id: "items",    label: "내 아이템", Icon: IcoGrid     },
-          { id: "upload",   label: "업로드",   Icon: IcoUpload   },
-          { id: "bg",       label: "배경",     Icon: IcoBg       },
-          { id: "download", label: "다운로드", Icon: IcoDownload },
-          { id: "share",    label: "공유",     Icon: IcoShare    },
+          { id: "items",  label: "내 아이템", Icon: IcoGrid   },
+          { id: "upload", label: "업로드",   Icon: IcoUpload },
+          { id: "bg",     label: "배경",     Icon: IcoBg     },
         ].map(({ id, label, Icon }) => {
           const isActive = activeTool === id;
           return (
@@ -643,9 +643,7 @@ export default function OutfitCanvasEditor({
               className="flex-1 flex flex-col items-center justify-center gap-1.5"
               style={{ color: isActive ? YELLOW : "#888" }}
               onClick={() => {
-                if (id === "upload")   { fileRef.current?.click(); return; }
-                if (id === "download") { handleDownload(); return; }
-                if (id === "share")    { return; /* TODO */ }
+                if (id === "upload") { fileRef.current?.click(); return; }
                 setActiveTool(isActive ? null : id);
               }}
             >

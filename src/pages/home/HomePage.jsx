@@ -1061,9 +1061,9 @@ function CommunityStyleDetailScreen({ post, onBack, onItemTap, closetItems = [] 
                     className="rounded-xl overflow-hidden w-full relative"
                     style={{ aspectRatio: "3/4", backgroundColor: "#F5F2EC" }}
                   >
-                    {item.image && (
+                    {(item.image || item.image_url) && (
                       <img
-                        src={item.image}
+                        src={item.image || item.image_url}
                         alt={item.name}
                         style={{
                           width: "100%", height: "100%",

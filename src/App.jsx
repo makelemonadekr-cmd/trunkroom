@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, lazy, Suspense } from "react";
+import ErrorBoundary from "./components/ErrorBoundary";
 import TrunkRoomOnboarding from "./pages/onboarding/TrunkRoomOnboarding";
 import { TOAST_EVENT } from "./lib/toastUtils";
 // Eager: 4 main bottom-nav pages (switching between them must be instant)
@@ -340,7 +341,7 @@ export default function App() {
           )}
 
           {/* ── Pages (always rendered once auth has resolved) ── */}
-          {!authLoading && (<Suspense fallback={<LazyFallback />}>
+          {!authLoading && (<ErrorBoundary><Suspense fallback={<LazyFallback />}>
 
             {/* Home — public */}
             {activeTab === "home" && (
@@ -492,7 +493,7 @@ export default function App() {
               />
             )}
 
-          </Suspense>)}
+          </Suspense></ErrorBoundary>)}
           {/* ── end page area ── */}
 
         </div>

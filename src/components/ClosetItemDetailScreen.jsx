@@ -530,7 +530,7 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
 
         {/* 1. Photo */}
         <ItemPhotoViewer
-          image={item.image}
+          image={item.image ?? item.image_url}
           name={item.displayName ?? item.name}
           condition={item.condition}
         />

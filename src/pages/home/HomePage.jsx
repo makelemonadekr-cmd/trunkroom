@@ -209,22 +209,6 @@ function TodayRecordCard({ onRecordToday, todayRecord: todayRecordProp, closetIt
                       </div>
                     );
                   })}
-                  {/* 새 스타일 추가 버튼 */}
-                  <div
-                    style={{
-                      flexShrink: 0, width: 52,
-                      height: todayStyles.length === 1 ? 249 : 188,
-                      borderRadius: 8,
-                      backgroundColor: "rgba(0,0,0,0.06)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      cursor: "pointer",
-                    }}
-                    onClick={(e) => { e.stopPropagation(); onRecordToday?.(); }}
-                  >
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                      <path d="M10 4V16M4 10H16" stroke="#AAAAAA" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  </div>
                 </div>
               ) : recordedItems.length > 0 ? (
                 /*
@@ -255,7 +239,7 @@ function TodayRecordCard({ onRecordToday, todayRecord: todayRecordProp, closetIt
                     오늘 스타일 {todayStyles.length}개
                   </p>
                   <p className="text-[10px] mt-0.5" style={{ color: "rgba(0,0,0,0.35)", fontFamily: FONT }}>
-                    탭하여 수정 · + 로 추가
+                    탭하여 수정
                   </p>
                 </div>
               ) : todayStyles.length === 1 ? (

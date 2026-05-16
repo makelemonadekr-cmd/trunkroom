@@ -114,7 +114,15 @@ export default function UpgradeSheet({ open, onClose }) {
           <div className="w-9 h-1 rounded-full" style={{ backgroundColor: "#DDDDDD" }} />
         </div>
 
-        <div className="overflow-y-auto px-5 pb-10" style={{ maxHeight: "88dvh", scrollbarWidth: "none" }}>
+        <div
+          className="overflow-y-auto px-5"
+          style={{
+            maxHeight: "88dvh",
+            scrollbarWidth: "none",
+            // Reserve room for iOS home indicator on bottom-fixed sheet
+            paddingBottom: "max(40px, calc(env(safe-area-inset-bottom) + 24px))",
+          }}
+        >
 
           {/* Header */}
           <div className="flex items-start justify-between mt-2 mb-5">

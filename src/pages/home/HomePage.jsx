@@ -899,79 +899,43 @@ function WeatherSection({ onExpand, onItemTap, closetItems }) {
 
 
 // ─── Community "오늘 이거 입었어요" section ──────────────────────────────────
-// Shows community outfit posts from today / last 7 days.
-// Uses capsule flat-lay images as outfit thumbnails.
+// Derived from real mock SELLER_PROFILES so users can also see those sellers in 발견 탭.
+// Each post points to a real seller via sellerId for navigation consistency.
 
-// ─── Community posts use 스타일 folder (coordi pool, community zone 60-79) ────
-// Item listings use 옷 folder (items pool, homeListings zone)
-const COMMUNITY_TODAY_POSTS = [
-  {
-    id: "c1",
-    username: "minj_closet",
-    avatar: "🧥",
-    timeAgo: "방금",
-    image: zoneCoordiImg("community", 0),
-    mood: "미니멀",
-    moodColor: "#E8E8E8",
-    moodText: "#444",
-    likes: 24,
-  },
-  {
-    id: "c2",
-    username: "stylegram_y",
-    avatar: "👗",
-    timeAgo: "1시간 전",
-    image: zoneCoordiImg("community", 1),
-    mood: "빈티지",
-    moodColor: "#F5ECD7",
-    moodText: "#7A5C2E",
-    likes: 41,
-  },
-  {
-    id: "c3",
-    username: "daily.ootd_j",
-    avatar: "🧣",
-    timeAgo: "3시간 전",
-    image: zoneCoordiImg("community", 2),
-    mood: "캐주얼",
-    moodColor: "#E3EEFF",
-    moodText: "#2B5DD4",
-    likes: 17,
-  },
-  {
-    id: "c4",
-    username: "codi_hana",
-    avatar: "👔",
-    timeAgo: "어제",
-    image: zoneCoordiImg("community", 3),
-    mood: "오피스",
-    moodColor: "#E8F5E9",
-    moodText: "#2E7D32",
-    likes: 36,
-  },
-  {
-    id: "c5",
-    username: "fitcheck_s",
-    avatar: "🌸",
-    timeAgo: "어제",
-    image: zoneCoordiImg("community", 4),
-    mood: "페미닌",
-    moodColor: "#FCE4EC",
-    moodText: "#C2185B",
-    likes: 52,
-  },
-  {
-    id: "c6",
-    username: "wearlog_k",
-    avatar: "🖤",
-    timeAgo: "2일 전",
-    image: zoneCoordiImg("community", 5),
-    mood: "시크",
-    moodColor: "#F0F0F0",
-    moodText: "#333",
-    likes: 29,
-  },
-];
+import { SELLER_PROFILES, getSellerOutfits } from "../../constants/mockSellerData";
+
+const MOOD_STYLE = {
+  "미니멀":  { bg: "#E8E8E8",  fg: "#444"    },
+  "캐주얼":  { bg: "#E3EEFF",  fg: "#2B5DD4" },
+  "빈티지":  { bg: "#F5ECD7",  fg: "#7A5C2E" },
+  "오피스":  { bg: "#E8F5E9",  fg: "#2E7D32" },
+  "페미닌":  { bg: "#FCE4EC",  fg: "#C2185B" },
+  "시크":    { bg: "#F0F0F0",  fg: "#333"    },
+  "스트릿":  { bg: "#E3F2FD",  fg: "#1565C0" },
+  "스포티":  { bg: "#FFF8E1",  fg: "#F57F17" },
+};
+
+const TIME_AGO = ["방금", "1시간 전", "3시간 전", "어제", "어제", "2일 전"];
+
+const COMMUNITY_TODAY_POSTS = SELLER_PROFILES.slice(0, 6).map((seller, i) => {
+  const outfits = getSellerOutfits(seller.id);
+  const outfit  = outfits[0] ?? null;
+  const mood    = outfit?.style ?? "캐주얼";
+  const style   = MOOD_STYLE[mood] ?? MOOD_STYLE["캐주얼"];
+  return {
+    id:        `c${seller.id}`,
+    sellerId:  seller.id,
+    username:  seller.username,
+    avatar:    seller.profileImage,            // image URL (LazyImage handles)
+    timeAgo:   TIME_AGO[i] ?? "방금",
+    image:     outfit?.previewImage ?? seller.coverImage ?? zoneCoordiImg("community", i),
+    mood,
+    moodColor: style.bg,
+    moodText:  style.fg,
+    likes:     20 + ((i * 7) % 50),
+    itemIds:   outfit?.itemIds ?? [],
+  };
+});
 
 // ─── Community Style Detail Screen ───────────────────────────────────────────
 // Opens when user taps a community post. Shows outfit photo + metadata + worn items.
@@ -1041,10 +1005,12 @@ function CommunityStyleDetailScreen({ post, onBack, onItemTap, closetItems = [] 
           >
             <div className="flex items-center gap-2.5 mb-1.5">
               <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-[16px]"
+                className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center text-[16px]"
                 style={{ backgroundColor: "rgba(255,255,255,0.18)", backdropFilter: "blur(4px)" }}
               >
-                {post.avatar}
+                {post.avatar && (post.avatar.startsWith("/") || post.avatar.startsWith("http"))
+                  ? <img src={post.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  : <span>{post.avatar}</span>}
               </div>
               <div>
                 <p className="text-[13px] font-bold text-white" style={{ fontFamily: FONT }}>@{post.username}</p>
@@ -1156,9 +1122,26 @@ function CommunityStyleDetailScreen({ post, onBack, onItemTap, closetItems = [] 
   );
 }
 
-function CommunityTodaySection({ onItemTap, onGoToDiscover }) {
+function CommunityTodaySection({ onItemTap, onGoToDiscover, closetItems = [], userStyles = [] }) {
   const FONT = "'Spoqa Han Sans Neo', sans-serif";
   const [activePost, setActivePost] = useState(null);
+
+  // Build the unified feed: user's own styles first, then mock seller posts
+  const userPosts = (userStyles ?? []).slice(0, 2).map((s) => ({
+    id: `me-${s.id}`,
+    username: "윤킴",
+    avatar: "👤",
+    timeAgo: s.dateStr ?? "최근",
+    image: s.background_url ?? s.photoUrl ?? s.previewImage
+        ?? (closetItems[0]?.image) ?? null,
+    mood: s.mood ?? "내 스타일",
+    moodColor: "#FFF5CC",
+    moodText: "#806000",
+    likes: 0,
+    itemIds: (s.items ?? []).map((it) => it.clothing_item_id ?? it.clothingItemId).filter(Boolean),
+    isMine: true,
+  })).filter((p) => p.image);
+  const feed = [...userPosts, ...COMMUNITY_TODAY_POSTS].slice(0, 4);
 
   return (
     <>
@@ -1177,7 +1160,7 @@ function CommunityTodaySection({ onItemTap, onGoToDiscover }) {
 
         {/* 2-column grid */}
         <div className="px-4 grid grid-cols-2 gap-3">
-          {COMMUNITY_TODAY_POSTS.slice(0, 4).map((post) => (
+          {feed.map((post) => (
             <button
               key={post.id}
               onClick={() => setActivePost(post)}
@@ -1219,10 +1202,12 @@ function CommunityTodaySection({ onItemTap, onGoToDiscover }) {
               <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <div
-                    className="w-5 h-5 rounded-full flex items-center justify-center text-[11px]"
+                    className="w-5 h-5 rounded-full overflow-hidden flex items-center justify-center text-[11px]"
                     style={{ backgroundColor: "rgba(255,255,255,0.18)", backdropFilter: "blur(4px)" }}
                   >
-                    {post.avatar}
+                    {post.avatar && (post.avatar.startsWith("/") || post.avatar.startsWith("http"))
+                      ? <img src={post.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      : <span>{post.avatar}</span>}
                   </div>
                   <p className="text-[10px] font-bold text-white truncate" style={{ fontFamily: FONT }}>
                     @{post.username}
@@ -2025,8 +2010,13 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
           closetItems={closetItems}
         />
 
-        {/* ⑤ Community — what others wore today / this week */}
-        <CommunityTodaySection onItemTap={onProductSelect} onGoToDiscover={onGoToDiscover} />
+        {/* ⑤ Community — user's own stylebook + mock seller posts */}
+        <CommunityTodaySection
+          onItemTap={onProductSelect}
+          onGoToDiscover={onGoToDiscover}
+          closetItems={closetItems}
+          userStyles={styles}
+        />
 
         {/* ⑥ Trending items from others' closets */}
         <div className="py-6 bg-white">

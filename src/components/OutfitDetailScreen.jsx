@@ -252,7 +252,7 @@ export default function OutfitDetailScreen({ outfit, onBack, onItemTap, onMakeSt
           <StyleBoardTemplate
             photoUrl={outfit.previewImage}
             items={displayItems}
-            width={375 - 32}   // 375px shell minus 16px side padding × 2
+            width={((typeof window !== "undefined" && window.innerWidth) || 375) - 32}
             showText={false}
             style={{ borderRadius: 16 }}
           />

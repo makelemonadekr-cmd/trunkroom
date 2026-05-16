@@ -21,7 +21,7 @@ export default function TopBar({ notificationCount = 4, onSearchTap, onFavorites
       {/* Icons */}
       <div className="flex items-center gap-1">
         {/* Favorites / Wishlist */}
-        <button className="w-9 h-9 flex items-center justify-center" onClick={onFavoritesOpen}>
+        <button className="w-11 h-11 flex items-center justify-center" onClick={onFavoritesOpen}>
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
             <path
               d="M11 19L3.5 11.5C2.5 10.5 2 9.1 2 7.8C2 5.1 4.2 3 6.9 3C8.4 3 9.8 3.7 11 4.9C12.2 3.7 13.6 3 15.1 3C17.8 3 20 5.1 20 7.8C20 9.1 19.5 10.5 18.5 11.5L11 19Z"
@@ -33,7 +33,7 @@ export default function TopBar({ notificationCount = 4, onSearchTap, onFavorites
         </button>
 
         {/* Notification bell with badge */}
-        <button className="w-9 h-9 flex items-center justify-center relative" onClick={onNotificationsOpen}>
+        <button className="w-11 h-11 flex items-center justify-center relative" onClick={onNotificationsOpen}>
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
             <path
               d="M11 3C7.69 3 5 5.69 5 9V14L3 16H19L17 14V9C17 5.69 14.31 3 11 3Z"

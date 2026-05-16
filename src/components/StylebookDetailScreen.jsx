@@ -299,8 +299,8 @@ export default function StylebookDetailScreen({
   const isLegacyTemplate = coordi.templateId === "A" || coordi.templateId === "B";
   const hasTemplate      = isBoardTemplate || isLegacyTemplate;
 
-  // Hero height: 4:5 ratio for template view, fixed 310 otherwise
-  const HERO_W      = 375;
+  // Hero width: fill viewport so the template doesn't render at 375px on bigger phones.
+  const HERO_W      = (typeof window !== "undefined" && window.innerWidth) || 375;
   const heroHeight  = hasTemplate ? Math.round(HERO_W * 1.25) : 310;
 
   return (

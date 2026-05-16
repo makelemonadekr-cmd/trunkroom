@@ -22,6 +22,7 @@ import { useWearLogs }      from "../../hooks/useWearLogs.js";
 import { useNotifications } from "../../hooks/useNotifications.js";
 import { useCloset }   from "../../hooks/useCloset.js";
 import { useStyles }   from "../../hooks/useStyles.js";
+import { usePublicStyles } from "../../hooks/useDiscovery.js";
 import {
   MAIN_CATEGORIES,
   SUBCATEGORIES,
@@ -1122,14 +1123,21 @@ function CommunityStyleDetailScreen({ post, onBack, onItemTap, closetItems = [] 
   );
 }
 
-function CommunityTodaySection({ onItemTap, onGoToDiscover, closetItems = [], userStyles = [] }) {
+function CommunityTodaySection({
+  onItemTap,
+  onGoToDiscover,
+  closetItems = [],
+  userStyles = [],
+  publicStyles = [],
+  userDisplayName = "내 스타일",
+}) {
   const FONT = "'Spoqa Han Sans Neo', sans-serif";
   const [activePost, setActivePost] = useState(null);
 
-  // Build the unified feed: user's own styles first, then mock seller posts
-  const userPosts = (userStyles ?? []).slice(0, 2).map((s) => ({
+  // 1) User's own styles first (max 1 to leave room for community)
+  const userPosts = (userStyles ?? []).slice(0, 1).map((s) => ({
     id: `me-${s.id}`,
-    username: "윤킴",
+    username: userDisplayName,
     avatar: "👤",
     timeAgo: s.dateStr ?? "최근",
     image: s.background_url ?? s.photoUrl ?? s.previewImage
@@ -1141,7 +1149,34 @@ function CommunityTodaySection({ onItemTap, onGoToDiscover, closetItems = [], us
     itemIds: (s.items ?? []).map((it) => it.clothing_item_id ?? it.clothingItemId).filter(Boolean),
     isMine: true,
   })).filter((p) => p.image);
-  const feed = [...userPosts, ...COMMUNITY_TODAY_POSTS].slice(0, 4);
+
+  // 2) Real public styles from other users (서연, 민지, 수아 등)
+  const realPosts = (publicStyles ?? [])
+    .filter((s) => s.previewImage && s.seller?.displayName)
+    .slice(0, 6)
+    .map((s) => {
+      const mood = s.style ?? "캐주얼";
+      const ms = MOOD_STYLE[mood] ?? MOOD_STYLE["캐주얼"];
+      return {
+        id:        `real-${s.id}`,
+        sellerId:  s.userId,
+        username:  s.seller.displayName,
+        avatar:    s.seller.profileImage ?? "👤",
+        timeAgo:   s.dateStr ?? "최근",
+        image:     s.previewImage,
+        mood,
+        moodColor: ms.bg,
+        moodText:  ms.fg,
+        likes:     s.likes ?? 0,
+        itemIds:   [],
+      };
+    });
+
+  // 3) Mock fallback if real is short
+  const need = Math.max(0, 4 - userPosts.length - realPosts.length);
+  const fallback = need > 0 ? COMMUNITY_TODAY_POSTS.slice(0, need) : [];
+
+  const feed = [...userPosts, ...realPosts, ...fallback].slice(0, 4);
 
   return (
     <>
@@ -1808,6 +1843,10 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
     loading:       notifLoading,
   } = useNotifications(user?.id);
   const { styles, refresh: refreshStyles }    = useStyles(user?.id);
+  const { styles: publicStyles }              = usePublicStyles();
+  const userDisplayName =
+    user?.user_metadata?.display_name ?? user?.user_metadata?.nickname ??
+    (user?.email ? user.email.split("@")[0] : null) ?? "내 스타일";
   const todayRecord  = history[todayStr()] ?? null;
   // All saved styles for today — supports multiple styles per day
   const todayStyles  = (styles ?? []).filter((s) => s.dateStr === todayStr());
@@ -2010,12 +2049,14 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
           closetItems={closetItems}
         />
 
-        {/* ⑤ Community — user's own stylebook + mock seller posts */}
+        {/* ⑤ Community — user's own first, then real public users, mock fallback */}
         <CommunityTodaySection
           onItemTap={onProductSelect}
           onGoToDiscover={onGoToDiscover}
           closetItems={closetItems}
           userStyles={styles}
+          publicStyles={publicStyles}
+          userDisplayName={userDisplayName}
         />
 
         {/* ⑥ Trending items from others' closets */}

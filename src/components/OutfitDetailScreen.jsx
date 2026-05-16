@@ -98,13 +98,16 @@ function ItemRow({ item, last = false, onTap }) {
 // ─── Root ─────────────────────────────────────────────────────────────────────
 export default function OutfitDetailScreen({ outfit, onBack, onItemTap, onMakeStyle }) {
   const { user } = useAuth();
+  // useCloset() now returns normalized items (image/mainCategory/subCategory/displayName).
+  // Spread + light overrides keep all original fields (color, brand, sub_category, etc.)
+  // available so the detail screen can show subcategory + color chips.
   const { items: rawItems } = useCloset(user?.id);
-  const closetItems = rawItems.map((r) => ({
-    id:          r.id,
-    name:        r.name        || "아이템",
-    displayName: r.display_name ?? r.name ?? "아이템",
-    image:       r.image_url   ?? null,
-    mainCategory: r.main_category ?? "기타",
+  const closetItems = (rawItems ?? []).map((r) => ({
+    ...r,
+    name:         r.name ?? r.displayName ?? "아이템",
+    displayName:  r.displayName ?? r.name ?? "아이템",
+    image:        r.image ?? null,
+    mainCategory: r.mainCategory ?? "기타",
   }));
 
   const [liked,       setLiked]       = useState(false);

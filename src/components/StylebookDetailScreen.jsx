@@ -275,6 +275,43 @@ export default function StylebookDetailScreen({
   }));
 
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+
+  // Ownership: download / share only available on user's own stylebooks.
+  // onEdit / onDelete are only passed by the parent when the viewer is owner,
+  // so use them as the ownership signal. Belt-and-suspenders with user_id.
+  const isOwn = (!!onEdit || !!onDelete) ||
+    (user?.id && coordi?.user_id && user.id === coordi.user_id) ||
+    (user?.id && coordi?.userId  && user.id === coordi.userId);
+
+  async function handleShare() {
+    const title = coordi?.title ?? "내 스타일북";
+    const text  = "트렁크룸에서 만든 코디예요!";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text });
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(`${title} — ${text}`);
+      }
+    } catch (_) { /* user cancelled or unsupported */ }
+  }
+
+  function handleDownload() {
+    // Use the hero photo as the downloadable asset. For canvas-mode styles
+    // without a photo, fall back to first item image.
+    const url = coordi?.photoUrl
+              ?? coordi?.background_url
+              ?? coordi?.items?.[0]?.image
+              ?? null;
+    if (!url) return;
+    const a = document.createElement("a");
+    a.href     = url;
+    a.download = `${coordi?.title || "style"}-${Date.now()}.jpg`;
+    a.target   = "_blank";
+    a.rel      = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
   const [similarOpen,   setSimilarOpen]   = useState(false);
 
   // Resolve the item-tap handler (prefer onItemTap, fall back to onProductSelect)
@@ -364,6 +401,26 @@ export default function StylebookDetailScreen({
           </GlassButton>
 
           <div className="flex items-center gap-2">
+            {/* Share + download are owner-only. Public-stylebook viewers see
+                only the back arrow on the left. */}
+            {isOwn && (
+              <GlassButton onClick={handleShare}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M10 5L7 2L4 5" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M7 2V9" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+                  <path d="M3 8V11C3 11.55 3.45 12 4 12H10C10.55 12 11 11.55 11 11V8" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+                </svg>
+              </GlassButton>
+            )}
+            {isOwn && (
+              <GlassButton onClick={handleDownload}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M7 2V9" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+                  <path d="M4 6L7 9L10 6" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M3 12H11" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+                </svg>
+              </GlassButton>
+            )}
             {onEdit && (
               <GlassButton onClick={() => onEdit(coordi)}>
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">

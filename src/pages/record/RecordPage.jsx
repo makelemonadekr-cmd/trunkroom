@@ -2204,7 +2204,7 @@ export default function RecordPage({
         <button
           onClick={() => setStyleFlowDate(TODAY)}
           className="w-[34px] h-[34px] flex items-center justify-center rounded-full active:opacity-70"
-          style={{ backgroundColor: "#F5F5F5" }}
+          style={{ backgroundColor: YELLOW }}
         >
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
             <path d="M9 3V15M3 9H15" stroke={DARK} strokeWidth="2.2" strokeLinecap="round" />

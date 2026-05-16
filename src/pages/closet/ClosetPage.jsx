@@ -61,7 +61,7 @@ function ClosetHeader({ onAddItem }) {
       <button
         onClick={onAddItem}
         className="w-[34px] h-[34px] flex items-center justify-center rounded-full active:opacity-70"
-        style={{ backgroundColor: "#F2F2F2" }}
+        style={{ backgroundColor: YELLOW }}
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
           <path d="M8 3V13M3 8H13" stroke={DARK} strokeWidth="2" strokeLinecap="round" />

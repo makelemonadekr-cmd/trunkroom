@@ -80,46 +80,52 @@ function MenuIcon({ active }) {
   );
 }
 
-// Center closet tab — uses the official logo image
+// Center closet tab — uses the official logo image.
+// Circle floats ABOVE the nav using absolute positioning so it is never
+// clipped by surrounding overflow:hidden parents, on any screen size.
 function ClosetLogoTab({ active, onClick }) {
   return (
     <button
       onClick={onClick}
       className="flex flex-col items-center flex-1 relative"
-      style={{ minWidth: 0, paddingTop: 6 }}
+      style={{ minWidth: 0, paddingTop: 30, height: "100%" }}
       aria-label="내 옷장"
     >
-      {/* Elevated circle bg */}
+      {/* Elevated circle — absolutely positioned so it floats above the nav */}
       <div
         className="flex items-center justify-center rounded-full"
         style={{
-          width: 46,
-          height: 46,
+          position: "absolute",
+          left: "50%",
+          top: -18,
+          transform: "translateX(-50%)",
+          width: 54,
+          height: 54,
           backgroundColor: active ? "#F5C200" : "#F5F5F5",
-          marginTop: -14,
-          boxShadow: active ? "0 2px 12px rgba(245,194,0,0.35)" : "0 2px 12px rgba(0,0,0,0.13)",
+          boxShadow: active ? "0 4px 14px rgba(245,194,0,0.45)" : "0 4px 14px rgba(0,0,0,0.18)",
           transition: "background-color 0.2s",
-          position: "relative",
-          zIndex: 101,
+          border: "3px solid white",
+          zIndex: 1000,
         }}
       >
         <img
           src="/officiallogo.png"
           alt="옷장"
           style={{
-            width: 28,
-            height: 28,
+            width: 32,
+            height: 32,
             objectFit: "contain",
             filter: active ? "brightness(0)" : "none",
           }}
         />
       </div>
       <span
-        className="text-[10px] leading-none mt-1"
+        className="text-[10px] leading-none mt-auto"
         style={{
           color: active ? YELLOW : BLACK,
           fontFamily: "'Spoqa Han Sans Neo', sans-serif",
           fontWeight: active ? 700 : 400,
+          marginBottom: 4,
         }}
       >
         내 옷장

@@ -23,6 +23,7 @@ import StylebookTemplate   from "../../components/StylebookTemplate";
 import StyleBoardTemplate  from "../../components/StyleBoardTemplate.jsx";
 import { extractColors } from "../../lib/colorExtractor";
 import StyleRecordFlow from "../../components/StyleRecordFlow";
+import OutfitCanvasEditor from "../../components/OutfitCanvasEditor";
 import FullListScreen from "../closet/FullListScreen";
 
 function normalizeItem(dbItem) {
@@ -157,6 +158,7 @@ function StylebookCreatorSheet({
   editStyle     = null,   // when set → edit-mode: pre-populate fields, save via updateStyle
   onSave,
   onClose,
+  onOpenCanvas,                          // callback to switch into freeform OutfitCanvasEditor
 }) {
   const { user: sheetUser } = useAuth();
   const isEditMode = !!editStyle?.id;
@@ -344,6 +346,33 @@ function StylebookCreatorSheet({
             />
           </label>
         </div>
+
+        {/* ── Mode chooser: 자동 배치 (board) vs 직접 배치 (canvas) ── */}
+        {onOpenCanvas && (
+          <div className="px-4 pt-4 pb-1">
+            <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-2xl"
+                 style={{ backgroundColor: "#F8F8F8", border: `1px solid ${DIVIDER}` }}>
+              <div className="flex items-center gap-2 min-w-0">
+                <span style={{ fontSize: 18 }}>🎨</span>
+                <div className="min-w-0">
+                  <p className="text-[13px] font-bold truncate" style={{ color: DARK, fontFamily: FONT }}>
+                    직접 배치해서 만들고 싶다면?
+                  </p>
+                  <p className="text-[10px]" style={{ color: "#888", fontFamily: FONT }}>
+                    드래그·회전·크기 조정 자유롭게
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => onOpenCanvas?.(selectedItems)}
+                className="shrink-0 px-3 py-2 rounded-full text-[11px] font-bold active:opacity-80"
+                style={{ backgroundColor: DARK, color: "white", fontFamily: FONT }}
+              >
+                캔버스 모드
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ── Style Board preview ── */}
         <div className="pt-5 pb-2 flex flex-col items-center px-5">
@@ -2016,6 +2045,9 @@ export default function RecordPage({
   // makeStyleItem: when set, open StylebookCreatorSheet with this item pre-selected.
   // This is the target for "+ 이 아이템으로 스타일 만들기" buttons everywhere.
   const [makeStyleItem,  setMakeStyleItem]  = useState(null);
+  // canvasItemIds: when set, opens OutfitCanvasEditor (drag/rotate/resize) instead of
+  // the auto-template board. User selects this mode via "캔버스 모드" in StylebookCreatorSheet.
+  const [canvasItemIds,  setCanvasItemIds]  = useState(null);
   // Use a ref (not state) so the value is available synchronously on the very
   // next render triggered by setStyleFlowDate, before React has a chance to
   // null out the parent prop via onPrefilledHandled.
@@ -2239,6 +2271,11 @@ export default function RecordPage({
             onStyleSaved?.();
           }}
           onClose={() => setStylebookData(null)}
+          onOpenCanvas={(items) => {
+            const ids = (items ?? []).map((i) => i.id).filter(Boolean);
+            setCanvasItemIds(ids.length ? ids : (stylebookData.itemIds ?? []));
+            setStylebookData(null);
+          }}
         />
       )}
 
@@ -2272,6 +2309,11 @@ export default function RecordPage({
             onStyleSaved?.();
           }}
           onClose={() => setMakeStyleItem(null)}
+          onOpenCanvas={(items) => {
+            const ids = (items ?? [makeStyleItem]).map((i) => i.id).filter(Boolean);
+            setCanvasItemIds(ids);
+            setMakeStyleItem(null);
+          }}
         />
       )}
 
@@ -2288,6 +2330,11 @@ export default function RecordPage({
             onStyleSaved?.();
           }}
           onClose={() => setEditStyleData(null)}
+          onOpenCanvas={(items) => {
+            const ids = (items ?? []).map((i) => i.id).filter(Boolean);
+            setCanvasItemIds(ids.length ? ids : (editStyleData.itemIds ?? []));
+            setEditStyleData(null);
+          }}
         />
       )}
 
@@ -2312,6 +2359,21 @@ export default function RecordPage({
           items={fullList.items}
           onBack={() => setFullList(null)}
           onItemSelect={onItemSelect}
+        />
+      )}
+
+      {/* OutfitCanvasEditor — freeform drag/rotate/resize canvas mode.
+          Opened from the "캔버스 모드" button in StylebookCreatorSheet. */}
+      {canvasItemIds && (
+        <OutfitCanvasEditor
+          initialItemIds={canvasItemIds}
+          dateStr={TODAY}
+          onClose={() => setCanvasItemIds(null)}
+          onSave={() => {
+            setCanvasItemIds(null);
+            refreshStyles();
+            onStyleSaved?.();
+          }}
         />
       )}
     </div>

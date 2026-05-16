@@ -131,25 +131,32 @@ function OnboardingScreen({ onComplete }) {
 export default function TrunkRoomOnboarding({ onComplete }) {
   const [screen, setScreen] = useState("splash");
 
+  const isNative =
+    typeof window !== "undefined" &&
+    (window.location.origin.startsWith("capacitor://") ||
+      window.location.origin.startsWith("ionic://"));
+  const isMobileWidth =
+    typeof window !== "undefined" && window.innerWidth < 500;
+  const fullScreen = isNative || isMobileWidth;
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-neutral-300">
+    <div
+      className={fullScreen ? "" : "flex items-center justify-center min-h-screen bg-neutral-300"}
+    >
       <div
-        className="relative overflow-hidden shadow-2xl"
-        style={{ width: 375, height: 812, borderRadius: 44, backgroundColor: DARK_BG }}
+        className="relative overflow-hidden"
+        style={
+          fullScreen
+            ? { width: "100vw", height: "100dvh", backgroundColor: "white" }
+            : { width: 375, height: 812, borderRadius: 44, backgroundColor: DARK_BG, boxShadow: "0 20px 50px rgba(0,0,0,0.15)" }
+        }
       >
         {screen === "splash" ? (
           <SplashScreen onFinish={() => setScreen("onboarding")} />
         ) : (
           <OnboardingScreen onComplete={onComplete} />
         )}
-
-        {/* Home indicator */}
-        {screen === "splash" && (
-          <div
-            className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full"
-            style={{ width: 134, height: 5, backgroundColor: "rgba(0,0,0,0.18)" }}
-          />
-        )}
+        {/* Fake home indicator removed — iOS draws the real one */}
       </div>
     </div>
   );

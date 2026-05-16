@@ -314,7 +314,13 @@ export default function App() {
         className="relative overflow-hidden flex flex-col"
         style={
           fullScreen
-            ? { width: "100vw", height: "100vh", backgroundColor: "white" }
+            ? {
+                width: "100vw",
+                height: "100dvh",
+                backgroundColor: "white",
+                // Reserve top space for iOS status bar / notch.
+                paddingTop: "env(safe-area-inset-top)",
+              }
             : { width: 375, height: 812, borderRadius: 44, boxShadow: "0 20px 50px rgba(0,0,0,0.15)" }
         }
       >

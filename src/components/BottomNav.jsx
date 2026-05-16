@@ -144,7 +144,13 @@ export default function BottomNav({ active, onTabChange }) {
   return (
     <div
       className="flex items-end justify-around bg-white border-t border-[#EEEEEE] shrink-0 relative"
-      style={{ height: 60, paddingBottom: 4, zIndex: 100, overflow: "visible" }}
+      style={{
+        // Reserve room for iOS home indicator at the bottom on devices that have one.
+        paddingBottom: "max(4px, env(safe-area-inset-bottom))",
+        height: "calc(60px + max(0px, env(safe-area-inset-bottom)))",
+        zIndex: 100,
+        overflow: "visible",
+      }}
     >
       {leftTabs.map(({ id, label, Icon }) => {
         const isActive = active === id;

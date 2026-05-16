@@ -296,22 +296,27 @@ export default function App() {
     return <TrunkRoomOnboarding onComplete={handleOnboardingComplete} />;
   }
 
+  // Detect native (Capacitor iOS) or narrow viewport — render full-screen.
+  // Wide viewports keep the centered phone-mockup look for desktop preview.
+  const isNative =
+    typeof window !== "undefined" &&
+    (window.location.origin.startsWith("capacitor://") ||
+      window.location.origin.startsWith("ionic://"));
+  const isMobileWidth =
+    typeof window !== "undefined" && window.innerWidth < 500;
+  const fullScreen = isNative || isMobileWidth;
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-neutral-300">
-      {/*
-        Phone shell — fixed 375 × 812 px, rounded corners 44 px.
-
-        Flex column layout (top → bottom):
-          [1] Status bar   — shrink-0, 44 px
-          [2] Page area    — flex-1, min-h-0  (fills everything between #1 and #3+#4)
-          [3] Bottom nav   — shrink-0, 60 px  ← ALWAYS visible, never clipped
-          [4] Home pill    — shrink-0, 22 px  (iPhone home indicator)
-
-        Heights: 44 + flex-1 + 60 + 22 = 812  →  flex-1 = 686 px
-      */}
+    <div
+      className={fullScreen ? "" : "flex items-center justify-center min-h-screen bg-neutral-300"}
+    >
       <div
-        className="relative overflow-hidden shadow-2xl flex flex-col"
-        style={{ width: 375, height: 812, borderRadius: 44 }}
+        className="relative overflow-hidden flex flex-col"
+        style={
+          fullScreen
+            ? { width: "100vw", height: "100vh", backgroundColor: "white" }
+            : { width: 375, height: 812, borderRadius: 44, boxShadow: "0 20px 50px rgba(0,0,0,0.15)" }
+        }
       >
         {/* Mock status bar removed — iOS shows the real one via safe-area inset.
             Apple Review rejects apps that draw a fake status bar over the real one. */}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import TopBar from "../../components/TopBar";
 import LazyImage from "../../components/LazyImage";
 import OutfitDetailScreen from "../../components/OutfitDetailScreen";
@@ -1834,7 +1834,20 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
   // ── Real data for today's outfit card ──────────────────────────────────────
   const { user }                              = useAuth();
   const { history }                           = useWearLogs(user?.id);
-  const { items: closetItems }                = useCloset(user?.id);
+  const { items: rawClosetItems }             = useCloset(user?.id);
+  // Normalize snake_case DB rows → camelCase UI shape (matches RecordPage/CalendarPage)
+  const closetItems = useMemo(
+    () => (rawClosetItems ?? []).map((dbItem) => ({
+      ...dbItem,
+      displayName:  dbItem.display_name  ?? dbItem.name,
+      mainCategory: dbItem.main_category ?? dbItem.mainCategory,
+      subCategory:  dbItem.sub_category  ?? dbItem.subCategory,
+      image:        dbItem.image_url     ?? dbItem.image,
+      isForSale:    dbItem.is_for_sale   ?? dbItem.isForSale,
+      styleTags:    dbItem.style_tags    ?? dbItem.styleTags ?? [],
+    })),
+    [rawClosetItems]
+  );
   const {
     notifications,
     unreadCount:   notifUnread,

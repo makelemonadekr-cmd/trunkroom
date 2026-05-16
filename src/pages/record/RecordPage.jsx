@@ -624,7 +624,7 @@ function StylebookCreatorSheet({
 
 // ─── DayRecordSheet ───────────────────────────────────────────────────────────
 
-function DayRecordSheet({ dateStr, record, closetItems = [], onSave, onDelete, onClose }) {
+function DayRecordSheet({ dateStr, record, closetItems = [], onSave, onDelete, onClose, onOpenCanvas }) {
   const [selectedIds, setSelectedIds]   = useState(record?.itemIds ?? []);
   const [note,        setNote]          = useState(record?.note    ?? "");
   const [photoUrl,    setPhotoUrl]      = useState(record?.photoUrl ?? null);
@@ -667,6 +667,12 @@ function DayRecordSheet({ dateStr, record, closetItems = [], onSave, onDelete, o
           onClose();
         }}
         onClose={() => setShowStylebook(false)}
+        onOpenCanvas={(items) => {
+          const ids = (items ?? []).map((i) => i.id).filter(Boolean);
+          setShowStylebook(false);
+          onClose();
+          onOpenCanvas?.(ids.length ? ids : selectedIds);
+        }}
       />
     );
   }
@@ -2288,6 +2294,7 @@ export default function RecordPage({
           onSave={handleSave}
           onDelete={handleDelete}
           onClose={() => setSelected(null)}
+          onOpenCanvas={(ids) => setCanvasItemIds(ids)}
         />
       )}
       {showStreak && (

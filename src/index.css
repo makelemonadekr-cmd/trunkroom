@@ -9,6 +9,14 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* Lock the iOS WebView to 100% text-size regardless of user's accessibility
+     "Larger Text" / "Display Zoom" settings — otherwise the whole app appears
+     enormously zoomed for users who bumped the system text size. */
+  html, body {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
   body {
     font-family: 'Spoqa Han Sans Neo', 'Noto Sans KR', sans-serif;
     margin: 0;

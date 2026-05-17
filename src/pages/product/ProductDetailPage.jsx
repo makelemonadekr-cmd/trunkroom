@@ -1,9 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { zoneItemImg } from "../../lib/localImages";
 import { MAIN_CATEGORIES } from "../../constants/mockClosetData";
 import OutfitDetailScreen from "../../components/OutfitDetailScreen";
 import { OUTFIT_DATA } from "../../constants/mockOutfitData";
 import { showToast } from "../../lib/toastUtils";
+import { useSellerContent } from "../../hooks/useDiscovery.js";
+import { fetchStylesByItemId } from "../../services/stylesService.js";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
@@ -298,15 +300,39 @@ export default function ProductDetailPage({ product, onBack }) {
   const [liked,             setLiked]             = useState(false);
   const [followed,          setFollowed]           = useState(false);
   const [commentText,       setCommentText]        = useState("");
-  const [comments,          setComments]           = useState(MOCK_ITEM_COMMENTS);
+  const [comments,          setComments]           = useState([]);   // real comments only (none yet)
   const [showSeller,        setShowSeller]         = useState(false);
   const [activeOutfit,      setActiveOutfit]       = useState(null); // OutfitDetailScreen
   const [selectedSellerItem, setSelectedSellerItem] = useState(null); // nested ProductDetailPage
   const commentInputRef = useRef(null);
 
+  // Real seller content from Supabase (if product belongs to a real public seller)
+  const sellerId = product?.sellerId ?? product?.userId ?? product?.user_id ?? null;
+  const { items: realSellerItems, styles: realSellerStyles } = useSellerContent(sellerId);
+  const realSaleItems = realSellerItems.filter((i) => i.isForSale && i.id !== product?.id);
+
+  // Stylebooks that actually include this item
+  const [itemStylebooks, setItemStylebooks] = useState([]);
+  useEffect(() => {
+    if (!product?.id) return;
+    fetchStylesByItemId(product.id).then(({ styles }) => {
+      setItemStylebooks((styles ?? []).map((s) => ({
+        id:        s.id,
+        title:     s.title ?? "스타일북",
+        image:     s.background_url ?? null,
+        avatar:    "👤",
+        username:  s.user_id?.slice(0, 8) ?? "user",
+      })));
+    });
+  }, [product?.id]);
+
   if (!product) return null;
 
-  const images = [product.image, ...(SELLER_SALE_ITEMS.slice(0, 2).map(i => i.image))];
+  // Use real seller items for the hero gallery — fall back to mock if not available
+  const galleryFiller = realSaleItems.length > 0
+    ? realSaleItems.slice(0, 2).map((i) => i.image).filter(Boolean)
+    : SELLER_SALE_ITEMS.slice(0, 2).map(i => i.image);
+  const images = [product.image, ...galleryFiller].filter(Boolean);
 
   const mainCat    = product.mainCategory ?? product.category ?? "상의";
   const subCat     = product.subCategory  ?? product.subcategory ?? "";
@@ -492,131 +518,86 @@ export default function ProductDetailPage({ product, onBack }) {
           </div>
         </div>
 
-        {/* ── 이 아이템으로 만든 스타일북 ── */}
-        <div className="py-5 bg-white" style={{ borderBottom: "1px solid #F5F5F5" }}>
-          <div className="flex items-center justify-between px-5 mb-3">
-            <p className="text-[14px] font-bold" style={{ color: DARK, fontFamily: FONT }}>이 아이템으로 만든 스타일북</p>
-            <button><span className="text-[12px]" style={{ color: "#888", fontFamily: FONT }}>더보기</span></button>
-          </div>
-          <div className="flex overflow-x-auto pl-5 pr-4 gap-3"
-            style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}>
-            {MOCK_ITEM_STYLEBOOKS.map(book => {
-              const outfit = OUTFIT_DATA[book.outfitIndex] ?? OUTFIT_DATA[0];
-              if (!outfit) return null;
-              return (
-                <button key={book.id} onClick={() => setActiveOutfit(outfit)}
-                  className="shrink-0 text-left active:opacity-80" style={{ width: 130 }}>
-                  {/* Use the real outfit previewImage (same as 발견>스타일북) */}
+        {/* ── 이 아이템으로 만든 스타일북 — only show real stylebooks that include this item ── */}
+        {itemStylebooks.length > 0 && (
+          <div className="py-5 bg-white" style={{ borderBottom: "1px solid #F5F5F5" }}>
+            <div className="flex items-center justify-between px-5 mb-3">
+              <p className="text-[14px] font-bold" style={{ color: DARK, fontFamily: FONT }}>이 아이템으로 만든 스타일북</p>
+            </div>
+            <div className="flex overflow-x-auto pl-5 pr-4 gap-3"
+              style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}>
+              {itemStylebooks.map(book => (
+                <button key={book.id} className="shrink-0 text-left active:opacity-80" style={{ width: 130 }}>
                   <div className="rounded-xl overflow-hidden" style={{ height: 160, backgroundColor: "#F5F5F5" }}>
-                    <img src={outfit.previewImage} alt={outfit.title}
-                      className="w-full h-full" style={{ objectFit: "cover", objectPosition: "center top" }} />
+                    {book.image && (
+                      <img src={book.image} alt={book.title}
+                        className="w-full h-full" style={{ objectFit: "cover", objectPosition: "center top" }} />
+                    )}
                   </div>
-                  <div className="mt-1.5">
-                    <p className="text-[12px] font-semibold truncate" style={{ color: DARK, fontFamily: FONT }}>{outfit.title}</p>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span style={{ fontSize: 12 }}>{book.avatar}</span>
-                      <span className="text-[10px] truncate" style={{ color: "#888", fontFamily: FONT }}>@{book.username}</span>
-                      <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
-                        <path d="M7 12L2.2 7.2C1.5 6.5 1.5 5.4 1.5 4.8C1.5 3.3 2.8 2 4.4 2C5.2 2 5.9 2.4 6.4 2.9L7 3.5L7.6 2.9C8.1 2.4 8.8 2 9.6 2C11.2 2 12.5 3.3 12.5 4.8C12.5 5.4 12.4 6.5 11.8 7.2L7 12Z"
-                          fill="#AAAAAA" />
-                      </svg>
-                      <span className="text-[10px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>{outfit.likes}</span>
-                    </div>
+                  <p className="text-[12px] font-semibold truncate mt-1.5" style={{ color: DARK, fontFamily: FONT }}>{book.title}</p>
+                </button>
+              ))}
+              <div className="shrink-0 w-1" />
+            </div>
+          </div>
+        )}
+
+        {/* ── 같은 옷장 주인이 판매중이에요 — only when seller has other sale items ── */}
+        {realSaleItems.length > 0 && (
+          <div className="py-5 bg-white" style={{ borderBottom: "1px solid #F5F5F5" }}>
+            <div className="flex items-center justify-between px-5 mb-3">
+              <p className="text-[14px] font-bold" style={{ color: DARK, fontFamily: FONT }}>같은 옷장 주인이 판매중이에요</p>
+              <button onClick={() => setShowSeller(true)}>
+                <span className="text-[12px]" style={{ color: "#888", fontFamily: FONT }}>더보기</span>
+              </button>
+            </div>
+            <div className="flex overflow-x-auto gap-3"
+              style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}>
+              <div className="shrink-0" style={{ width: 8 }} />
+              {realSaleItems.slice(0, 8).map(item => (
+                <button key={item.id} onClick={() => setSelectedSellerItem(item)}
+                  className="shrink-0 rounded-xl overflow-hidden bg-white active:opacity-80 text-left"
+                  style={{ width: 120, border: "1px solid #F0F0F0" }}>
+                  <div className="relative overflow-hidden bg-[#F5F5F5]" style={{ height: 130 }}>
+                    {item.image && (
+                      <img src={item.image} alt={item.name} className="absolute inset-0 w-full h-full"
+                        style={{ objectFit: "cover" }} />
+                    )}
+                    {item.condition && (
+                      <div className="absolute top-1.5 left-1.5">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-sm text-white"
+                          style={{ backgroundColor: item.condition === "S급" ? "#1a1a1a" : item.condition === "A급" ? "#555" : "#888", fontFamily: FONT }}>
+                          {item.condition}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="px-2.5 pt-1.5 pb-2.5">
+                    {item.brand && (
+                      <p className="text-[9px] uppercase tracking-wide truncate" style={{ color: "#AAAAAA", fontFamily: FONT }}>{item.brand}</p>
+                    )}
+                    <p className="text-[11px] font-semibold truncate mt-0.5" style={{ color: "#222", fontFamily: FONT }}>{item.displayName ?? item.name}</p>
+                    {item.price > 0 && (
+                      <p className="text-[12px] font-bold mt-0.5" style={{ color: DARK, fontFamily: FONT }}>
+                        {Number(item.price).toLocaleString()}원
+                      </p>
+                    )}
                   </div>
                 </button>
-              );
-            })}
-            <div className="shrink-0 w-1" />
+              ))}
+              <div className="shrink-0 w-2" />
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* ── 같은 옷장 주인이 판매중이에요 ── */}
-        <div className="py-5 bg-white" style={{ borderBottom: "1px solid #F5F5F5" }}>
-          <div className="flex items-center justify-between px-5 mb-3">
-            <p className="text-[14px] font-bold" style={{ color: DARK, fontFamily: FONT }}>같은 옷장 주인이 판매중이에요</p>
-            <button onClick={() => setShowSeller(true)}>
-              <span className="text-[12px]" style={{ color: "#888", fontFamily: FONT }}>더보기</span>
-            </button>
-          </div>
-          <div className="flex overflow-x-auto gap-3"
-            style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}>
-            <div className="shrink-0" style={{ width: 8 }} />
-            {SELLER_SALE_ITEMS.map(item => (
-              <button key={item.id} onClick={() => setSelectedSellerItem(item)}
-                className="shrink-0 rounded-xl overflow-hidden bg-white active:opacity-80 text-left"
-                style={{ width: 120, border: "1px solid #F0F0F0" }}>
-                <div className="relative overflow-hidden bg-[#F5F5F5]" style={{ height: 130 }}>
-                  <img src={item.image} alt={item.name} className="absolute inset-0 w-full h-full"
-                    style={{ objectFit: "cover" }} />
-                  <div className="absolute top-1.5 left-1.5">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-sm text-white"
-                      style={{ backgroundColor: item.condition === "S급" ? "#1a1a1a" : item.condition === "A급" ? "#555" : "#888", fontFamily: FONT }}>
-                      {item.condition}
-                    </span>
-                  </div>
-                </div>
-                <div className="px-2.5 pt-1.5 pb-2.5">
-                  <p className="text-[9px] uppercase tracking-wide truncate" style={{ color: "#AAAAAA", fontFamily: FONT }}>{item.brand}</p>
-                  <p className="text-[11px] font-semibold truncate mt-0.5" style={{ color: "#222", fontFamily: FONT }}>{item.name}</p>
-                  <p className="text-[12px] font-bold mt-0.5" style={{ color: DARK, fontFamily: FONT }}>{item.price}원</p>
-                </div>
-              </button>
-            ))}
-            <div className="shrink-0 w-2" />
-          </div>
-        </div>
-
-        {/* ── 댓글 ── */}
-        <div className="px-5 pt-5 pb-3 bg-white">
-          <p className="text-[14px] font-bold mb-4" style={{ color: DARK, fontFamily: FONT }}>댓글 {comments.length}</p>
-          <div className="flex flex-col gap-4">
-            {comments.map((c) => (
-              <div key={c.id} className="flex gap-3">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-[15px]"
-                  style={{ backgroundColor: "#F5F5F5" }}>{c.avatar}</div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[12px] font-bold" style={{ color: DARK, fontFamily: FONT }}>{c.username}</span>
-                    <span className="text-[10px]" style={{ color: "#CCCCCC", fontFamily: FONT }}>{c.time}</span>
-                  </div>
-                  <p className="text-[13px] mt-0.5 leading-relaxed" style={{ color: "#444", fontFamily: FONT }}>{c.text}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div ref={commentInputRef} className="mt-4 flex gap-2 items-center">
-            <input
-              type="text"
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && submitComment()}
-              placeholder="댓글을 남겨보세요..."
-              className="flex-1 px-3 py-2.5 rounded-xl text-[13px] outline-none"
-              style={{ backgroundColor: "#F5F5F5", border: "1px solid #EEEEEE", fontFamily: FONT, color: DARK }}
-            />
-            <button onClick={submitComment}
-              className="px-3 py-2.5 rounded-xl text-[12px] font-bold transition-all"
-              style={{ backgroundColor: commentText.trim() ? DARK : "#EEEEEE", color: commentText.trim() ? "white" : "#AAAAAA", fontFamily: FONT }}>
-              등록
-            </button>
-          </div>
-        </div>
+        {/* Comments section removed for now — no backing comments table yet.
+            Restore once supabase 'comments' table + service exist. */}
 
         <div style={{ height: 80 }} />
       </div>
 
       {/* ── Bottom action bar ── */}
       <div className="shrink-0 bg-white px-4 py-3 flex gap-2.5" style={{ borderTop: "1px solid #F0F0F0" }}>
-        <button
-          onClick={() => commentInputRef.current?.querySelector("input")?.focus()}
-          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl"
-          style={{ backgroundColor: "#F5F5F5", border: "1px solid #E8E8E8" }}>
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-            <path d="M13 2H3C2.45 2 2 2.45 2 3V10C2 10.55 2.45 11 3 11H6L8 13.5L10 11H13C13.55 11 14 10.55 14 10V3C14 2.45 13.55 2 13 2Z"
-              stroke="#555" strokeWidth="1.3" strokeLinejoin="round" fill="none" />
-          </svg>
-          <span className="text-[12px] font-semibold" style={{ color: "#444", fontFamily: FONT }}>댓글 남기기</span>
-        </button>
         <button
           onClick={() => setLiked(l => !l)}
           className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl transition-all"

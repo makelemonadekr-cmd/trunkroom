@@ -258,26 +258,26 @@ export default function MenuPage({ user, onSignOut }) {
         >
           <div
             className="flex items-center gap-4 px-5 py-4"
-            style={{ backgroundColor: DARK }}
+            style={{ backgroundColor: "#F5C200" }}
           >
             <div
               className="rounded-full overflow-hidden shrink-0 flex items-center justify-center"
-              style={{ width: 46, height: 46, backgroundColor: "rgba(255,255,255,0.12)" }}
+              style={{ width: 46, height: 46, backgroundColor: "rgba(0,0,0,0.08)" }}
             >
               {displayAvatar ? (
                 <img src={displayAvatar} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               ) : (
                 <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                  <circle cx="11" cy="8" r="4" stroke="rgba(255,255,255,0.7)" strokeWidth="1.6" />
-                  <path d="M3 20C3 15.58 6.58 12 11 12C15.42 12 19 15.58 19 20" stroke="rgba(255,255,255,0.7)" strokeWidth="1.6" strokeLinecap="round" />
+                  <circle cx="11" cy="8" r="4" stroke="rgba(0,0,0,0.5)" strokeWidth="1.6" />
+                  <path d="M3 20C3 15.58 6.58 12 11 12C15.42 12 19 15.58 19 20" stroke="rgba(0,0,0,0.5)" strokeWidth="1.6" strokeLinecap="round" />
                 </svg>
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[14px] font-bold text-white truncate" style={{ fontFamily: FONT }}>
+              <p className="text-[14px] font-bold truncate" style={{ color: DARK, fontFamily: FONT }}>
                 {displayName}
               </p>
-              <p className="text-[11px] mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.45)", fontFamily: FONT }}>
+              <p className="text-[11px] mt-0.5 truncate" style={{ color: "rgba(0,0,0,0.45)", fontFamily: FONT }}>
                 {displayEmail}
               </p>
             </div>
@@ -286,20 +286,20 @@ export default function MenuPage({ user, onSignOut }) {
               {isPremium ? (
                 <span
                   className="text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1"
-                  style={{ backgroundColor: "#F5C200", color: DARK, fontFamily: FONT }}
+                  style={{ backgroundColor: DARK, color: "#F5C200", fontFamily: FONT }}
                 >
                   👑 프리미엄
                 </span>
               ) : (
                 <span
                   className="text-[10px] font-bold px-2.5 py-1 rounded-full"
-                  style={{ backgroundColor: "rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.55)", fontFamily: FONT }}
+                  style={{ backgroundColor: "rgba(0,0,0,0.1)", color: "rgba(0,0,0,0.5)", fontFamily: FONT }}
                 >
                   무료 플랜
                 </span>
               )}
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M5 3L9 7L5 11" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M5 3L9 7L5 11" stroke="rgba(0,0,0,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
           </div>

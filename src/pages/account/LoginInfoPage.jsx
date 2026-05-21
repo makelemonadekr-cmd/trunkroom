@@ -267,7 +267,7 @@ export default function LoginInfoPage({ onBack, onLogout, onDeleteAccount }) {
         </p>
         <div className="mx-4 rounded-2xl bg-white overflow-hidden" style={{ border: `1px solid ${DIVIDER}` }}>
           <button
-            onClick={onLogout}
+            onClick={async () => { await signOut(); onLogout?.(); }}
             className="w-full text-left px-4 py-3.5 active:opacity-60"
             style={{ borderBottom: `1px solid ${DIVIDER}` }}
           >

@@ -12,6 +12,7 @@ import TermsOfServiceScreen from "../legal/TermsOfServiceScreen";
 import EditProfilePage from "../account/EditProfilePage";
 import ManageUserInfoPage from "../account/ManageUserInfoPage";
 import LoginInfoPage from "../account/LoginInfoPage";
+import { signOut } from "../../services/authService.js";
 
 const FONT    = "'Spoqa Han Sans Neo', sans-serif";
 const DARK    = "#1a1a1a";
@@ -158,8 +159,9 @@ export default function AccountSettingsScreen({ onBack }) {
     setTimeout(() => setToast(null), 1800);
   }
 
-  function handleLogoutConfirm() {
+  async function handleLogoutConfirm() {
     setShowLogout(false);
+    await signOut();   // 실제 Supabase 세션 종료 (이전에 누락되어 있었음)
     setLoggedOut(true);
   }
 

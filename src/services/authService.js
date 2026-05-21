@@ -175,13 +175,16 @@ export function clearLocalUserData() {
  * @returns {Promise<{ error }>}
  */
 export async function signOut() {
-  const { error } = await supabase.auth.signOut({ scope: "local" });
+  // global scope: SIGNED_OUT 이벤트를 반드시 발생시켜 useAuth 가 user=null 로 갱신되도록.
+  // (scope:"local" 은 이벤트 발생이 불안정한 버전이 있었고, storageKey 커스텀과 충돌 가능)
+  const { error } = await supabase.auth.signOut();
 
-  // Nuke leftover sb-* keys so next getSession() returns null
+  // 커스텀 storageKey("trunkroom_auth") 로 저장된 세션 + 구형 sb-* 잔여 키 모두 제거
   try {
-    Object.keys(localStorage)
-      .filter((k) => k.startsWith("sb-"))
-      .forEach((k) => localStorage.removeItem(k));
+    const keys = Object.keys(localStorage).filter(
+      (k) => k === "trunkroom_auth" || k.startsWith("sb-")
+    );
+    keys.forEach((k) => localStorage.removeItem(k));
   } catch { /* ignore */ }
 
   clearLocalUserData();

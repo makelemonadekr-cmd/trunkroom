@@ -196,7 +196,7 @@ const LogoutIcon = () => (
 /**
  * @param {{ user: import('../../types/index').AuthUser|null, onSignOut: () => void }} props
  */
-export default function MenuPage({ user, onSignOut }) {
+export default function MenuPage({ user, onSignOut, onLoginRequest }) {
   const [screen,       setScreen]       = useState(null);  // null | "privacy" | "terms"
   const [accountOpen,  setAccountOpen]  = useState(false);
   const [appInfoOpen,  setAppInfoOpen]  = useState(false);
@@ -253,7 +253,7 @@ export default function MenuPage({ user, onSignOut }) {
 
         {/* Profile card — tappable → AccountSettingsScreen */}
         <button
-          onClick={() => setAccountOpen(true)}
+          onClick={() => user ? setAccountOpen(true) : onLoginRequest?.()}
           className="mx-4 mt-5 rounded-2xl overflow-hidden w-[calc(100%-2rem)] active:opacity-75 transition-opacity text-left"
         >
           <div

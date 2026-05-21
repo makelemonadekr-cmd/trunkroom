@@ -201,7 +201,6 @@ export default function MenuPage({ user, onSignOut }) {
   const [accountOpen,  setAccountOpen]  = useState(false);
   const [appInfoOpen,  setAppInfoOpen]  = useState(false);
   const [supportOpen,  setSupportOpen]  = useState(false);
-  const [signingOut,   setSigningOut]   = useState(false);
   const [showUpgrade,  setShowUpgrade]  = useState(false);
 
   // Load real profile from Supabase
@@ -218,12 +217,6 @@ export default function MenuPage({ user, onSignOut }) {
     || "내 계정";
   const displayEmail  = user?.email || "";
   const displayAvatar = profile?.avatar_url || null;
-
-  async function handleSignOut() {
-    setSigningOut(true);
-    await onSignOut?.();
-    setSigningOut(false);
-  }
 
   return (
     <div className="relative flex flex-col h-full overflow-hidden" style={{ backgroundColor: LIGHT }}>
@@ -465,32 +458,6 @@ export default function MenuPage({ user, onSignOut }) {
           )}
         </RowGroup>
 
-        {/* ── 계정 ── */}
-        <SectionLabel>계정</SectionLabel>
-        <RowGroup>
-          <button
-            onClick={handleSignOut}
-            disabled={signingOut}
-            className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:opacity-60 transition-opacity"
-          >
-            <div
-              className="flex items-center justify-center rounded-xl shrink-0"
-              style={{ width: 34, height: 34, backgroundColor: "#FFF0F0" }}
-            >
-              {signingOut ? (
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ animation: "spin 0.8s linear infinite" }}>
-                  <path d="M9 2a7 7 0 1 1-4.95 2.05" stroke="#E84040" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              ) : (
-                <LogoutIcon />
-              )}
-            </div>
-            <p className="text-[14px] font-medium" style={{ color: "#E84040", fontFamily: FONT }}>
-              {signingOut ? "로그아웃 중…" : "로그아웃"}
-            </p>
-          </button>
-        </RowGroup>
-
         {/* ── Brand footer ── */}
         <div className="flex items-center justify-center gap-2.5 mt-8 mb-2">
           <img
@@ -501,9 +468,6 @@ export default function MenuPage({ user, onSignOut }) {
           <div>
             <p className="text-[12px] font-bold" style={{ color: "#BBBBBB", fontFamily: FONT, letterSpacing: "-0.02em" }}>
               내일의 옷장, 트렁크룸
-            </p>
-            <p className="text-[10px] mt-0.5" style={{ color: "#DDDDDD", fontFamily: FONT }}>
-              v{APP_VERSION}
             </p>
           </div>
         </div>

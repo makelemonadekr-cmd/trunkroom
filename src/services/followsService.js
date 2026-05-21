@@ -48,3 +48,27 @@ export async function removeFollow(userId, sellerId) {
     .eq("seller_id", String(sellerId));
   return { error };
 }
+
+/**
+ * 특정 유저를 팔로우하는 사람 수 (나를 팔로우하는 수)
+ * @param {string} userId
+ */
+export async function fetchFollowerCount(userId) {
+  const { count, error } = await supabase
+    .from("follows")
+    .select("*", { count: "exact", head: true })
+    .eq("seller_id", String(userId));
+  return { count: count ?? 0, error };
+}
+
+/**
+ * 특정 유저가 팔로우하는 사람 수 (내가 팔로우하는 수)
+ * @param {string} userId
+ */
+export async function fetchFollowingCount(userId) {
+  const { count, error } = await supabase
+    .from("follows")
+    .select("*", { count: "exact", head: true })
+    .eq("follower_id", userId);
+  return { count: count ?? 0, error };
+}

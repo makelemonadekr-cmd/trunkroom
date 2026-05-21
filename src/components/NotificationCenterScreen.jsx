@@ -10,7 +10,20 @@
  */
 
 import { useState } from "react";
-import { BADGE_CONFIG } from "../lib/mockNotifications";
+
+// 배지 스타일 (mockNotifications에서 이전, mock 데이터 의존성 제거)
+const BADGE_CONFIG = {
+  "정리":       { bg: "#FFF8DC", text: "#B8860B" },
+  "자주 입음":  { bg: "#E8F5E9", text: "#2E7D32" },
+  "판매 추천":  { bg: "#FFF3E0", text: "#E65100" },
+  "관리 필요":  { bg: "#FFEBEE", text: "#C62828" },
+  "계절 알림":  { bg: "#E0F7FA", text: "#00695C" },
+  "즐겨찾기":   { bg: "#FCE4EC", text: "#AD1457" },
+  "팔로우":     { bg: "#F3F3F3", text: "#555555" },
+  "스타일 추천":{ bg: "#F3E5F5", text: "#6A1B9A" },
+  "새 아이템":  { bg: "#E3F2FD", text: "#1565C0" },
+  "관심 아이템":{ bg: "#FCE4EC", text: "#AD1457" },
+};
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";

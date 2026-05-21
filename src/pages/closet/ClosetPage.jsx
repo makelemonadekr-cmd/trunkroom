@@ -19,6 +19,7 @@ import { useAuth }    from "../../hooks/useAuth.js";
 import { useCloset }  from "../../hooks/useCloset.js";
 import { useProfile } from "../../hooks/useProfile.js";
 import { showToast }  from "../../lib/toastUtils.js";
+import { fetchFollowerCount, fetchFollowingCount } from "../../services/followsService.js";
 
 // ─── Normalise a Supabase DB row → shape expected by UI components ─────────────
 // Adds camelCase aliases for every snake_case column the UI references.
@@ -72,7 +73,7 @@ function ClosetHeader({ onAddItem }) {
 }
 
 // ─── Profile ──────────────────────────────────────────────────────────────────
-function ProfileSection({ onSizePress, displayName, avatarUrl }) {
+function ProfileSection({ onSizePress, displayName, avatarUrl, followerCount, followingCount }) {
   return (
     <div className="px-5 py-3.5 bg-white" style={{ borderBottom: "1px solid #F0F0F0" }}>
       <div className="flex items-center gap-3">
@@ -109,12 +110,12 @@ function ProfileSection({ onSizePress, displayName, avatarUrl }) {
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <div className="flex flex-col items-center gap-0.5">
-            <span className="text-[14px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>20</span>
+            <span className="text-[14px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>{followerCount}</span>
             <span className="text-[9px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>팔로워</span>
           </div>
           <div style={{ width: 1, height: 24, backgroundColor: "#EEEEEE" }} />
           <div className="flex flex-col items-center gap-0.5">
-            <span className="text-[14px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>18</span>
+            <span className="text-[14px] font-bold" style={{ color: DARK, fontFamily: FONT, letterSpacing: "-0.02em" }}>{followingCount}</span>
             <span className="text-[9px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>팔로잉</span>
           </div>
         </div>
@@ -124,11 +125,11 @@ function ProfileSection({ onSizePress, displayName, avatarUrl }) {
 }
 
 // ─── Stats bar ───────────────────────────────────────────────────────────────
-function SubStats({ itemCount = 0 }) {
+function SubStats({ itemCount = 0, publicCount = 0, followerCount = 0 }) {
   const stats = [
     { label: "옷장의류", value: `${itemCount}` },
-    { label: "공개의류", value: `${itemCount}` },
-    { label: "팔로워",   value: "0" },
+    { label: "공개의류", value: `${publicCount}` },
+    { label: "팔로워",   value: `${followerCount}` },
     { label: "후기",     value: "0" },
   ];
   return (
@@ -1427,6 +1428,14 @@ export default function ClosetPage({ onProductSelect, onItemTap, onOpenOutfitEdi
   const { profile }                   = useProfile(user?.id);
   const { history }                   = useWearLogs(user?.id);
 
+  const [followerCount,  setFollowerCount]  = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  useEffect(() => {
+    if (!user?.id) { setFollowerCount(0); setFollowingCount(0); return; }
+    fetchFollowerCount(user.id).then(({ count }) => setFollowerCount(count));
+    fetchFollowingCount(user.id).then(({ count }) => setFollowingCount(count));
+  }, [user?.id]);
+
   // Normalise DB rows → UI shape (camelCase aliases)
   const closetItems = useMemo(() => dbItems.map(normalizeDbItem), [dbItems]);
 
@@ -1462,10 +1471,16 @@ export default function ClosetPage({ onProductSelect, onItemTap, onOpenOutfitEdi
           onSizePress={() => setMySizeOpen(true)}
           displayName={profile?.nickname || null}
           avatarUrl={profile?.avatar_url || null}
+          followerCount={followerCount}
+          followingCount={followingCount}
         />
 
         {/* ── Stats bar ── */}
-        <SubStats itemCount={closetItems.length} />
+        <SubStats
+          itemCount={closetItems.length}
+          publicCount={closetItems.filter(i => i.is_public || i.isPublic).length}
+          followerCount={followerCount}
+        />
 
         {/* ── 옷장 인사이트 ── */}
         <InsightsBanner onInsights={() => setShowInsights(true)} />

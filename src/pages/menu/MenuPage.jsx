@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import PrivacyPolicyScreen from "../legal/PrivacyPolicyScreen";
 import TermsOfServiceScreen from "../legal/TermsOfServiceScreen";
 import AIDisclosureScreen from "../legal/AIDisclosureScreen";
@@ -7,6 +7,8 @@ import CustomerSupportPage from "../support/CustomerSupportPage";
 import UpgradeSheet from "../../components/UpgradeSheet.jsx";
 import { showToast } from "../../lib/toastUtils";
 import { useProfile } from "../../hooks/useProfile.js";
+import { useCloset }  from "../../hooks/useCloset.js";
+import { exportClosetToXlsx } from "../../lib/exportClosetToXlsx.js";
 import {
   COMPANY_NAME, COMPANY_CEO, BUSINESS_NUMBER, TELECOM_REG_NUMBER,
   COMPANY_URL, SUPPORT_EMAIL, PARTNERSHIP_EMAIL,
@@ -206,6 +208,24 @@ export default function MenuPage({ user, onSignOut, onLoginRequest }) {
   // Load real profile from Supabase
   const { profile, refresh: refreshProfile } = useProfile(user?.id);
 
+  // Load closet items for Excel export
+  const { items: closetDbItems } = useCloset(user?.id);
+
+  const [exporting, setExporting] = useState(false);
+  const handleExcelExport = useCallback(async () => {
+    if (!user) { showToast("로그인 후 이용할 수 있어요", "warning"); return; }
+    if (!closetDbItems?.length) { showToast("내보낼 아이템이 없어요", "info"); return; }
+    setExporting(true);
+    try {
+      await exportClosetToXlsx(closetDbItems);
+      showToast(`${closetDbItems.length}개 아이템을 내보냈어요 ✓`, "success");
+    } catch (e) {
+      showToast("내보내기에 실패했어요", "error");
+    } finally {
+      setExporting(false);
+    }
+  }, [user, closetDbItems]);
+
   // Plan tier — read directly from profile (no token needed)
   const isPremium = profile?.is_premium === true;
 
@@ -373,10 +393,10 @@ export default function MenuPage({ user, onSignOut, onLoginRequest }) {
         <SectionLabel>서비스</SectionLabel>
         <RowGroup>
           <Row
-            label="내 아이템 엑셀로 추출하기"
+            label={exporting ? "내보내는 중…" : "내 아이템 엑셀로 추출하기"}
             icon={<ExcelIcon />}
-            subValue="옷장 전체 아이템을 .xlsx 파일로"
-            onPress={() => showToast("준비 중인 기능이에요 🛠️", "info")}
+            subValue={`옷장 전체 아이템 ${closetDbItems?.length ?? 0}개를 .xlsx 파일로`}
+            onPress={handleExcelExport}
           />
           <Row
             label="내 아이템 노션으로 추출하기"

@@ -10,7 +10,7 @@
  *   onBack  : () => void
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import LazyImage         from "../../components/LazyImage";
 import OutfitDetailScreen from "../../components/OutfitDetailScreen";
 import ProductDetailPage  from "../product/ProductDetailPage";
@@ -22,6 +22,7 @@ import { useLikes } from "../../lib/likesContext";
 import { useAuth } from "../../hooks/useAuth";
 import { blockUser } from "../../services/moderationService";
 import { showToast } from "../../lib/toastUtils";
+import { fetchFollowerCount } from "../../services/followsService";
 import ReportSheet from "../../components/ReportSheet";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
@@ -148,6 +149,12 @@ export default function SellerProfilePage({ seller, onBack }) {
   const following                     = isFollowing(seller.id);
   const [activeTab,      setActiveTab]      = useState("items"); // "items" | "codis" | "sale"
   const [localFollowers, setLocalFollowers] = useState(seller.followers ?? 0);
+
+  // 실 팔로워 수를 DB에서 읽기 (real seller만)
+  useEffect(() => {
+    if (!seller?.id || seller.source !== "real") return;
+    fetchFollowerCount(seller.id).then(({ count }) => setLocalFollowers(count));
+  }, [seller?.id, seller?.source]);
   // Internal detail overlays — managed here so z-stacking is clean
   const [selectedItem,   setSelectedItem]   = useState(null); // product shape
   const [selectedOutfit, setSelectedOutfit] = useState(null); // outfit object

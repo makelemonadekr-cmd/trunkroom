@@ -398,6 +398,8 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
   const [condition,      setCondition]       = useState("A급");
   const [seasons,        setSeasons]         = useState([]);
   const [styleTags,      setStyleTags]       = useState([]);
+  // 공개/비공개 — 기본 비공개. 사용자가 명시적 토글로 발견 피드 노출 결정.
+  const [isPublic,       setIsPublic]        = useState(false);
 
   const [saved,          setSaved]           = useState(false);
   const [showUpgrade,    setShowUpgrade]     = useState(false);
@@ -555,6 +557,7 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
       styleTags,
       gender:      gender || "여성",
       size:        size   || "",
+      isPublic,
     };
 
     setSaved(true);   // show checkmark / loading state immediately
@@ -1017,6 +1020,40 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
               fontFamily:      "'Spoqa Han Sans Neo', sans-serif",
             }}
           />
+        </div>
+      </div>
+
+      {/* ── Public toggle — default private, opt-in to public ── */}
+      <div className="mx-5 mb-4 mt-1">
+        <div
+          className="rounded-2xl px-4 py-4 flex items-center justify-between"
+          style={{
+            backgroundColor: isPublic ? "#FEFCE8" : "#F8F8F8",
+            border:          `1px solid ${isPublic ? "#EDD83A" : "#F0F0F0"}`,
+            transition:      "all 0.2s",
+          }}
+        >
+          <div className="flex-1 min-w-0 mr-4">
+            <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+              {isPublic ? "🌐 발견 피드에 공개" : "🔒 비공개 아이템"}
+            </p>
+            <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+              {isPublic
+                ? "다른 사람들이 이 아이템을 볼 수 있어요."
+                : "나만 볼 수 있어요. 나중에 상세 화면에서도 전환 가능해요."}
+            </p>
+          </div>
+          <button
+            onClick={() => setIsPublic((v) => !v)}
+            aria-label={isPublic ? "공개를 비공개로 전환" : "비공개를 공개로 전환"}
+            className="shrink-0 rounded-full transition-all"
+            style={{ width: 48, height: 28, backgroundColor: isPublic ? YELLOW : "#DDD", position: "relative" }}
+          >
+            <div
+              className="absolute top-1 rounded-full bg-white"
+              style={{ width: 20, height: 20, left: isPublic ? 24 : 4, transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.18)" }}
+            />
+          </button>
         </div>
       </div>
 

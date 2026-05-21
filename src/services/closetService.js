@@ -78,7 +78,9 @@ export async function addClosetItem(userId, formData, imageBase64, mimeType) {
     sell_status:   "not_listed",
     source:        "manual",
     notes:         formData.desc       || null,
-    is_public:     true,
+    // 사용자가 등록 화면 토글로 명시적으로 공개해야 발견 피드에 노출.
+    // formData.isPublic 이 undefined / falsy 면 비공개 (이전 버그: 무조건 true).
+    is_public:     !!formData.isPublic,
     size:          formData.size       || null,
     gender:        formData.gender     || "여성",
   };

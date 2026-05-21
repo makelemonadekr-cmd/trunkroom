@@ -20,8 +20,9 @@ import { useWearLogs }     from "../hooks/useWearLogs.js";
 import { updateClosetItem, deleteClosetItem } from "../services/closetService.js";
 import { fetchStylesByItemId } from "../services/stylesService.js";
 
-const FONT = "'Spoqa Han Sans Neo', sans-serif";
-const DARK = "#1a1a1a";
+const FONT   = "'Spoqa Han Sans Neo', sans-serif";
+const DARK   = "#1a1a1a";
+const YELLOW = "#F5C200";
 
 const SEASON_STYLE = {
   봄:  { color: "#D4436A", bg: "#FFF0F3" },
@@ -397,6 +398,9 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
 
   const [activeOutfit,    setActiveOutfit]    = useState(null);
   const [memo,            setMemo]            = useState(item.notes ?? item.memo ?? "");
+  // 공개 토글 — DB의 snake_case 또는 normalize된 camelCase 둘 다 수용.
+  const [isPublic,        setIsPublic]        = useState(!!(item.is_public ?? item.isPublic));
+  const [savingPublic,    setSavingPublic]    = useState(false);
   const [editingMemo,     setEditingMemo]     = useState(false);
   const [savingMemo,      setSavingMemo]      = useState(false);
   const [showCopyPreview, setShowCopyPreview] = useState(false);
@@ -425,6 +429,23 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
   }
 
   // ── Delete item ──────────────────────────────────────────────────────────
+  // ── Public 토글 (낙관적 업데이트 + 실패 시 롤백) ──────────────────────────
+  async function handleTogglePublic() {
+    if (savingPublic) return;
+    const next = !isPublic;
+    setIsPublic(next);
+    setSavingPublic(true);
+    const { error } = await updateClosetItem(item.id, { is_public: next });
+    setSavingPublic(false);
+    if (error) {
+      setIsPublic(!next); // 롤백
+      showToast("공개 설정 변경에 실패했어요", "error");
+    } else {
+      showToast(next ? "발견 피드에 공개됐어요 🌐" : "비공개로 전환됐어요 🔒", "success");
+      onMemoSaved?.(); // 옷장 리스트 새로고침 (콜백 재사용)
+    }
+  }
+
   async function handleDeleteConfirm() {
     setDeleting(true);
     const { error } = await deleteClosetItem(item.id);
@@ -690,6 +711,42 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
               </p>
             </button>
           )}
+        </div>
+
+        {/* 6.5 공개/비공개 토글 — 사용자 옵트인으로 발견 피드 노출 결정 */}
+        <div className="py-5 bg-white px-5" style={{ borderBottom: "1px solid #F5F5F5" }}>
+          <div
+            className="rounded-2xl px-4 py-4 flex items-center justify-between"
+            style={{
+              backgroundColor: isPublic ? "#FEFCE8" : "#F8F8F8",
+              border:          `1px solid ${isPublic ? "#EDD83A" : "#F0F0F0"}`,
+              transition:      "all 0.2s",
+              opacity:         savingPublic ? 0.6 : 1,
+            }}
+          >
+            <div className="flex-1 min-w-0 mr-4">
+              <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
+                {isPublic ? "🌐 발견 피드에 공개" : "🔒 비공개 아이템"}
+              </p>
+              <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "#AAAAAA", fontFamily: FONT }}>
+                {isPublic
+                  ? "다른 사람들이 이 아이템을 볼 수 있어요."
+                  : "나만 볼 수 있어요. 토글로 공개 전환 가능해요."}
+              </p>
+            </div>
+            <button
+              onClick={handleTogglePublic}
+              disabled={savingPublic}
+              aria-label={isPublic ? "공개를 비공개로 전환" : "비공개를 공개로 전환"}
+              className="shrink-0 rounded-full transition-all"
+              style={{ width: 48, height: 28, backgroundColor: isPublic ? YELLOW : "#DDD", position: "relative" }}
+            >
+              <div
+                className="absolute top-1 rounded-full bg-white"
+                style={{ width: 20, height: 20, left: isPublic ? 24 : 4, transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.18)" }}
+              />
+            </button>
+          </div>
         </div>
 
         {/* 7. 이 아이템으로 만든 스타일북 */}

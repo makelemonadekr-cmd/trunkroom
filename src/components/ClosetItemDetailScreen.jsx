@@ -396,6 +396,9 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
   const { user }                    = useAuth();
   const { history }                 = useWearLogs(user?.id);
 
+  // 소유자 여부 — snake_case(DB 원본) 또는 camelCase(정규화) 둘 다 수용
+  const isOwner = !!(user?.id && (user.id === item.user_id || user.id === item.userId));
+
   const [activeOutfit,    setActiveOutfit]    = useState(null);
   const [memo,            setMemo]            = useState(item.notes ?? item.memo ?? "");
   // 공개 토글 — DB의 snake_case 또는 normalize된 camelCase 둘 다 수용.
@@ -532,17 +535,19 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
               <path d="M4 12V16C4 16.55 4.45 17 5 17H15C15.55 17 16 16.55 16 16V12" stroke="#333" strokeWidth="1.6" strokeLinecap="round" />
             </svg>
           </button>
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="w-9 h-9 flex items-center justify-center active:opacity-60"
-          >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path d="M3 5H15" stroke="#CC3333" strokeWidth="1.6" strokeLinecap="round" />
-              <path d="M6 5V3H12V5" stroke="#CC3333" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M4 5L5 15H13L14 5" stroke="#CC3333" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M7.5 8V12M10.5 8V12" stroke="#CC3333" strokeWidth="1.4" strokeLinecap="round" />
-            </svg>
-          </button>
+          {isOwner && (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="w-9 h-9 flex items-center justify-center active:opacity-60"
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M3 5H15" stroke="#CC3333" strokeWidth="1.6" strokeLinecap="round" />
+                <path d="M6 5V3H12V5" stroke="#CC3333" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M4 5L5 15H13L14 5" stroke="#CC3333" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M7.5 8V12M10.5 8V12" stroke="#CC3333" strokeWidth="1.4" strokeLinecap="round" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
@@ -639,17 +644,19 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
         {/* 4. Wear stats + collapsible history */}
         <WearHistorySection itemId={item.id} history={history} />
 
-        {/* 5. Sale toggle + form */}
-        <SaleSection
-          item={item}
-          onShowPreview={(copy) => {
-            setGeneratedCopy(copy);
-            setShowCopyPreview(true);
-          }}
-        />
+        {/* 5. Sale toggle + form — 소유자만 */}
+        {isOwner && (
+          <SaleSection
+            item={item}
+            onShowPreview={(copy) => {
+              setGeneratedCopy(copy);
+              setShowCopyPreview(true);
+            }}
+          />
+        )}
 
-        {/* 6. 🔒 Memo */}
-        <div className="px-5 py-4 bg-white" style={{ borderBottom: "1px solid #F5F5F5" }}>
+        {/* 6. 🔒 Memo — 소유자만 */}
+        {isOwner && (<div className="px-5 py-4 bg-white" style={{ borderBottom: "1px solid #F5F5F5" }}>
           <div className="flex items-center justify-between mb-0.5">
             <div className="flex items-center gap-1.5">
               <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>메모</p>
@@ -711,43 +718,45 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
               </p>
             </button>
           )}
-        </div>
+        </div>)}
 
-        {/* 6.5 공개/비공개 토글 — 사용자 옵트인으로 발견 피드 노출 결정 */}
-        <div className="py-5 bg-white px-5" style={{ borderBottom: "1px solid #F5F5F5" }}>
-          <div
-            className="rounded-2xl px-4 py-4 flex items-center justify-between"
-            style={{
-              backgroundColor: isPublic ? "#FEFCE8" : "#F8F8F8",
-              border:          `1px solid ${isPublic ? "#EDD83A" : "#F0F0F0"}`,
-              transition:      "all 0.2s",
-              opacity:         savingPublic ? 0.6 : 1,
-            }}
-          >
-            <div className="flex-1 min-w-0 mr-4">
-              <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
-                {isPublic ? "🌐 발견 피드에 공개" : "🔒 비공개 아이템"}
-              </p>
-              <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "#AAAAAA", fontFamily: FONT }}>
-                {isPublic
-                  ? "다른 사람들이 이 아이템을 볼 수 있어요."
-                  : "나만 볼 수 있어요. 토글로 공개 전환 가능해요."}
-              </p>
-            </div>
-            <button
-              onClick={handleTogglePublic}
-              disabled={savingPublic}
-              aria-label={isPublic ? "공개를 비공개로 전환" : "비공개를 공개로 전환"}
-              className="shrink-0 rounded-full transition-all"
-              style={{ width: 48, height: 28, backgroundColor: isPublic ? YELLOW : "#DDD", position: "relative" }}
+        {/* 6.5 공개/비공개 토글 — 소유자만 */}
+        {isOwner && (
+          <div className="py-5 bg-white px-5" style={{ borderBottom: "1px solid #F5F5F5" }}>
+            <div
+              className="rounded-2xl px-4 py-4 flex items-center justify-between"
+              style={{
+                backgroundColor: isPublic ? "#FEFCE8" : "#F8F8F8",
+                border:          `1px solid ${isPublic ? "#EDD83A" : "#F0F0F0"}`,
+                transition:      "all 0.2s",
+                opacity:         savingPublic ? 0.6 : 1,
+              }}
             >
-              <div
-                className="absolute top-1 rounded-full bg-white"
-                style={{ width: 20, height: 20, left: isPublic ? 24 : 4, transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.18)" }}
-              />
-            </button>
+              <div className="flex-1 min-w-0 mr-4">
+                <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
+                  {isPublic ? "🌐 발견 피드에 공개" : "🔒 비공개 아이템"}
+                </p>
+                <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "#AAAAAA", fontFamily: FONT }}>
+                  {isPublic
+                    ? "다른 사람들이 이 아이템을 볼 수 있어요."
+                    : "나만 볼 수 있어요. 토글로 공개 전환 가능해요."}
+                </p>
+              </div>
+              <button
+                onClick={handleTogglePublic}
+                disabled={savingPublic}
+                aria-label={isPublic ? "공개를 비공개로 전환" : "비공개를 공개로 전환"}
+                className="shrink-0 rounded-full transition-all"
+                style={{ width: 48, height: 28, backgroundColor: isPublic ? YELLOW : "#DDD", position: "relative" }}
+              >
+                <div
+                  className="absolute top-1 rounded-full bg-white"
+                  style={{ width: 20, height: 20, left: isPublic ? 24 : 4, transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.18)" }}
+                />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* 7. 이 아이템으로 만든 스타일북 */}
         <div className="py-5 bg-white" style={{ borderBottom: "1px solid #F5F5F5" }}>
@@ -787,22 +796,24 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
         <div style={{ height: 80 }} />
       </div>
 
-      {/* ── Bottom CTA ── */}
-      <div
-        className="shrink-0 bg-white px-4 py-3"
-        style={{ borderTop: "1px solid #F0F0F0" }}
-      >
-        <button
-          className="w-full h-12 rounded-xl text-[14px] font-bold flex items-center justify-center gap-2"
-          style={{ backgroundColor: DARK, color: "white", fontFamily: FONT }}
-          onClick={() => onMakeStyle?.(item)}
+      {/* ── Bottom CTA — 소유자만 ── */}
+      {isOwner && (
+        <div
+          className="shrink-0 bg-white px-4 py-3"
+          style={{ borderTop: "1px solid #F0F0F0" }}
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M8 3V13M3 8H13" stroke="white" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-          이 아이템으로 스타일 만들기
-        </button>
-      </div>
+          <button
+            className="w-full h-12 rounded-xl text-[14px] font-bold flex items-center justify-center gap-2"
+            style={{ backgroundColor: DARK, color: "white", fontFamily: FONT }}
+            onClick={() => onMakeStyle?.(item)}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 3V13M3 8H13" stroke="white" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            이 아이템으로 스타일 만들기
+          </button>
+        </div>
+      )}
 
       {/* ── Sales copy preview sheet ── */}
       {showCopyPreview && (

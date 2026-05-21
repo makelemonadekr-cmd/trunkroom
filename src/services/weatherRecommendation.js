@@ -304,7 +304,11 @@ const OUTFIT_RULES = [
     match: (_ctx, eff) => eff <= 5,
     rec: {
       keyword: "울 코트 레이어드",
-      desc:    "꽤 추운 날이에요. 두꺼운 울 코트에 터틀넥을 더하면 타임리스한 겨울 스타일이 완성돼요.",
+      descFn: () => {
+        const season = getSeason(new Date().getMonth() + 1);
+        const style = season === "winter" ? "겨울 스타일" : "레이어드 스타일";
+        return `꽤 추운 날이에요. 두꺼운 울 코트에 터틀넥을 더하면 타임리스한 ${style}이 완성돼요.`;
+      },
       image:   WEATHER_IMGS.veryCold,
       intensity: "heavy",
       tempBand:  "추위",
@@ -353,7 +357,11 @@ const OUTFIT_RULES = [
     match: (_ctx, eff) => eff <= 15,
     rec: {
       keyword: "블레이저 스타일",
-      desc:    "가을 바람이 살랑이는 날이에요. 테일러드 블레이저에 슬랙스를 매치하면 센스 있는 스타일이 완성돼요.",
+      descFn: () => {
+        const season = getSeason(new Date().getMonth() + 1);
+        const wind = season === "spring" ? "봄바람" : season === "fall" ? "가을 바람" : "선선한 바람";
+        return `${wind}이 살랑이는 날이에요. 테일러드 블레이저에 슬랙스를 매치하면 센스 있는 스타일이 완성돼요.`;
+      },
       image:   WEATHER_IMGS.chilly,
       intensity: "medium",
       tempBand:  "선선함",
@@ -501,6 +509,11 @@ export function getWeatherOutfitRec(ctx) {
 
   // Inject dynamic tip values (e.g. wind speed)
   const rec = { ...rule.rec, reason: rule.id, effectiveTemp: eff };
+  // Resolve season-aware desc (descFn overrides static desc)
+  if (typeof rec.descFn === "function") {
+    rec.desc = rec.descFn();
+    delete rec.descFn;
+  }
   rec.tips = rec.tips.map((tip) =>
     tip.label.includes("${0}") ? { ...tip, label: tip.label.replace("${0}", safe.wind) } : tip
   );

@@ -154,7 +154,7 @@ export default function BottomNav({ active, onTabChange }) {
         // Reserve room for iOS home indicator at the bottom on devices that have one.
         paddingBottom: "max(4px, env(safe-area-inset-bottom))",
         height: "calc(60px + max(0px, env(safe-area-inset-bottom)))",
-        zIndex: 100,
+        zIndex: 200,
         overflow: "visible",
       }}
     >

@@ -38,11 +38,10 @@ const DARK   = "#1a1a1a";
 const YELLOW = "#F5C200";
 
 // ── Mock fill thresholds ───────────────────────────────────────────────────────
-// How many mock items/styles/sellers to show at most.
-// As real Supabase data accumulates the mock count automatically shrinks to zero.
-const ITEM_MOCK_FILL_COUNT   = 20;
-const STYLE_MOCK_FILL_COUNT  = 15;
-const SELLER_MOCK_FILL_COUNT = 8;
+// Set to 0: only real Supabase data is shown. Mock fill removed.
+const ITEM_MOCK_FILL_COUNT   = 0;
+const STYLE_MOCK_FILL_COUNT  = 0;
+const SELLER_MOCK_FILL_COUNT = 0;
 
 // ─── Color map (for public items filter) ──────────────────────────────────────
 const COLOR_HEX = {

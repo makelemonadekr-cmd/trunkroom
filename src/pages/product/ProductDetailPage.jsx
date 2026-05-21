@@ -6,6 +6,8 @@ import { OUTFIT_DATA } from "../../constants/mockOutfitData";
 import { showToast } from "../../lib/toastUtils";
 import { useSellerContent } from "../../hooks/useDiscovery.js";
 import { fetchStylesByItemId } from "../../services/stylesService.js";
+import { fetchComments, addComment, deleteComment } from "../../services/commentsService.js";
+import { useAuth } from "../../hooks/useAuth.js";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
@@ -297,13 +299,15 @@ function SellerScreen({ sellerName, onBack }) {
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 export default function ProductDetailPage({ product, onBack }) {
+  const { user } = useAuth();
   const [liked,             setLiked]             = useState(false);
   const [followed,          setFollowed]           = useState(false);
   const [commentText,       setCommentText]        = useState("");
-  const [comments,          setComments]           = useState([]);   // real comments only (none yet)
+  const [comments,          setComments]           = useState([]);
+  const [commentLoading,    setCommentLoading]     = useState(false);
   const [showSeller,        setShowSeller]         = useState(false);
-  const [activeOutfit,      setActiveOutfit]       = useState(null); // OutfitDetailScreen
-  const [selectedSellerItem, setSelectedSellerItem] = useState(null); // nested ProductDetailPage
+  const [activeOutfit,      setActiveOutfit]       = useState(null);
+  const [selectedSellerItem, setSelectedSellerItem] = useState(null);
   const commentInputRef = useRef(null);
 
   // Real seller content from Supabase (if product belongs to a real public seller)
@@ -323,6 +327,14 @@ export default function ProductDetailPage({ product, onBack }) {
         avatar:    "👤",
         username:  s.user_id?.slice(0, 8) ?? "user",
       })));
+    });
+  }, [product?.id]);
+
+  // Comments — load from DB
+  useEffect(() => {
+    if (!product?.id) return;
+    fetchComments(product.id).then(({ comments: fetched }) => {
+      setComments(fetched ?? []);
     });
   }, [product?.id]);
 
@@ -360,10 +372,22 @@ export default function ProductDetailPage({ product, onBack }) {
     } catch (_) {}
   }
 
-  function submitComment() {
+  async function submitComment() {
     if (!commentText.trim()) return;
-    setComments(prev => [{ id: Date.now(), username: "나", avatar: "😊", text: commentText.trim(), time: "방금" }, ...prev]);
+    if (!user) { showToast("댓글을 달려면 로그인이 필요해요"); return; }
+    setCommentLoading(true);
+    const text = commentText.trim();
     setCommentText("");
+    const { comment, error } = await addComment(product.id, user.id, text);
+    setCommentLoading(false);
+    if (error) { showToast("댓글 등록에 실패했어요"); setCommentText(text); return; }
+    setComments(prev => [comment, ...prev]);
+  }
+
+  async function handleDeleteComment(commentId) {
+    const { error } = await deleteComment(commentId);
+    if (error) { showToast("댓글 삭제에 실패했어요"); return; }
+    setComments(prev => prev.filter(c => c.id !== commentId));
   }
 
   return (
@@ -591,8 +615,64 @@ export default function ProductDetailPage({ product, onBack }) {
           </div>
         )}
 
-        {/* Comments section removed for now — no backing comments table yet.
-            Restore once supabase 'comments' table + service exist. */}
+        {/* ── 댓글 ── */}
+        <div className="px-5 pt-5 pb-3 bg-white">
+          <p className="text-[14px] font-bold mb-4" style={{ color: DARK, fontFamily: FONT }}>
+            댓글 {comments.length}
+          </p>
+          {comments.length > 0 && (
+            <div className="flex flex-col gap-4 mb-4">
+              {comments.map((c) => (
+                <div key={c.id} className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-[15px] overflow-hidden"
+                    style={{ backgroundColor: "#F5F5F5" }}>
+                    {c.avatar
+                      ? <img src={c.avatar} alt="" className="w-full h-full object-cover" />
+                      : "👤"}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[12px] font-bold" style={{ color: DARK, fontFamily: FONT }}>{c.username}</span>
+                        <span className="text-[11px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>{c.timeAgo}</span>
+                      </div>
+                      {user?.id === c.userId && (
+                        <button onClick={() => handleDeleteComment(c.id)}
+                          className="text-[11px]" style={{ color: "#CCCCCC", fontFamily: FONT }}>
+                          삭제
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[13px] mt-0.5 leading-relaxed" style={{ color: "#444", fontFamily: FONT }}>{c.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <div ref={commentInputRef} className="flex gap-2 items-center">
+            <input
+              type="text"
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submitComment()}
+              placeholder={user ? "댓글을 남겨보세요..." : "로그인 후 댓글을 남길 수 있어요"}
+              disabled={commentLoading}
+              className="flex-1 px-3 py-2.5 rounded-xl text-[13px] outline-none"
+              style={{ backgroundColor: "#F5F5F5", border: "1px solid #EEEEEE", fontFamily: FONT, color: DARK }}
+            />
+            <button
+              onClick={submitComment}
+              disabled={commentLoading || !commentText.trim()}
+              className="px-3 py-2.5 rounded-xl text-[12px] font-bold transition-all"
+              style={{
+                backgroundColor: commentText.trim() && !commentLoading ? DARK : "#EEEEEE",
+                color: commentText.trim() && !commentLoading ? "white" : "#AAAAAA",
+                fontFamily: FONT
+              }}>
+              {commentLoading ? "…" : "등록"}
+            </button>
+          </div>
+        </div>
 
         <div style={{ height: 80 }} />
       </div>

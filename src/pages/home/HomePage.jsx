@@ -39,6 +39,108 @@ import {
 import { zoneItemImg, zoneCoordiImg } from "../../lib/localImages";
 import StyleBoardTemplate from "../../components/StyleBoardTemplate.jsx";
 
+// ─── 옷장 구원템 (NoBrablem sponsored / sister brand products) ─────────────────
+// 같은 회사 (메이크레모네이드) 제품. 클릭 시 외부 쇼핑몰로 이동.
+const NOBRABLEM_PRODUCTS = [
+  {
+    id: "nb-tape-basic",
+    name: "리프팅 가슴 테이프 기본 패키지",
+    blurb: "브라테이프 + 하트 니플패치",
+    price: 14900,
+    originalPrice: 22900,
+    image: "https://cdn-optimized.imweb.me/upload/S202307133c58dfe53dd54/9891d15224fe2.png",
+    url: "https://www.nobrablem.shop/?idx=37",
+  },
+  {
+    id: "nb-nubra",
+    name: "누브라블럼",
+    blurb: "테이핑 전용 푸쉬업 누드 브라",
+    price: 18000,
+    originalPrice: 21000,
+    image: "https://cdn-optimized.imweb.me/upload/S202307133c58dfe53dd54/3456729400617.png",
+    url: "https://www.nobrablem.shop/?idx=41",
+  },
+  {
+    id: "nb-glue-tape",
+    name: "내 몸에 딱풀 테이프",
+    blurb: "옷 흘러내림 방지 · 맵시 테이프",
+    price: 9900,
+    originalPrice: 12900,
+    image: "https://cdn-optimized.imweb.me/upload/S202307133c58dfe53dd54/36952ff51f344.png",
+    url: "https://www.nobrablem.shop/?idx=32",
+  },
+  {
+    id: "nb-nipple-heart",
+    name: "하트 니플패치",
+    blurb: "4매입 · 베이직 무드",
+    price: 7900,
+    originalPrice: 14900,
+    image: "https://cdn-optimized.imweb.me/upload/S202307133c58dfe53dd54/c8790440b6111.png",
+    url: "https://www.nobrablem.shop/?idx=31",
+  },
+];
+
+function ClosetSavorSection() {
+  const FONT = "'Spoqa Han Sans Neo', sans-serif";
+  return (
+    <div className="py-6 bg-white" style={{ borderTop: "1px solid #F5F5F5", borderBottom: "1px solid #F5F5F5" }}>
+      <div className="flex items-end justify-between px-4 mb-3">
+        <div>
+          <p className="text-[10px] font-bold tracking-[0.12em] uppercase" style={{ color: "#F5C200", fontFamily: FONT }}>
+            CLOSET SAVOR
+          </p>
+          <h3 className="text-[16px] font-bold mt-0.5" style={{ color: "#1a1a1a", fontFamily: FONT, letterSpacing: "-0.02em" }}>
+            옷장 구원템 by 노브라블럼
+          </h3>
+        </div>
+        <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "#F5F5F5", color: "#AAAAAA", fontFamily: FONT }}>
+          AD
+        </span>
+      </div>
+      <div className="flex overflow-x-auto gap-3 px-4" style={{ scrollbarWidth: "none" }}>
+        {NOBRABLEM_PRODUCTS.map((p) => (
+          <a
+            key={p.id}
+            href={p.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 rounded-2xl overflow-hidden active:opacity-80"
+            style={{ width: 140, backgroundColor: "#FAFAFA", border: "1px solid #F0F0F0", textDecoration: "none" }}
+          >
+            <div className="relative" style={{ aspectRatio: "1 / 1", backgroundColor: "white" }}>
+              <img
+                src={p.image}
+                alt={p.name}
+                className="absolute inset-0 w-full h-full"
+                style={{ objectFit: "contain", padding: 8 }}
+                loading="lazy"
+              />
+            </div>
+            <div className="px-2.5 pt-2 pb-2.5">
+              <p className="text-[11px] font-bold leading-snug" style={{ color: "#1a1a1a", fontFamily: FONT, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", minHeight: 28 }}>
+                {p.name}
+              </p>
+              <p className="text-[9px] mt-0.5 truncate" style={{ color: "#888", fontFamily: FONT }}>
+                {p.blurb}
+              </p>
+              <div className="flex items-baseline gap-1.5 mt-1.5">
+                <span className="text-[12px] font-bold" style={{ color: "#1a1a1a", fontFamily: FONT }}>
+                  {p.price.toLocaleString()}원
+                </span>
+                {p.originalPrice > p.price && (
+                  <span className="text-[10px] line-through" style={{ color: "#BBB", fontFamily: FONT }}>
+                    {p.originalPrice.toLocaleString()}
+                  </span>
+                )}
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Date helper ──────────────────────────────────────────────────────────────
 /** 오늘 날짜를 로컬 타임존 기준 YYYY-MM-DD 문자열로 반환. */
 function todayStr() {
@@ -2055,6 +2157,9 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
           publicStyles={publicStyles}
           userDisplayName={userDisplayName}
         />
+
+        {/* ⑤.5 옷장 구원템 — 노브라블럼 sponsored */}
+        <ClosetSavorSection />
 
         {/* ⑥ Trending items from others' closets */}
         <div className="py-6 bg-white">

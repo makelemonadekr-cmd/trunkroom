@@ -507,15 +507,16 @@ export default function ProductDetailPage({ product, onBack }) {
               </div>
             ))}
           </div>
-          {/* Owner memo */}
-          <div className="rounded-xl px-4 py-3" style={{ backgroundColor: "#FAFAFA", border: "1px solid #F0F0F0" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5"
-              style={{ color: "#BBBBBB", fontFamily: FONT }}>소유자 메모</p>
-            <p className="text-[13px] leading-relaxed" style={{ color: "#555", fontFamily: FONT }}>
-              2022년 봄에 구매했어요. 색감이 너무 예뻐서 샀는데 요즘 잘 안 입게 됐어요.
-              딱 두 시즌 정도 착용했고 보관 상태 좋습니다. 원래 정가 89,000원이었어요.
-            </p>
-          </div>
+          {/* Owner memo — only show when the item has actual notes */}
+          {(product.notes || product.memo || product.description) && (
+            <div className="rounded-xl px-4 py-3" style={{ backgroundColor: "#FAFAFA", border: "1px solid #F0F0F0" }}>
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5"
+                style={{ color: "#BBBBBB", fontFamily: FONT }}>소유자 메모</p>
+              <p className="text-[13px] leading-relaxed" style={{ color: "#555", fontFamily: FONT }}>
+                {product.notes || product.memo || product.description}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* ── 이 아이템으로 만든 스타일북 — only show real stylebooks that include this item ── */}

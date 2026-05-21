@@ -1220,14 +1220,13 @@ function CommunityTodaySection({
   const FONT = "'Spoqa Han Sans Neo', sans-serif";
   const [activePost, setActivePost] = useState(null);
 
-  // 1) User's own styles first (max 1 to leave room for community)
+  // 1) User's own latest style first
   const userPosts = (userStyles ?? []).slice(0, 1).map((s) => ({
     id: `me-${s.id}`,
     username: userDisplayName,
     avatar: "👤",
     timeAgo: s.dateStr ?? "최근",
-    image: s.background_url ?? s.photoUrl ?? s.previewImage
-        ?? (closetItems[0]?.image) ?? null,
+    image: s.background_url ?? s.photoUrl ?? s.previewImage ?? null,
     mood: s.mood ?? "내 스타일",
     moodColor: "#FFF5CC",
     moodText: "#806000",
@@ -1236,9 +1235,9 @@ function CommunityTodaySection({
     isMine: true,
   })).filter((p) => p.image);
 
-  // 2) Real public styles from other users (서연, 민지, 수아 등)
+  // 2) Real public styles from other users — no mock fallback
   const realPosts = (publicStyles ?? [])
-    .filter((s) => s.previewImage && s.seller?.displayName)
+    .filter((s) => s.previewImage)          // image 있는 것만 (seller 정보 없어도 표시)
     .slice(0, 6)
     .map((s) => {
       const mood = s.style ?? "캐주얼";
@@ -1246,8 +1245,8 @@ function CommunityTodaySection({
       return {
         id:        `real-${s.id}`,
         sellerId:  s.userId,
-        username:  s.seller.displayName,
-        avatar:    s.seller.profileImage ?? "👤",
+        username:  s.seller?.displayName ?? "트렁크룸 유저",
+        avatar:    s.seller?.profileImage ?? "👤",
         timeAgo:   s.dateStr ?? "최근",
         image:     s.previewImage,
         mood,
@@ -1258,11 +1257,8 @@ function CommunityTodaySection({
       };
     });
 
-  // 3) Mock fallback if real is short
-  const need = Math.max(0, 4 - userPosts.length - realPosts.length);
-  const fallback = need > 0 ? COMMUNITY_TODAY_POSTS.slice(0, need) : [];
-
-  const feed = [...userPosts, ...realPosts, ...fallback].slice(0, 4);
+  // mock fallback 제거 — 실데이터만 표시
+  const feed = [...userPosts, ...realPosts].slice(0, 4);
 
   return (
     <>

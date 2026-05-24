@@ -13,7 +13,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import OutfitDetailScreen from "./OutfitDetailScreen";
-import { MAIN_CATEGORIES } from "../constants/mockClosetData";
+import { MAIN_CATEGORIES, SUBCATEGORIES } from "../constants/mockClosetData";
 import { showToast } from "../lib/toastUtils";
 import { useAuth }         from "../hooks/useAuth.js";
 import { useWearLogs }     from "../hooks/useWearLogs.js";
@@ -412,6 +412,52 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
   const [deleting,        setDeleting]        = useState(false);
   const memoRef = useRef(null);
 
+  // ── 편집 시트 ────────────────────────────────────────────────────────────
+  const [showEditSheet, setShowEditSheet] = useState(false);
+  const [editForm, setEditForm] = useState({});
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  function openEditSheet() {
+    setEditForm({
+      brand:         item.brand ?? "",
+      display_name:  item.displayName ?? item.name ?? "",
+      main_category: item.mainCategory ?? item.category ?? "",
+      sub_category:  item.subCategory ?? item.subcategory ?? "",
+      condition:     item.condition ?? "",
+      size:          item.size ?? "",
+      color:         item.color ?? "",
+      material:      item.material ?? "",
+      price:         item.price ? String(item.price) : "",
+      season:        Array.isArray(item.season) ? item.season : [item.season].filter(Boolean),
+    });
+    setShowEditSheet(true);
+  }
+
+  async function handleSaveEdit() {
+    setSavingEdit(true);
+    const patch = {
+      brand:         editForm.brand.trim(),
+      display_name:  editForm.display_name.trim(),
+      main_category: editForm.main_category,
+      sub_category:  editForm.sub_category,
+      condition:     editForm.condition,
+      size:          editForm.size.trim(),
+      color:         editForm.color.trim(),
+      material:      editForm.material.trim(),
+      price:         editForm.price ? Number(editForm.price.replace(/[^0-9]/g, "")) : 0,
+      season:        editForm.season,
+    };
+    const { error } = await updateClosetItem(item.id, patch);
+    setSavingEdit(false);
+    if (error) {
+      showToast("저장에 실패했어요", "error");
+    } else {
+      showToast("수정되었어요 ✓", "success");
+      setShowEditSheet(false);
+      onMemoSaved?.(); // 옷장 리스트 새로고침
+    }
+  }
+
   const todayStr = (() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
@@ -535,6 +581,17 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
               <path d="M4 12V16C4 16.55 4.45 17 5 17H15C15.55 17 16 16.55 16 16V12" stroke="#333" strokeWidth="1.6" strokeLinecap="round" />
             </svg>
           </button>
+          {isOwner && (
+            <button
+              onClick={openEditSheet}
+              className="w-9 h-9 flex items-center justify-center active:opacity-60"
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M13 2.5L15.5 5L6 14.5L2.5 15.5L3.5 12L13 2.5Z" stroke="#333" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M11.5 4L14 6.5" stroke="#333" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </button>
+          )}
           {isOwner && (
             <button
               onClick={() => setShowDeleteConfirm(true)}
@@ -942,6 +999,190 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
                   <div style={{ width: 16, height: 16, border: "2px solid white", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
                 ) : "삭제"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 편집 시트 ── */}
+      {showEditSheet && (
+        <div
+          className="absolute inset-0 z-50 flex flex-col justify-end"
+          style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+          onClick={() => !savingEdit && setShowEditSheet(false)}
+        >
+          <div
+            className="w-full rounded-t-3xl bg-white"
+            style={{ maxHeight: "88vh", display: "flex", flexDirection: "column" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 시트 헤더 */}
+            <div className="flex items-center justify-between px-5 pt-5 pb-3 shrink-0">
+              <button onClick={() => setShowEditSheet(false)} className="text-[14px]" style={{ color: "#AAAAAA", fontFamily: FONT }}>
+                취소
+              </button>
+              <p className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT }}>아이템 편집</p>
+              <button
+                onClick={handleSaveEdit}
+                disabled={savingEdit}
+                className="text-[14px] font-bold"
+                style={{ color: YELLOW, fontFamily: FONT }}
+              >
+                {savingEdit ? "저장 중..." : "저장"}
+              </button>
+            </div>
+
+            {/* 스크롤 영역 */}
+            <div className="overflow-y-auto px-5 pb-10" style={{ scrollbarWidth: "none" }}>
+
+              {/* 브랜드 */}
+              <div className="mb-4">
+                <p className="text-[11px] font-bold mb-1.5" style={{ color: "#888", fontFamily: FONT }}>브랜드</p>
+                <input
+                  className="w-full h-11 rounded-xl px-4 text-[14px] outline-none"
+                  style={{ backgroundColor: "#F8F8F8", color: DARK, fontFamily: FONT, border: "1px solid #F0F0F0" }}
+                  value={editForm.brand}
+                  onChange={(e) => setEditForm((f) => ({ ...f, brand: e.target.value }))}
+                  placeholder="브랜드명"
+                />
+              </div>
+
+              {/* 아이템명 */}
+              <div className="mb-4">
+                <p className="text-[11px] font-bold mb-1.5" style={{ color: "#888", fontFamily: FONT }}>아이템명</p>
+                <input
+                  className="w-full h-11 rounded-xl px-4 text-[14px] outline-none"
+                  style={{ backgroundColor: "#F8F8F8", color: DARK, fontFamily: FONT, border: "1px solid #F0F0F0" }}
+                  value={editForm.display_name}
+                  onChange={(e) => setEditForm((f) => ({ ...f, display_name: e.target.value }))}
+                  placeholder="아이템명"
+                />
+              </div>
+
+              {/* 카테고리 */}
+              <div className="mb-4">
+                <p className="text-[11px] font-bold mb-1.5" style={{ color: "#888", fontFamily: FONT }}>카테고리</p>
+                <div className="flex gap-2">
+                  <select
+                    className="flex-1 h-11 rounded-xl px-3 text-[13px] outline-none"
+                    style={{ backgroundColor: "#F8F8F8", color: DARK, fontFamily: FONT, border: "1px solid #F0F0F0" }}
+                    value={editForm.main_category}
+                    onChange={(e) => setEditForm((f) => ({ ...f, main_category: e.target.value, sub_category: "" }))}
+                  >
+                    <option value="">대분류</option>
+                    {MAIN_CATEGORIES.map((c) => (
+                      <option key={c.id} value={c.id}>{c.label}</option>
+                    ))}
+                  </select>
+                  <select
+                    className="flex-1 h-11 rounded-xl px-3 text-[13px] outline-none"
+                    style={{ backgroundColor: "#F8F8F8", color: DARK, fontFamily: FONT, border: "1px solid #F0F0F0" }}
+                    value={editForm.sub_category}
+                    onChange={(e) => setEditForm((f) => ({ ...f, sub_category: e.target.value }))}
+                  >
+                    <option value="">소분류</option>
+                    {(SUBCATEGORIES[editForm.main_category] ?? []).map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* 상태 */}
+              <div className="mb-4">
+                <p className="text-[11px] font-bold mb-1.5" style={{ color: "#888", fontFamily: FONT }}>상태</p>
+                <div className="flex flex-wrap gap-2">
+                  {["새 상품", "거의 새 것", "상태 좋음", "사용감 있음", "상태 나쁨"].map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => setEditForm((f) => ({ ...f, condition: c }))}
+                      className="px-3 h-8 rounded-full text-[12px] font-medium"
+                      style={{
+                        backgroundColor: editForm.condition === c ? DARK : "#F0F0F0",
+                        color: editForm.condition === c ? "white" : "#666",
+                        fontFamily: FONT,
+                      }}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 계절 */}
+              <div className="mb-4">
+                <p className="text-[11px] font-bold mb-1.5" style={{ color: "#888", fontFamily: FONT }}>계절 (복수 선택)</p>
+                <div className="flex gap-2">
+                  {["봄", "여름", "가을", "겨울"].map((s) => {
+                    const sel = editForm.season?.includes(s);
+                    const st = SEASON_STYLE[s];
+                    return (
+                      <button
+                        key={s}
+                        onClick={() => setEditForm((f) => ({
+                          ...f,
+                          season: sel
+                            ? f.season.filter((x) => x !== s)
+                            : [...(f.season ?? []), s],
+                        }))}
+                        className="flex-1 h-9 rounded-full text-[12px] font-semibold"
+                        style={{
+                          backgroundColor: sel ? st.bg : "#F0F0F0",
+                          color: sel ? st.color : "#999",
+                          fontFamily: FONT,
+                        }}
+                      >
+                        {s}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 사이즈 / 색상 */}
+              <div className="flex gap-3 mb-4">
+                {[
+                  { key: "size", label: "사이즈", ph: "M, 95, Free..." },
+                  { key: "color", label: "색상", ph: "블랙, 화이트..." },
+                ].map(({ key, label, ph }) => (
+                  <div key={key} className="flex-1">
+                    <p className="text-[11px] font-bold mb-1.5" style={{ color: "#888", fontFamily: FONT }}>{label}</p>
+                    <input
+                      className="w-full h-11 rounded-xl px-3 text-[13px] outline-none"
+                      style={{ backgroundColor: "#F8F8F8", color: DARK, fontFamily: FONT, border: "1px solid #F0F0F0" }}
+                      value={editForm[key]}
+                      onChange={(e) => setEditForm((f) => ({ ...f, [key]: e.target.value }))}
+                      placeholder={ph}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* 소재 */}
+              <div className="mb-4">
+                <p className="text-[11px] font-bold mb-1.5" style={{ color: "#888", fontFamily: FONT }}>소재</p>
+                <input
+                  className="w-full h-11 rounded-xl px-4 text-[14px] outline-none"
+                  style={{ backgroundColor: "#F8F8F8", color: DARK, fontFamily: FONT, border: "1px solid #F0F0F0" }}
+                  value={editForm.material}
+                  onChange={(e) => setEditForm((f) => ({ ...f, material: e.target.value }))}
+                  placeholder="면, 울, 폴리에스터..."
+                />
+              </div>
+
+              {/* 구매 가격 */}
+              <div className="mb-4">
+                <p className="text-[11px] font-bold mb-1.5" style={{ color: "#888", fontFamily: FONT }}>구매 가격</p>
+                <input
+                  className="w-full h-11 rounded-xl px-4 text-[14px] outline-none"
+                  style={{ backgroundColor: "#F8F8F8", color: DARK, fontFamily: FONT, border: "1px solid #F0F0F0" }}
+                  value={editForm.price}
+                  onChange={(e) => setEditForm((f) => ({ ...f, price: e.target.value }))}
+                  placeholder="0"
+                  inputMode="numeric"
+                />
+              </div>
+
             </div>
           </div>
         </div>

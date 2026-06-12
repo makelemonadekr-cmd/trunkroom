@@ -356,6 +356,8 @@ export default function App() {
                 onMakeStyle={handleMakeStyleWithItem}
                 onSellerOpen={setActiveSeller}
                 stylesSavedTick={stylesSavedTick}
+                onOpenMenu={() => setActiveTab("menu")}
+                onGoToCloset={() => handleTabChange("closet")}
               />
             )}
 

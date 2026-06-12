@@ -16,6 +16,7 @@ import express from "express";
 import multer from "multer";
 import { removeBg }        from "./lib/removeBg.js";
 import { analyzeClothing } from "./lib/analyzeClothing.js";
+import { parsePurchase }   from "./lib/parsePurchase.js";
 import { requireAuth }     from "./middleware/requireAuth.js";
 import { checkLimit, logUsage } from "./lib/rateLimit.js";
 
@@ -144,6 +145,44 @@ app.post("/api/analyze-clothing", requireAuth, async (req, res) => {
     return res.json({ ...result, used: used + 1, limit });
   } catch (err) {
     console.error("[/api/analyze-clothing] unhandled error:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * POST /api/parse-purchase
+ * 쇼핑 스크린샷 → 구매 정보 추출 (캡쳐 등록).
+ * 인증 필요. analyze_clothing과 같은 월간 한도를 공유.
+ */
+app.post("/api/parse-purchase", requireAuth, async (req, res) => {
+  const userId = req.userId;
+
+  const { allowed, used, limit, isPremium } = await checkLimit(userId, "analyze_clothing");
+  if (!allowed) {
+    return res.status(429).json({
+      error: `이번 달 AI 분석 ${limit}회를 모두 사용했어요. 프리미엄으로 업그레이드하면 무제한으로 이용할 수 있어요.`,
+      used, limit, isPremium,
+      upgradeRequired: true,
+    });
+  }
+
+  const { imageBase64, mimeType } = req.body ?? {};
+  if (!imageBase64) {
+    return res.status(400).json({ success: false, error: "imageBase64가 필요해요" });
+  }
+
+  try {
+    const result = await parsePurchase(imageBase64, mimeType ?? "image/jpeg");
+
+    await logUsage(userId, "analyze_clothing", {
+      success: result.success,
+      billed:  true,
+      source:  "parse_purchase",
+    });
+
+    return res.json({ ...result, used: used + 1, limit });
+  } catch (err) {
+    console.error("[/api/parse-purchase] unhandled error:", err.message);
     return res.status(500).json({ success: false, error: err.message });
   }
 });

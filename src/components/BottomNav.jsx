@@ -1,15 +1,24 @@
+/**
+ * BottomNav.jsx — v3 게임형 3탭 내비게이션
+ *
+ * 홈 / 내 옷장(센터 원형) / 기록.
+ * 발견·메뉴 탭은 v3에서 동면 — 메뉴는 홈 헤더 톱니로 진입.
+ * 클로리스풍: 큼직한 아이콘, 통통 튀는 액티브 상태.
+ */
+
 const YELLOW = "#F5C200";
 const BLACK  = "#1a1a1a";
+const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 
 function HomeIcon({ active }) {
-  const c = active ? YELLOW : BLACK;
+  const c = active ? BLACK : "#B5B5B5";
   return (
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+    <svg width="26" height="26" viewBox="0 0 22 22" fill="none">
       <path
         d="M2 9.5L11 2L20 9.5V20C20 20.55 19.55 21 19 21H14V15H8V21H3C2.45 21 2 20.55 2 20V9.5Z"
         fill={active ? YELLOW : "none"}
         stroke={c}
-        strokeWidth="1.6"
+        strokeWidth="1.8"
         strokeLinejoin="round"
       />
     </svg>
@@ -17,94 +26,73 @@ function HomeIcon({ active }) {
 }
 
 function RecordIcon({ active }) {
-  const c = active ? YELLOW : BLACK;
+  const c = active ? BLACK : "#B5B5B5";
   return (
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      {/* Calendar body */}
+    <svg width="26" height="26" viewBox="0 0 22 22" fill="none">
       <rect
         x="3" y="5" width="16" height="14"
-        rx="2.5"
+        rx="3"
         stroke={c}
-        strokeWidth="1.6"
-        fill={active ? "rgba(245,194,0,0.18)" : "none"}
+        strokeWidth="1.8"
+        fill={active ? YELLOW : "none"}
       />
-      {/* Calendar top pins */}
-      <path d="M8 2V5M14 2V5" stroke={c} strokeWidth="1.6" strokeLinecap="round" />
-      {/* Header line */}
-      <path d="M3 9H19" stroke={c} strokeWidth="1.3" />
-      {/* Dot grid */}
-      <circle cx="7.5"  cy="13" r="1" fill={c} />
-      <circle cx="11"   cy="13" r="1" fill={c} />
-      <circle cx="14.5" cy="13" r="1" fill={c} />
-      <circle cx="7.5"  cy="16.5" r="1" fill={c} />
-      <circle cx="11"   cy="16.5" r="1" fill={c} />
+      <path d="M8 2V5M14 2V5" stroke={c} strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M3 9H19" stroke={c} strokeWidth="1.4" />
+      <circle cx="7.5"  cy="13" r="1.1" fill={c} />
+      <circle cx="11"   cy="13" r="1.1" fill={c} />
+      <circle cx="14.5" cy="13" r="1.1" fill={c} />
+      <circle cx="7.5"  cy="16.5" r="1.1" fill={c} />
+      <circle cx="11"   cy="16.5" r="1.1" fill={c} />
     </svg>
   );
 }
 
-function DiscoverIcon({ active }) {
-  const c = active ? YELLOW : BLACK;
+function SideTab({ id, label, Icon, active, onTabChange }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      {/* Back card */}
-      <rect
-        x="8" y="2" width="12" height="15"
-        rx="2"
-        stroke={c}
-        strokeWidth="1.5"
-        fill={active ? "rgba(245,194,0,0.12)" : "none"}
-      />
-      {/* Front card */}
-      <rect
-        x="2" y="5" width="12" height="15"
-        rx="2"
-        stroke={c}
-        strokeWidth="1.5"
-        fill={active ? "rgba(245,194,0,0.20)" : "white"}
-      />
-      {/* Decorative lines on front card */}
-      <path d="M5 10H11" stroke={c} strokeWidth="1.2" strokeLinecap="round" />
-      <path d="M5 13H9" stroke={c} strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
+    <button
+      onClick={() => onTabChange(id)}
+      className="flex flex-col items-center gap-[4px] flex-1 pt-2 transition-transform active:scale-90"
+      style={{ minWidth: 0 }}
+    >
+      <Icon active={active} />
+      <span
+        className="text-[11px] leading-none"
+        style={{
+          color:      active ? BLACK : "#B5B5B5",
+          fontFamily: FONT,
+          fontWeight: active ? 700 : 500,
+        }}
+      >
+        {label}
+      </span>
+    </button>
   );
 }
 
-function MenuIcon({ active }) {
-  const c = active ? YELLOW : BLACK;
-  return (
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <path d="M3 6H19"  stroke={c} strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M3 11H19" stroke={c} strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M3 16H19" stroke={c} strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-// Center closet tab — uses the official logo image.
-// Circle floats ABOVE the nav using absolute positioning so it is never
-// clipped by surrounding overflow:hidden parents, on any screen size.
+// 센터 옷장 탭 — 떠 있는 큰 원. 어디서든 최상위.
 function ClosetLogoTab({ active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="flex flex-col items-center flex-1 relative"
+      className="flex flex-col items-center flex-1 relative transition-transform active:scale-90"
       style={{ minWidth: 0, paddingTop: 30, height: "100%" }}
       aria-label="내 옷장"
     >
-      {/* Elevated circle — absolutely positioned so it floats above the nav */}
       <div
         className="flex items-center justify-center rounded-full"
         style={{
           position: "absolute",
           left: "50%",
-          top: -18,
+          top: -24,
           transform: "translateX(-50%)",
-          width: 54,
-          height: 54,
-          backgroundColor: active ? "#F5C200" : "#F5F5F5",
-          boxShadow: active ? "0 4px 14px rgba(245,194,0,0.45)" : "0 4px 14px rgba(0,0,0,0.18)",
-          transition: "background-color 0.2s",
-          border: "3px solid white",
+          width: 64,
+          height: 64,
+          backgroundColor: active ? YELLOW : "#FFF7DB",
+          boxShadow: active
+            ? "0 6px 18px rgba(245,194,0,0.5)"
+            : "0 5px 16px rgba(0,0,0,0.16)",
+          transition: "background-color 0.2s, transform 0.2s",
+          border: "4px solid white",
           zIndex: 1000,
         }}
       >
@@ -112,20 +100,20 @@ function ClosetLogoTab({ active, onClick }) {
           src="/officiallogo.png"
           alt="옷장"
           style={{
-            width: 32,
-            height: 32,
+            width: 38,
+            height: 38,
             objectFit: "contain",
             filter: active ? "brightness(0)" : "none",
           }}
         />
       </div>
       <span
-        className="text-[10px] leading-none mt-auto"
+        className="text-[11px] leading-none mt-auto"
         style={{
-          color: active ? YELLOW : BLACK,
-          fontFamily: "'Spoqa Han Sans Neo', sans-serif",
-          fontWeight: active ? 700 : 400,
-          marginBottom: 4,
+          color:      active ? BLACK : "#B5B5B5",
+          fontFamily: FONT,
+          fontWeight: active ? 700 : 500,
+          marginBottom: 6,
         }}
       >
         내 옷장
@@ -134,80 +122,22 @@ function ClosetLogoTab({ active, onClick }) {
   );
 }
 
-const SIDE_TABS = [
-  { id: "home",     label: "홈",  Icon: HomeIcon     },
-  { id: "record",   label: "기록", Icon: RecordIcon   },
-  // center tab ("내 옷장") is handled separately below
-  { id: "discover", label: "발견", Icon: DiscoverIcon },
-  { id: "menu",     label: "메뉴", Icon: MenuIcon     },
-];
-
 export default function BottomNav({ active, onTabChange }) {
-  // Split into left-2 + center + right-2
-  const leftTabs  = SIDE_TABS.slice(0, 2);
-  const rightTabs = SIDE_TABS.slice(2);
-
   return (
     <div
-      className="flex items-end justify-around bg-white border-t border-[#EEEEEE] shrink-0 relative"
+      className="flex items-end justify-around bg-white shrink-0 relative"
       style={{
-        // Reserve room for iOS home indicator at the bottom on devices that have one.
         paddingBottom: "max(4px, env(safe-area-inset-bottom))",
-        height: "calc(60px + max(0px, env(safe-area-inset-bottom)))",
+        height: "calc(64px + max(0px, env(safe-area-inset-bottom)))",
         zIndex: 200,
         overflow: "visible",
+        borderTop: "1px solid #F0F0F0",
+        boxShadow: "0 -4px 16px rgba(0,0,0,0.04)",
       }}
     >
-      {leftTabs.map(({ id, label, Icon }) => {
-        const isActive = active === id;
-        return (
-          <button
-            key={id}
-            onClick={() => onTabChange(id)}
-            className="flex flex-col items-center gap-[3px] flex-1 pt-2"
-            style={{ minWidth: 0 }}
-          >
-            <Icon active={isActive} />
-            <span
-              className="text-[10px] leading-none"
-              style={{
-                color: isActive ? YELLOW : BLACK,
-                fontFamily: "'Spoqa Han Sans Neo', sans-serif",
-                fontWeight: isActive ? 700 : 400,
-              }}
-            >
-              {label}
-            </span>
-          </button>
-        );
-      })}
-
-      {/* Center: 옷장 logo tab */}
+      <SideTab id="home" label="홈" Icon={HomeIcon} active={active === "home"} onTabChange={onTabChange} />
       <ClosetLogoTab active={active === "closet"} onClick={() => onTabChange("closet")} />
-
-      {rightTabs.map(({ id, label, Icon }) => {
-        const isActive = active === id;
-        return (
-          <button
-            key={id}
-            onClick={() => onTabChange(id)}
-            className="flex flex-col items-center gap-[3px] flex-1 pt-2"
-            style={{ minWidth: 0 }}
-          >
-            <Icon active={isActive} />
-            <span
-              className="text-[10px] leading-none"
-              style={{
-                color: isActive ? YELLOW : BLACK,
-                fontFamily: "'Spoqa Han Sans Neo', sans-serif",
-                fontWeight: isActive ? 700 : 400,
-              }}
-            >
-              {label}
-            </span>
-          </button>
-        );
-      })}
+      <SideTab id="record" label="기록" Icon={RecordIcon} active={active === "record"} onTabChange={onTabChange} />
     </div>
   );
 }

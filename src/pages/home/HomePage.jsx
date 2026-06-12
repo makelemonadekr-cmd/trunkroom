@@ -18,11 +18,11 @@ import {
   TEMP_PREF_LABELS,
 } from "../../services/weatherRecommendation";
 import { useAuth }          from "../../hooks/useAuth.js";
-import { useWearLogs }      from "../../hooks/useWearLogs.js";
+import { useWearLogs, getItemWearFrequency } from "../../hooks/useWearLogs.js";
+import PaybackHeroCard from "../../components/PaybackHeroCard.jsx";
 import { useNotifications } from "../../hooks/useNotifications.js";
 import { useCloset }   from "../../hooks/useCloset.js";
 import { useStyles }   from "../../hooks/useStyles.js";
-import { usePublicStyles } from "../../hooks/useDiscovery.js";
 import {
   MAIN_CATEGORIES,
   SUBCATEGORIES,
@@ -1904,7 +1904,7 @@ function Footer({ onLegalOpen }) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
-export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGoToRecord, onGoToDiscover, onEditStyle, onMakeStyle, stylesSavedTick = 0 }) {
+export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGoToRecord, onGoToDiscover, onEditStyle, onMakeStyle, stylesSavedTick = 0, onOpenMenu, onGoToCloset }) {
   const [activeDetail,    setActiveDetail]    = useState(null);
   const [weatherOpen,     setWeatherOpen]     = useState(false);
   const [fullList,        setFullList]        = useState(null); // { title, items }
@@ -1938,11 +1938,9 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
     loading:       notifLoading,
   } = useNotifications(user?.id);
   const { styles, refresh: refreshStyles }    = useStyles(user?.id);
-  const { styles: publicStyles }              = usePublicStyles();
-  const userDisplayName =
-    user?.user_metadata?.display_name ?? user?.user_metadata?.nickname ??
-    (user?.email ? user.email.split("@")[0] : null) ?? "내 스타일";
   const todayRecord  = history[todayStr()] ?? null;
+  // 본전 게임 — itemId → 착용 횟수 맵
+  const wearFreqMap  = useMemo(() => getItemWearFrequency(history), [history]);
   // All saved styles for today — supports multiple styles per day
   const todayStyles  = (styles ?? []).filter((s) => s.dateStr === todayStr());
   // backward-compat single ref (first/latest style)
@@ -2113,12 +2111,19 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
         onSearchTap={() => setSearchOpen(true)}
         onFavoritesOpen={() => setFavoritesOpen(true)}
         onNotificationsOpen={() => setNotificationsOpen(true)}
+        onMenuTap={onOpenMenu}
       />
 
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
 
-        {/* ① Brand editorial banners — first impression */}
-        <BannerCarousel onBannerTap={(key) => setActiveDetail(key)} />
+        {/* ① 옷장 본전 게임 히어로 — v3 핵심 */}
+        <PaybackHeroCard
+          items={closetItems}
+          freqMap={wearFreqMap}
+          isGuest={!user}
+          onItemTap={onItemTap}
+          onGoToCloset={onGoToCloset}
+        />
 
         {/* ② Today's outfit record — square card, no weather */}
         <TodayRecordCard
@@ -2144,26 +2149,8 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
           closetItems={closetItems}
         />
 
-        {/* ⑤ Community — user's own first, then real public users, mock fallback */}
-        <CommunityTodaySection
-          onItemTap={onProductSelect}
-          onGoToDiscover={onGoToDiscover}
-          closetItems={closetItems}
-          userStyles={styles}
-          publicStyles={publicStyles}
-          userDisplayName={userDisplayName}
-        />
-
-        {/* ⑤.5 옷장 구원템 — 노브라블럼 sponsored */}
+        {/* ⑤ 옷장 구원템 — 노브라블럼 (자사 브랜드, 실링크) */}
         <ClosetSavorSection />
-
-        {/* ⑥ Trending items from others' closets */}
-        <div className="py-6 bg-white">
-          <SectionHeader en="HOT LISTINGS" ko="남의 옷장 가장 인기있는 아이템" onMore={() => onGoToDiscover?.("items")} />
-          <HorizontalScroll>
-            {HOT_LISTINGS.map((item) => <ProductCard key={item.id} item={item} wide onSelect={onProductSelect} />)}
-          </HorizontalScroll>
-        </div>
 
         <Footer onLegalOpen={onLegalOpen} />
       </div>

@@ -19,6 +19,7 @@ import { useAuth }         from "../hooks/useAuth.js";
 import { useWearLogs }     from "../hooks/useWearLogs.js";
 import { updateClosetItem, deleteClosetItem } from "../services/closetService.js";
 import { fetchStylesByItemId } from "../services/stylesService.js";
+import { getItemPayback } from "../lib/payback.js";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
@@ -266,9 +267,10 @@ function SaleSection({ item, onShowPreview }) {
   );
 }
 
-// ─── Wear history list ────────────────────────────────────────────────────────
+// ─── Wear history + 본전 게임 섹션 ────────────────────────────────────────────
 // `history` is the { [dateStr]: { itemIds, ... } } map from useWearLogs (Supabase).
-function WearHistorySection({ itemId, history: historyProp }) {
+function WearHistorySection({ item, history: historyProp, isOwner = false, onWearToday, savingWear = false }) {
+  const itemId = item.id;
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const wornDates = useMemo(() => {
@@ -278,11 +280,76 @@ function WearHistorySection({ itemId, history: historyProp }) {
       .sort((a, b) => b.localeCompare(a));
   }, [itemId, historyProp]);
 
-  const wearCount = wornDates.length;
-  const lastDate  = wornDates[0] ?? null;
+  const wearCount  = wornDates.length;
+  const lastDate   = wornDates[0] ?? null;
+  const today      = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  })();
+  const wornToday  = wornDates.includes(today);
+  const pb         = getItemPayback(item, wearCount);
 
   return (
     <div className="px-5 py-4 bg-white" style={{ borderBottom: "1px solid #F5F5F5" }}>
+
+      {/* ── 본전 게이지 (가격 있는 아이템만) ── */}
+      {pb.hasPrice && (
+        <div
+          className="rounded-2xl px-4 py-3.5 mb-3"
+          style={{
+            background: pb.done
+              ? "linear-gradient(135deg, #E2F8EE, #C9F2DF)"
+              : "linear-gradient(135deg, #FFF6D6, #FFEDA8)",
+            border: pb.done ? "2px solid #A9E8CB" : "2px solid #FFE584",
+          }}
+        >
+          <div className="flex items-end justify-between mb-1.5">
+            <span className="text-[12px] font-bold" style={{ color: pb.done ? "#2A9D6E" : "#8A7A45", fontFamily: FONT }}>
+              {pb.done ? "본전 완료! 이제 입을수록 이득 🏆" : `본전까지 ${pb.remaining}번!`}
+            </span>
+            <span className="text-[18px] font-bold leading-none" style={{ color: DARK, fontFamily: FONT }}>
+              회당 {pb.wears > 0 ? `${pb.costPerWear.toLocaleString()}원` : `${pb.price.toLocaleString()}원`}
+            </span>
+          </div>
+          <div className="rounded-full overflow-hidden" style={{ height: 12, backgroundColor: "rgba(255,255,255,0.75)" }}>
+            <div
+              className="h-full rounded-full"
+              style={{
+                width: `${Math.max(4, Math.round(pb.progress * 100))}%`,
+                background: pb.done ? "#3DCB87" : "linear-gradient(90deg, #F5C200, #FFD84D)",
+                transition: "width 0.6s cubic-bezier(0.22, 1, 0.36, 1)",
+              }}
+            />
+          </div>
+          <p className="text-[10px] mt-1.5" style={{ color: pb.done ? "#2A9D6E" : "#9A8A55", fontFamily: FONT }}>
+            {pb.price.toLocaleString()}원 ÷ {pb.wears}회 착용 · 목표 {pb.targetWears}회
+          </p>
+        </div>
+      )}
+
+      {/* ── 오늘 입었어! 버튼 (소유자만) ── */}
+      {isOwner && (
+        <button
+          onClick={() => !wornToday && !savingWear && onWearToday?.()}
+          disabled={wornToday || savingWear}
+          className="w-full h-12 rounded-2xl text-[14px] font-bold mb-3 transition-transform active:scale-95 flex items-center justify-center gap-2"
+          style={{
+            backgroundColor: wornToday ? "#F0F0F0" : YELLOW,
+            color:           wornToday ? "#AAAAAA" : DARK,
+            fontFamily: FONT,
+            boxShadow: wornToday ? "none" : "0 4px 12px rgba(245,194,0,0.4)",
+          }}
+        >
+          {savingWear ? (
+            <div style={{ width: 16, height: 16, border: "2px solid #1a1a1a", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+          ) : wornToday ? (
+            "오늘 입음 체크 완료 ✓"
+          ) : (
+            <>오늘 입었어! <span style={{ fontSize: 16 }}>👕</span></>
+          )}
+        </button>
+      )}
+
       {/* Stats boxes — same row, right box shows history when open */}
       <div className="flex gap-3 items-stretch">
         {/* 총 착용 횟수 — tap to toggle history */}
@@ -394,7 +461,8 @@ function StylebookCard({ outfit, onTap }) {
 // ─── Root ─────────────────────────────────────────────────────────────────────
 export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMakeStyle, onDelete, onMemoSaved }) {
   const { user }                    = useAuth();
-  const { history }                 = useWearLogs(user?.id);
+  const { history, saveLog }        = useWearLogs(user?.id);
+  const [savingWear, setSavingWear] = useState(false);
 
   // 소유자 여부 — snake_case(DB 원본) 또는 camelCase(정규화) 둘 다 수용
   const isOwner = !!(user?.id && (user.id === item.user_id || user.id === item.userId));
@@ -462,6 +530,39 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   })();
+
+  // ── "오늘 입었어!" — 오늘 착용 기록에 이 아이템 추가 (기존 기록과 머지) ───
+  async function handleWearToday() {
+    if (!user?.id) { showToast("로그인 후 이용할 수 있어요", "warning"); return; }
+    setSavingWear(true);
+    const existing = history[todayStr] ?? {};
+    const merged   = [...new Set([...(existing.itemIds ?? []), item.id])];
+    const { error } = await saveLog(todayStr, {
+      itemIds:  merged,
+      note:     existing.note ?? "",
+      photoUrl: existing.photoUrl ?? null,
+    });
+    setSavingWear(false);
+    if (error) {
+      showToast("기록에 실패했어요", "error");
+      return;
+    }
+    // 본전 진행 상황 토스트 — 게임 피드백
+    const wearsAfter = Object.keys(history).filter(
+      (d) => (history[d]?.itemIds ?? []).includes(item.id)
+    ).length + 1;
+    const pbAfter = getItemPayback(item, wearsAfter);
+    if (!pbAfter.hasPrice) {
+      showToast("오늘 착용 기록 완료 ✓", "success");
+    } else if (pbAfter.done && pbAfter.wears === pbAfter.targetWears) {
+      showToast("🏆 본전 완료! 이제 입을수록 이득이에요", "success");
+    } else if (pbAfter.done) {
+      showToast(`오늘도 이득! 회당 ${pbAfter.costPerWear.toLocaleString()}원 ✓`, "success");
+    } else {
+      showToast(`+1! 회당 ${pbAfter.costPerWear.toLocaleString()}원 · 본전까지 ${pbAfter.remaining}번 🔥`, "success");
+    }
+    onMemoSaved?.(); // 리스트 새로고침 (콜백 재사용)
+  }
 
   // ── Memo save to Supabase ────────────────────────────────────────────────
   async function handleMemoSave() {
@@ -699,7 +800,13 @@ export default function ClosetItemDetailScreen({ item, onBack, onOutfitTap, onMa
         </div>
 
         {/* 4. Wear stats + collapsible history */}
-        <WearHistorySection itemId={item.id} history={history} />
+        <WearHistorySection
+          item={item}
+          history={history}
+          isOwner={isOwner}
+          onWearToday={handleWearToday}
+          savingWear={savingWear}
+        />
 
         {/* 5. Sale toggle + form — 소유자만 */}
         {isOwner && (

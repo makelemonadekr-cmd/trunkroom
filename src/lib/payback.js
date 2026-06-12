@@ -1,0 +1,161 @@
+/**
+ * payback.js — 옷장 본전 게임 엔진
+ *
+ * 핵심 개념:
+ *   회당 단가(cost-per-wear) = 구매 가격 ÷ 착용 횟수
+ *   본전 목표 = 카테고리별 "회당 목표 단가"까지 회당 단가를 낮추는 것
+ *   예) 89,000원 상의(목표 3,000원/회) → 30번 입으면 본전 완료
+ *
+ * 모든 함수는 순수 함수 — useWearLogs의 freqMap(Map<itemId, count>)을 받아 계산.
+ */
+
+// ─── 카테고리별 회당 목표 단가 ─────────────────────────────────────────────
+export const TARGET_PER_WEAR = {
+  아우터:   5000,
+  원피스:   5000,
+  상의:     3000,
+  하의:     3000,
+  신발:     3000,
+  가방:     3000,
+  스포츠:   3000,
+  액세서리: 2000,
+};
+const DEFAULT_TARGET = 3000;
+
+// ─── 헬퍼 ─────────────────────────────────────────────────────────────────
+export function formatKRW(n) {
+  if (n == null || isNaN(n)) return "0원";
+  if (n >= 100000000) return `${(n / 100000000).toFixed(1).replace(/\.0$/, "")}억원`;
+  if (n >= 10000)     return `${Math.round(n / 10000).toLocaleString()}만원`;
+  return `${Math.round(n).toLocaleString()}원`;
+}
+
+export function formatKRWFull(n) {
+  if (n == null || isNaN(n)) return "0원";
+  return `${Math.round(n).toLocaleString()}원`;
+}
+
+function itemPrice(item) {
+  const p = Number(item.price ?? 0);
+  return p > 0 ? p : 0;
+}
+
+function itemCategory(item) {
+  return item.mainCategory ?? item.main_category ?? item.category ?? "";
+}
+
+function itemId(item) {
+  return item.id;
+}
+
+// ─── 아이템 단위 본전 계산 ─────────────────────────────────────────────────
+/**
+ * @param {Object} item     — clothing item (price, mainCategory…)
+ * @param {number} wears    — 착용 횟수
+ * @returns {{
+ *   hasPrice:    boolean,  // 가격 정보가 있는가 (없으면 게이지 숨김)
+ *   price:       number,
+ *   wears:       number,
+ *   costPerWear: number,   // 회당 단가 (wears 0이면 price 그대로)
+ *   targetWears: number,   // 본전까지 필요한 총 착용 횟수
+ *   remaining:   number,   // 본전까지 남은 착용 횟수
+ *   progress:    number,   // 0~1 게이지
+ *   done:        boolean,  // 본전 완료
+ * }}
+ */
+export function getItemPayback(item, wears = 0) {
+  const price = itemPrice(item);
+  if (!price) {
+    return { hasPrice: false, price: 0, wears, costPerWear: 0, targetWears: 0, remaining: 0, progress: 0, done: false };
+  }
+  const target      = TARGET_PER_WEAR[itemCategory(item)] ?? DEFAULT_TARGET;
+  const targetWears = Math.max(1, Math.ceil(price / target));
+  const progress    = Math.min(1, wears / targetWears);
+  const done        = wears >= targetWears;
+  return {
+    hasPrice:    true,
+    price,
+    wears,
+    costPerWear: wears > 0 ? Math.round(price / wears) : price,
+    targetWears,
+    remaining:   Math.max(0, targetWears - wears),
+    progress,
+    done,
+  };
+}
+
+// ─── 옷장 전체 요약 ────────────────────────────────────────────────────────
+/**
+ * @param {Object[]} items   — closet items
+ * @param {Map}      freqMap — Map<itemId, wearCount> (useWearLogs.getItemWearFrequency)
+ * @returns {{
+ *   pricedCount:    number,  // 가격 있는 아이템 수
+ *   totalInvested:  number,  // 총 투자금
+ *   totalExtracted: number,  // 뽑은 가치 (착용으로 회수한 금액, 아이템당 가격 상한)
+ *   lockedMoney:    number,  // 묶인 돈 — 한 번도 안 입은 아이템 가격 합
+ *   lockedCount:    number,
+ *   doneCount:      number,  // 본전 완료 아이템 수
+ *   doneMoney:      number,  // 본전 완료 아이템 가격 합
+ *   almostList:     Object[],// 본전 임박 (progress≥0.6, 미완료) — {item, pb} progress 내림차순
+ *   bestItem:       {item, pb}|null, // 최고 가성비 (회당 단가 최저, 3회 이상 착용)
+ *   sleepingList:   Object[],// 안 입는 비싼 옷 — 0회 착용, 가격 내림차순
+ * }}
+ */
+export function getClosetPaybackSummary(items = [], freqMap = new Map()) {
+  let pricedCount = 0, totalInvested = 0, totalExtracted = 0;
+  let lockedMoney = 0, lockedCount = 0, doneCount = 0, doneMoney = 0;
+  const withPb = [];
+
+  items.forEach((item) => {
+    const wears = freqMap.get(itemId(item)) ?? 0;
+    const pb    = getItemPayback(item, wears);
+    if (!pb.hasPrice) return;
+
+    pricedCount++;
+    totalInvested += pb.price;
+    // 뽑은 가치 = 목표 단가 × 착용 횟수 (가격 상한)
+    const target = pb.price / pb.targetWears;
+    totalExtracted += Math.min(pb.price, Math.round(target * wears));
+
+    if (wears === 0) { lockedMoney += pb.price; lockedCount++; }
+    if (pb.done)     { doneCount++; doneMoney += pb.price; }
+    withPb.push({ item, pb });
+  });
+
+  const almostList = withPb
+    .filter(({ pb }) => !pb.done && pb.progress >= 0.6)
+    .sort((a, b) => b.pb.progress - a.pb.progress)
+    .slice(0, 5);
+
+  const wornEnough = withPb.filter(({ pb }) => pb.wears >= 3);
+  const bestItem = wornEnough.length
+    ? wornEnough.reduce((best, cur) => (cur.pb.costPerWear < best.pb.costPerWear ? cur : best))
+    : null;
+
+  const sleepingList = withPb
+    .filter(({ pb }) => pb.wears === 0)
+    .sort((a, b) => b.pb.price - a.pb.price)
+    .slice(0, 5);
+
+  return {
+    pricedCount, totalInvested, totalExtracted,
+    lockedMoney, lockedCount, doneCount, doneMoney,
+    almostList, bestItem, sleepingList,
+  };
+}
+
+// ─── 게이지 색상 (게임 톤) ─────────────────────────────────────────────────
+export const PAYBACK_COLORS = {
+  done:    "#3DCB87", // 본전 완료 민트
+  near:    "#F5C200", // 임박 레몬옐로
+  going:   "#FFD84D", // 진행 옅은 노랑
+  start:   "#E8E8E8", // 시작 전 회색
+};
+
+export function paybackColor(pb) {
+  if (!pb.hasPrice) return PAYBACK_COLORS.start;
+  if (pb.done)            return PAYBACK_COLORS.done;
+  if (pb.progress >= 0.6) return PAYBACK_COLORS.near;
+  if (pb.progress > 0)    return PAYBACK_COLORS.going;
+  return PAYBACK_COLORS.start;
+}

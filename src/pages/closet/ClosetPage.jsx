@@ -20,6 +20,8 @@ import { useCloset }  from "../../hooks/useCloset.js";
 import { useProfile } from "../../hooks/useProfile.js";
 import { showToast }  from "../../lib/toastUtils.js";
 import { fetchFollowerCount, fetchFollowingCount } from "../../services/followsService.js";
+import { getItemPayback, getClosetPaybackSummary, formatKRW, paybackColor } from "../../lib/payback.js";
+import CaptureAddSheet from "../../components/CaptureAddSheet.jsx";
 
 // ─── Normalise a Supabase DB row → shape expected by UI components ─────────────
 // Adds camelCase aliases for every snake_case column the UI references.
@@ -165,11 +167,13 @@ function SubStats({ itemCount = 0, publicCount = 0, followerCount = 0 }) {
 
 
 // ─── Clothing item card with favorite heart ───────────────────────────────────
-function ClothingItemCard({ item, onSelect }) {
+function ClothingItemCard({ item, onSelect, wearFreqMap }) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const fav = isFavorite(item.id);
 
   const imageSrc = item.image;
+  // 본전 게이지 — 가격 있는 아이템만
+  const pb = getItemPayback(item, wearFreqMap?.get(item.id) ?? 0);
 
   return (
     <div
@@ -242,6 +246,29 @@ function ClothingItemCard({ item, onSelect }) {
         <p className="text-[10px] mt-0.5" style={{ color: "#BBBBBB", fontFamily: FONT }}>
           {item.color} · {item.size}
         </p>
+
+        {/* 본전 게이지 — 가격 있는 아이템만 */}
+        {pb.hasPrice && (
+          <div className="mt-1.5">
+            <div className="rounded-full overflow-hidden" style={{ height: 5, backgroundColor: "#F0F0F0" }}>
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${Math.max(4, Math.round(pb.progress * 100))}%`,
+                  backgroundColor: paybackColor(pb),
+                  transition: "width 0.4s",
+                }}
+              />
+            </div>
+            <p className="text-[9px] font-bold mt-1" style={{ color: pb.done ? "#3DCB87" : "#C99700", fontFamily: FONT }}>
+              {pb.done
+                ? "본전 완료! 🏆"
+                : pb.wears === 0
+                ? `${formatKRW(pb.price)} 잠자는 중 💤`
+                : `회당 ${formatKRW(pb.costPerWear)} · ${pb.remaining}번 더!`}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -624,6 +651,7 @@ function getItemMaterial(item) {
 const SEASONS = ["봄", "여름", "가을", "겨울"];
 
 function ClothingTab({ onMorePress, onItemTap, items = [], history = {} }) {
+  const wearFreqMap = useMemo(() => getItemWearFrequency(history), [history]);
   const [openPanel,      setOpenPanel]     = useState(null);
   const [catFilters,     setCatFilters]    = useState([]);
   const [subCatFilters,  setSubCatFilters] = useState([]);
@@ -1001,7 +1029,7 @@ function ClothingTab({ onMorePress, onItemTap, items = [], history = {} }) {
         <>
           <div className="grid grid-cols-2 gap-3 px-4 pt-3 pb-4">
             {filtered.slice(0, 8).map((item) => (
-              <ClothingItemCard key={item.id} item={item} onSelect={onItemTap} />
+              <ClothingItemCard key={item.id} item={item} onSelect={onItemTap} wearFreqMap={wearFreqMap} />
             ))}
           </div>
           {filtered.length > 8 && (
@@ -1355,6 +1383,13 @@ function InsightsDetailScreen({ onBack, history = {}, items = [] }) {
 function PhotoSourceSheet({ onSelect, onClose }) {
   const options = [
     {
+      key:   "capture",
+      emoji: "🧾",
+      title: "쇼핑 캡쳐로 등록",
+      desc:  "주문완료 캡쳐만 있으면 끝! 본전 게임 바로 시작",
+      hot:   true,
+    },
+    {
       key:   "camera",
       emoji: "📸",
       title: "사진 촬영",
@@ -1398,7 +1433,10 @@ function PhotoSourceSheet({ onSelect, onClose }) {
               key={opt.key}
               onClick={() => onSelect(opt.key)}
               className="flex items-center gap-4 px-4 py-4 rounded-2xl active:opacity-80 text-left"
-              style={{ backgroundColor: "#F8F8F8", border: "1.5px solid #F0F0F0" }}
+              style={{
+                backgroundColor: opt.hot ? "#FFF6D6" : "#F8F8F8",
+                border: opt.hot ? "2px solid #FFE584" : "1.5px solid #F0F0F0",
+              }}
             >
               <div
                 className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
@@ -1407,7 +1445,14 @@ function PhotoSourceSheet({ onSelect, onClose }) {
                 {opt.emoji}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT }}>{opt.title}</p>
+                <p className="text-[15px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
+                  {opt.title}
+                  {opt.hot && (
+                    <span className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-md align-middle" style={{ backgroundColor: YELLOW, color: DARK }}>
+                      NEW
+                    </span>
+                  )}
+                </p>
                 <p className="text-[12px] mt-0.5" style={{ color: "#888", fontFamily: FONT }}>{opt.desc}</p>
               </div>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
@@ -1422,6 +1467,35 @@ function PhotoSourceSheet({ onSelect, onClose }) {
 }
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
+// ─── 본전 요약 스트립 (옷장 상단) ───────────────────────────────────────────
+function PaybackStrip({ items, history, onTap }) {
+  const freq = useMemo(() => getItemWearFrequency(history), [history]);
+  const s    = useMemo(() => getClosetPaybackSummary(items, freq), [items, freq]);
+  if (s.pricedCount === 0) return null;
+  return (
+    <button
+      onClick={onTap}
+      className="mx-4 mb-2 w-[calc(100%-32px)] flex items-center justify-between rounded-2xl px-4 py-3 transition-transform active:scale-[0.98]"
+      style={{ background: "linear-gradient(135deg, #FFF6D6, #FFEDA8)", border: "2px solid #FFE584" }}
+    >
+      <div className="flex items-center gap-2">
+        <span style={{ fontSize: 18 }}>💤</span>
+        <span className="text-[12px] font-bold" style={{ color: "#8A7A45", fontFamily: FONT }}>
+          묶인 돈 <span style={{ color: "#D2691E" }}>{formatKRW(s.lockedMoney)}</span>
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-[12px] font-bold" style={{ color: "#8A7A45", fontFamily: FONT }}>
+          🏆 본전 완료 <span style={{ color: "#3DCB87" }}>{s.doneCount}벌</span>
+        </span>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M4 2L8 6L4 10" stroke="#C99700" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+    </button>
+  );
+}
+
 export default function ClosetPage({ onProductSelect, onItemTap, onOpenOutfitEditor }) {
   const { user }                      = useAuth();
   const { items: dbItems, loading: closetLoading, refresh } = useCloset(user?.id);
@@ -1443,13 +1517,18 @@ export default function ClosetPage({ onProductSelect, onItemTap, onOpenOutfitEdi
   const [addItemOpen,     setAddItemOpen]     = useState(false);
   const [photoSource,     setPhotoSource]     = useState(null);
   const [showSourceSheet, setShowSourceSheet] = useState(false);
+  const [captureOpen,     setCaptureOpen]     = useState(false);
   const [mySizeOpen,      setMySizeOpen]      = useState(false);
   const [showInsights,    setShowInsights]    = useState(false);
   const [showCleanout,    setShowCleanout]    = useState(false);
 
   function handleSourceSelect(source) {
-    setPhotoSource(source);
     setShowSourceSheet(false);
+    if (source === "capture") {
+      setCaptureOpen(true);
+      return;
+    }
+    setPhotoSource(source);
     setAddItemOpen(true);
   }
 
@@ -1481,6 +1560,9 @@ export default function ClosetPage({ onProductSelect, onItemTap, onOpenOutfitEdi
           publicCount={closetItems.filter(i => i.is_public || i.isPublic).length}
           followerCount={followerCount}
         />
+
+        {/* ── 본전 요약 스트립 ── */}
+        <PaybackStrip items={closetItems} history={history} onTap={() => setShowInsights(true)} />
 
         {/* ── 옷장 인사이트 ── */}
         <InsightsBanner onInsights={() => setShowInsights(true)} />
@@ -1549,6 +1631,14 @@ export default function ClosetPage({ onProductSelect, onItemTap, onOpenOutfitEdi
           photoSource={photoSource}
           onClose={() => { setAddItemOpen(false); setPhotoSource(null); }}
           onSave={handleSaveItem}
+        />
+      )}
+
+      {/* 캡쳐 등록 시트 */}
+      {captureOpen && (
+        <CaptureAddSheet
+          onClose={() => setCaptureOpen(false)}
+          onSaved={() => refresh()}
         />
       )}
 

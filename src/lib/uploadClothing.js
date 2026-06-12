@@ -12,7 +12,7 @@ const API_BASE = import.meta.env.VITE_AI_BASE_URL ?? "";
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Convert a File/Blob to a raw base64 string (no data-URL prefix). */
-function fileToBase64(file) {
+export function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload  = () => {
@@ -73,6 +73,37 @@ export async function uploadForBgRemoval(file, accessToken = null) {
  */
 export async function analyzeClothingImage(imageBase64, mimeType = "image/jpeg", accessToken = null) {
   const res = await fetch(`${API_BASE}/api/analyze-clothing`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    },
+    body: JSON.stringify({ imageBase64, mimeType }),
+  });
+
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try { msg = (await res.json()).error ?? msg; } catch { /* ignore */ }
+    const err = new Error(msg);
+    if (res.status === 429) err.isRateLimit = true;
+    throw err;
+  }
+
+  return res.json();
+}
+
+// ─── 캡쳐 등록: 쇼핑 스크린샷 파싱 ─────────────────────────────────────────────
+
+/**
+ * 쇼핑 주문/상품 스크린샷에서 구매 정보를 추출한다.
+ *
+ * @param {string} imageBase64 — base64 (no data-URL prefix)
+ * @param {string} mimeType
+ * @param {string|null} accessToken
+ * @returns {Promise<{success, data?: {isPurchaseScreenshot, productName, brand, price, mainCategory, subCategory, color, size, mall, confidence}, error?}>}
+ */
+export async function parsePurchaseScreenshot(imageBase64, mimeType = "image/jpeg", accessToken = null) {
+  const res = await fetch(`${API_BASE}/api/parse-purchase`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

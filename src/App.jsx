@@ -150,6 +150,7 @@ export default function App() {
   const [stylesSavedTick,  setStylesSavedTick]   = useState(0);
   const [showCalendar,      setShowCalendar]      = useState(false);
   const [showOutfitEditor,  setShowOutfitEditor]  = useState(false);
+  const [canvasInitialIds,  setCanvasInitialIds]  = useState([]);
 
   // ── Guest mode: auth gate modal + AuthScreen overlay ─────────────────────────
   const [showAuthGate,   setShowAuthGate]   = useState(false);
@@ -393,6 +394,10 @@ export default function App() {
                 onEditStyleHandled={() => setEditStylePending(null)}
                 onStyleSaved={handleStyleSaved}
                 onOpenCalendar={() => setShowCalendar(true)}
+                onOpenCanvas={(itemIds) => {
+                  setCanvasInitialIds(itemIds ?? []);
+                  setShowOutfitEditor(true);
+                }}
               />
             )}
 
@@ -488,8 +493,9 @@ export default function App() {
             {/* ── OutfitCanvasEditor overlay ── */}
             {showOutfitEditor && user && (
               <OutfitCanvasEditor
-                onClose={() => setShowOutfitEditor(false)}
-                onSave={() => { setShowOutfitEditor(false); handleStyleSaved(); }}
+                initialItemIds={canvasInitialIds}
+                onClose={() => { setShowOutfitEditor(false); setCanvasInitialIds([]); }}
+                onSave={() => { setShowOutfitEditor(false); setCanvasInitialIds([]); handleStyleSaved(); }}
               />
             )}
 

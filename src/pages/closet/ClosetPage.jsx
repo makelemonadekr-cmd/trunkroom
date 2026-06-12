@@ -260,12 +260,12 @@ function ClothingItemCard({ item, onSelect, wearFreqMap }) {
                 }}
               />
             </div>
-            <p className="text-[9px] font-bold mt-1" style={{ color: pb.done ? "#3DCB87" : "#C99700", fontFamily: FONT }}>
+            <p className="text-[9px] font-bold mt-1" style={{ color: pb.done ? "#3DCB87" : "#B8860B", fontFamily: FONT }}>
               {pb.done
-                ? "본전 완료! 🏆"
+                ? "본전 완료 ✓ 입을수록 이득"
                 : pb.wears === 0
-                ? `${formatKRW(pb.price)} 잠자는 중 💤`
-                : `회당 ${formatKRW(pb.costPerWear)} · ${pb.remaining}번 더!`}
+                ? `${formatKRW(pb.price)} 묶여 있음`
+                : `회당 ${formatKRW(pb.costPerWear)} · ${pb.remaining}번 남음`}
             </p>
           </div>
         )}
@@ -1386,7 +1386,7 @@ function PhotoSourceSheet({ onSelect, onClose }) {
       key:   "capture",
       emoji: "🧾",
       title: "쇼핑 캡쳐로 등록",
-      desc:  "주문완료 캡쳐만 있으면 끝! 본전 게임 바로 시작",
+      desc:  "주문완료 캡쳐만 보여주면 끝. 본전 게임 바로 시작",
       hot:   true,
     },
     {

@@ -141,7 +141,7 @@ export default function CaptureAddSheet({ onClose, onSaved }) {
           <div className="px-5 pb-10 flex flex-col items-center gap-4 pt-4">
             <TrunkyMascot size={72} mood="excited" />
             <p className="text-[14px] text-center leading-relaxed" style={{ color: "#666", fontFamily: FONT }}>
-              주문완료 화면이나 상품 페이지를{"\n"}<b>캡쳐한 사진</b>을 골라주세요.{"\n"}AI가 알아서 읽어드려요!
+              주문완료 화면이나 상품 페이지{"\n"}<b>캡쳐만 보여주세요.</b>{"\n"}나머지는 알아서 읽을게요.
             </p>
             <button
               onClick={() => fileRef.current?.click()}
@@ -167,7 +167,7 @@ export default function CaptureAddSheet({ onClose, onSaved }) {
             <div className="flex items-center gap-2 mt-2">
               <div style={{ width: 16, height: 16, border: "2.5px solid #F5C200", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
               <p className="text-[14px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
-                트렁키가 캡쳐를 읽고 있어요...
+                캡쳐 스캔 중... 금방이에요 ✨
               </p>
             </div>
           </div>

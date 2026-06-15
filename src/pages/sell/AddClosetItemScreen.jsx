@@ -404,6 +404,9 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
   const [saved,          setSaved]           = useState(false);
   const [showUpgrade,    setShowUpgrade]     = useState(false);
 
+  // 토스식 퍼널 — 한 화면에 한 조건씩
+  const [step,           setStep]            = useState(0);
+
   const fileInputRef = useRef(null);
   const MAX_PHOTOS   = 6;
 
@@ -588,6 +591,43 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
   const subcatOptions = SUBCATEGORIES_BY_ID[category] ?? [];
   const aiB = autoDetected ? <AutoDetectedBadge review={needsReview} /> : null;
 
+  // ── 토스식 퍼널 — 한 화면에 한 조건씩 ───────────────────────────────────────
+  const stepKeys = [
+    "photo", "category", "name", "price", "brand", "color", "season",
+    ...(SIZE_CATS.has(category) ? ["size"] : []),
+    "condition", "public",
+  ];
+  const totalSteps = stepKeys.length;
+  const curStep    = Math.min(step, totalSteps - 1);
+  const stepKey    = stepKeys[curStep];
+  const isLast     = curStep >= totalSteps - 1;
+
+  const STEP_META = {
+    photo:     { title: "어떤 옷이에요?",      sub: "사진을 올리면 AI가 알아서 분석해요" },
+    category:  { title: "어디에 속하나요?",     sub: "카테고리를 골라주세요" },
+    name:      { title: "이름을 붙여줄까요?",   sub: "AI가 추천한 이름, 그대로 써도 돼요" },
+    price:     { title: "얼마에 샀어요?",       sub: "본전 게임에 쓰여요 — 입을 때마다 한 번 단가가 내려가요" },
+    brand:     { title: "어느 브랜드예요?",     sub: "기억나면 적어주세요" },
+    color:     { title: "무슨 색이에요?",       sub: "" },
+    season:    { title: "언제 입는 옷이에요?",  sub: "여러 계절 선택할 수 있어요" },
+    size:      { title: "사이즈는요?",          sub: "" },
+    condition: { title: "상태는 어때요?",       sub: "" },
+    public:    { title: "거의 다 됐어요!",      sub: "마지막으로 공개 여부만 정하면 끝이에요" },
+  };
+  const meta = STEP_META[stepKey] ?? { title: "", sub: "" };
+  const photoReady = photos.length > 0;
+  const skippable  = stepKey !== "photo" && stepKey !== "public";
+  const canFinishEarly = curStep >= 2 && !isLast;
+
+  function goNext() {
+    if (isLast) { handleSave(); return; }
+    setStep((s) => Math.min(s + 1, totalSteps - 1));
+  }
+  function goBack() {
+    if (curStep === 0) { onClose?.(); return; }
+    setStep((s) => Math.max(s - 1, 0));
+  }
+
   return (
     <div className="absolute inset-0 z-30 flex flex-col bg-white overflow-hidden">
 
@@ -607,292 +647,172 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
         }}
       />
 
-      {/* ── Header ── */}
-      <div
-        className="shrink-0 flex items-center justify-between px-5 pt-5 pb-4"
-        style={{ borderBottom: "1px solid #F0F0F0" }}
-      >
-        <div>
-          <p
-            className="text-[11px] font-bold tracking-[0.14em] uppercase"
-            style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-          >
-            ADD ITEM
-          </p>
-          <h1
-            className="text-[18px] font-bold leading-tight"
-            style={{ color: DARK, fontFamily: "'Spoqa Han Sans Neo', sans-serif", letterSpacing: "-0.03em" }}
-          >
-            옷장 아이템 추가하기
-          </h1>
-        </div>
+      {/* ── 퍼널 진행 헤더 ── */}
+      <div className="shrink-0 flex items-center gap-3 px-5 pt-5 pb-3">
         <button
-          onClick={onClose}
-          className="flex items-center justify-center rounded-full"
-          style={{ width: 36, height: 36, backgroundColor: "#F2F2F2" }}
-          aria-label="닫기"
+          onClick={goBack}
+          className="flex items-center justify-center rounded-full shrink-0"
+          style={{ width: 34, height: 34, backgroundColor: "#F4F4F4" }}
+          aria-label={curStep === 0 ? "닫기" : "뒤로"}
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M3 3L13 13M13 3L3 13" stroke={DARK} strokeWidth="1.8" strokeLinecap="round" />
+            {curStep === 0
+              ? <path d="M3 3L13 13M13 3L3 13" stroke={DARK} strokeWidth="1.8" strokeLinecap="round" />
+              : <path d="M10 3L5 8L10 13" stroke={DARK} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />}
           </svg>
         </button>
+        <div className="flex-1 rounded-full overflow-hidden" style={{ height: 6, backgroundColor: "#F0F0F0" }}>
+          <div
+            className="h-full rounded-full"
+            style={{ width: `${((curStep + 1) / totalSteps) * 100}%`, backgroundColor: YELLOW, transition: "width 0.3s" }}
+          />
+        </div>
+        <span className="text-[12px] font-bold shrink-0" style={{ color: "#BBB", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+          {curStep + 1}/{totalSteps}
+        </span>
       </div>
 
-      {/* ── Scrollable form ── */}
+      {/* ── 스텝 본문 ── */}
       <div
-        className="flex-1 overflow-y-auto px-5 pt-5"
+        className="flex-1 overflow-y-auto px-5 pt-4"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        {/* Photo source indicator */}
-        {photoSource && (
-          <div
-            className="flex items-center gap-2 rounded-xl px-3 py-2 mb-3"
-            style={{ backgroundColor: "#F0F8FF", border: "1px solid #D0E8FF" }}
-          >
-            <span style={{ fontSize: 14 }}>{photoSource === "camera" ? "📸" : "🖼️"}</span>
-            <p className="text-[11px]" style={{ color: "#2B6CB0", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
-              {photoSource === "camera" ? "카메라로 촬영하기 — 사진 앱이 열려요" : "갤러리에서 선택하기 — 파일 선택 창이 열려요"}
-            </p>
-          </div>
-        )}
+        {/* 스텝 제목 */}
+        <h2 className="text-[20px] font-bold leading-snug" style={{ color: DARK, fontFamily: "'Spoqa Han Sans Neo', sans-serif", letterSpacing: "-0.03em" }}>
+          {meta.title}
+        </h2>
+        <p className="text-[13px] mt-1.5 mb-6 leading-relaxed" style={{ color: "#9A9A9A", fontFamily: "'Spoqa Han Sans Neo', sans-serif", minHeight: 18 }}>
+          {meta.sub}
+        </p>
 
-        {/* AI intro banner */}
-        <div
-          className="flex items-center gap-3 rounded-xl p-3 mb-5"
-          style={{ backgroundColor: "#FFFBEA", border: "1px solid #F5C20040" }}
-        >
-          <span style={{ fontSize: 20 }}>✨</span>
+        {/* 1) 사진 */}
+        {stepKey === "photo" && (
           <div>
-            <p
-              className="text-[12px] font-bold"
-              style={{ color: "#B8860B", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-            >
-              AI 자동 분석
-            </p>
-            <p
-              className="text-[11px]"
-              style={{ color: "#A07828", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-            >
-              사진을 추가하면 배경을 제거하고 카테고리, 색상, 시즌을 자동으로 입력해줘요
-            </p>
-          </div>
-        </div>
-
-        {/* Photo grid */}
-        <div className="mb-5">
-          <div className="flex items-center justify-between mb-3">
-            <label
-              className="text-[12px] font-bold tracking-wide"
-              style={{ color: "#888", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-            >
-              사진 ({photos.length}/{MAX_PHOTOS})
-            </label>
-            <span
-              className="text-[11px]"
-              style={{ color: "#CCCCCC", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-            >
-              첫 번째 사진이 대표 이미지
-            </span>
-          </div>
-          {/* AI usage remaining pill */}
-          {accessToken && (
-            <div className="flex gap-2 mb-3">
-              <span
-                className="text-[10px] px-2 py-0.5 rounded-full"
-                style={{
-                  backgroundColor: removeBgUsage.remaining > 0 ? "#F0FFF4" : "#FFF0F0",
-                  color:           removeBgUsage.remaining > 0 ? "#276749" : "#C53030",
-                  fontFamily:      "'Spoqa Han Sans Neo', sans-serif",
-                  border:          `1px solid ${removeBgUsage.remaining > 0 ? "#C6F6D5" : "#FED7D7"}`,
-                }}
-              >
-                배경 제거 {removeBgUsage.remaining}/{removeBgUsage.limit}회 남음
-              </span>
-              <span
-                className="text-[10px] px-2 py-0.5 rounded-full"
-                style={{
-                  backgroundColor: analyzeUsage.remaining > 0 ? "#EBF8FF" : "#FFF0F0",
-                  color:           analyzeUsage.remaining > 0 ? "#2C5282" : "#C53030",
-                  fontFamily:      "'Spoqa Han Sans Neo', sans-serif",
-                  border:          `1px solid ${analyzeUsage.remaining > 0 ? "#BEE3F8" : "#FED7D7"}`,
-                }}
-              >
-                AI 분석 {analyzeUsage.remaining}/{analyzeUsage.limit}회 남음
-              </span>
+            {accessToken && (
+              <div className="flex gap-2 mb-3">
+                <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: removeBgUsage.remaining > 0 ? "#F0FFF4" : "#FFF0F0", color: removeBgUsage.remaining > 0 ? "#276749" : "#C53030", fontFamily: "'Spoqa Han Sans Neo', sans-serif", border: `1px solid ${removeBgUsage.remaining > 0 ? "#C6F6D5" : "#FED7D7"}` }}>
+                  배경 제거 {removeBgUsage.remaining}/{removeBgUsage.limit}회
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: analyzeUsage.remaining > 0 ? "#EBF8FF" : "#FFF0F0", color: analyzeUsage.remaining > 0 ? "#2C5282" : "#C53030", fontFamily: "'Spoqa Han Sans Neo', sans-serif", border: `1px solid ${analyzeUsage.remaining > 0 ? "#BEE3F8" : "#FED7D7"}` }}>
+                  AI 분석 {analyzeUsage.remaining}/{analyzeUsage.limit}회
+                </span>
+              </div>
+            )}
+            <div className="grid grid-cols-3 gap-2">
+              {slots.map((img, i) => (
+                <PhotoSlot
+                  key={i}
+                  index={i}
+                  image={img}
+                  isMain={i === 0 && !!img}
+                  bgRemoved={i === 0 && bgRemoved}
+                  loading={isProcessing && i === 0 && !img}
+                  onAdd={handleAddPhotoClick}
+                  onRemove={handleRemovePhoto}
+                />
+              ))}
             </div>
-          )}
-          <div className="grid grid-cols-3 gap-2">
-            {slots.map((img, i) => (
-              <PhotoSlot
-                key={i}
-                index={i}
-                image={img}
-                isMain={i === 0 && !!img}
-                bgRemoved={i === 0 && bgRemoved}
-                loading={isProcessing && i === 0 && !img}
-                onAdd={handleAddPhotoClick}
-                onRemove={handleRemovePhoto}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-5" style={{ height: 1, backgroundColor: "#F0F0F0" }} />
-
-        {/* needsReview warning */}
-        {needsReview && autoDetected && (
-          <div
-            className="flex items-start gap-2 rounded-xl p-3 mb-4"
-            style={{ backgroundColor: "#FFF8E1", border: "1px solid #F5C20040" }}
-          >
-            <span style={{ fontSize: 16 }}>⚠️</span>
-            <p
-              className="text-[12px]"
-              style={{ color: "#B8860B", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-            >
-              이미지가 불명확해 일부 정보를 확인해주세요. AI 분석 결과가 정확하지 않을 수 있어요.
-            </p>
+            {autoDetected && !needsReview && (
+              <div className="flex items-center gap-2 rounded-xl p-3 mt-4" style={{ backgroundColor: "#F0FFF4", border: "1px solid #C6F6D5" }}>
+                <span style={{ fontSize: 16 }}>✨</span>
+                <p className="text-[12px] font-medium" style={{ color: "#276749", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>AI가 분석을 마쳤어요. 다음 화면에서 확인만 하면 돼요!</p>
+              </div>
+            )}
+            {needsReview && autoDetected && (
+              <div className="flex items-start gap-2 rounded-xl p-3 mt-4" style={{ backgroundColor: "#FFF8E1", border: "1px solid #F5C20040" }}>
+                <span style={{ fontSize: 16 }}>⚠️</span>
+                <p className="text-[12px]" style={{ color: "#B8860B", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>이미지가 조금 불명확해요. 다음 화면들에서 한번 확인해주세요.</p>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Basic info */}
-        <FormField
-          label="상품명"
-          value={name}
-          onChange={setName}
-          placeholder="상품명을 입력하세요"
-          badge={aiB}
-        />
-        <FormField
-          label="상품정보"
-          value={desc}
-          onChange={setDesc}
-          placeholder="상품 상태, 구매 시기, 착용 횟수 등을 알려주세요"
-          multiline
-        />
-        <FormField
-          label="브랜드"
-          value={brand}
-          onChange={setBrand}
-          placeholder="브랜드명 (예: ZARA, COS)"
-        />
-        <FormField
-          label="색상"
-          value={color}
-          onChange={setColor}
-          placeholder="예: 화이트, 블랙, 베이지"
-          badge={aiB}
-        />
-        <FormField
-          label="희망 판매가 (원)"
-          value={price}
-          onChange={setPrice}
-          placeholder="0"
-        />
-
-        {/* Category */}
-        <ChipGroup
-          label="카테고리"
-          options={CATEGORIES.map((c) => c.id)}
-          selected={category}
-          onToggle={(id) => { setCategory(id); setSubCategory(""); }}
-          single
-          badge={aiB}
-          accent={DARK}
-        />
-
-        {/* Subcategory */}
-        {subcatOptions.length > 0 && (
-          <ChipGroup
-            label="세부 카테고리"
-            options={subcatOptions}
-            selected={subCategory}
-            onToggle={(s) => setSubCategory(s)}
-            single
-            badge={aiB}
-            accent={DARK}
-          />
+        {/* 2) 카테고리 */}
+        {stepKey === "category" && (
+          <div>
+            <div className="grid grid-cols-4 gap-2">
+              {CATEGORIES.map((c) => {
+                const on = category === c.id;
+                return (
+                  <button key={c.id} onClick={() => { setCategory(c.id); setSubCategory(""); }} className="flex flex-col items-center gap-1 py-3 rounded-2xl transition-all" style={{ backgroundColor: on ? DARK : "#F5F5F5" }}>
+                    <span style={{ fontSize: 22 }}>{c.emoji}</span>
+                    <span className="text-[11px] font-bold" style={{ color: on ? "white" : "#666", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{c.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {subcatOptions.length > 0 && (
+              <div className="mt-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[12px] font-bold" style={{ color: "#888", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>세부 카테고리</span>
+                  {aiB}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {subcatOptions.map((s) => {
+                    const on = subCategory === s;
+                    return <button key={s} onClick={() => setSubCategory(on ? "" : s)} className="px-3 py-1.5 rounded-full text-[12px] font-medium" style={{ backgroundColor: on ? DARK : "#F2F2F2", color: on ? "white" : "#666", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{s}</button>;
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
-        {/* Gender */}
-        <div className="mb-4">
-          <label
-            className="block text-[12px] font-bold mb-2.5 tracking-wide"
-            style={{ color: "#888", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-          >
-            성별
-          </label>
-          <div className="flex gap-2">
-            {GENDERS.map((g) => {
-              const isActive = gender === g;
-              return (
-                <button
-                  key={g}
-                  onClick={() => { setGender(g); setSize(""); }}
-                  className="px-4 py-2 rounded-xl text-[13px] font-bold"
-                  style={{
-                    backgroundColor: isActive ? DARK : "#F2F2F2",
-                    color:           isActive ? "white" : "#888",
-                    fontFamily:      "'Spoqa Han Sans Neo', sans-serif",
-                  }}
-                >
-                  {g}
-                </button>
-              );
+        {/* 3) 이름 */}
+        {stepKey === "name" && (
+          <FormField label="상품 이름" value={name} onChange={setName} placeholder="예: 화이트 코튼 셔츠" badge={aiB} />
+        )}
+
+        {/* 4) 가격 */}
+        {stepKey === "price" && (
+          <FormField label="구매 가격 (원)" value={price} onChange={(v) => setPrice(String(v).replace(/[^0-9]/g, ""))} placeholder="0" />
+        )}
+
+        {/* 5) 브랜드 */}
+        {stepKey === "brand" && (
+          <FormField label="브랜드" value={brand} onChange={setBrand} placeholder="예: ZARA, COS, 유니클로" />
+        )}
+
+        {/* 6) 색상 */}
+        {stepKey === "color" && (
+          <FormField label="색상" value={color} onChange={setColor} placeholder="예: 화이트, 블랙, 베이지" badge={aiB} />
+        )}
+
+        {/* 7) 시즌 */}
+        {stepKey === "season" && (
+          <div className="flex flex-wrap gap-2">
+            {SEASONS.map((sea) => {
+              const on = seasons.includes(sea);
+              return <button key={sea} onClick={() => toggleSeason(sea)} className="px-5 py-2.5 rounded-full text-[14px] font-bold" style={{ backgroundColor: on ? DARK : "#F2F2F2", color: on ? "white" : "#666", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{sea}</button>;
             })}
           </div>
-        </div>
+        )}
 
-        {/* Size — shown for SIZE_CATS categories only */}
-        {SIZE_CATS.has(category) && (() => {
-          const sizeOpts   = getSizeOptions(category, gender);
+        {/* 8) 사이즈 */}
+        {stepKey === "size" && (() => {
+          const sizeOpts = getSizeOptions(category, gender);
           const conversions = getSizeConversions(category, gender, size);
-          const FONT_STYLE  = "'Spoqa Han Sans Neo', sans-serif";
+          const FS = "'Spoqa Han Sans Neo', sans-serif";
           return (
-            <div className="mb-4">
-              <label
-                className="block text-[12px] font-bold mb-2.5 tracking-wide"
-                style={{ color: "#888", fontFamily: FONT_STYLE }}
-              >
-                사이즈
-              </label>
-
-              {/* Size chip scroll */}
-              <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-                {sizeOpts.map(({ value, label }) => {
-                  const isActive = size === value;
-                  return (
-                    <button
-                      key={value}
-                      onClick={() => setSize(isActive ? "" : value)}
-                      className="shrink-0 px-3 py-1.5 rounded-xl text-[12px] font-bold"
-                      style={{
-                        backgroundColor: isActive ? DARK : "#F2F2F2",
-                        color:           isActive ? "white" : "#666",
-                        fontFamily:      FONT_STYLE,
-                        whiteSpace:      "nowrap",
-                      }}
-                    >
-                      {label}
-                    </button>
-                  );
+            <div>
+              <div className="flex gap-2 mb-3">
+                {GENDERS.map((g) => {
+                  const on = gender === g;
+                  return <button key={g} onClick={() => { setGender(g); setSize(""); }} className="px-4 py-2 rounded-xl text-[13px] font-bold" style={{ backgroundColor: on ? DARK : "#F2F2F2", color: on ? "white" : "#888", fontFamily: FS }}>{g}</button>;
                 })}
               </div>
-
-              {/* Size conversion row */}
+              <div className="flex flex-wrap gap-2">
+                {sizeOpts.map(({ value, label }) => {
+                  const on = size === value;
+                  return <button key={value} onClick={() => setSize(on ? "" : value)} className="px-3.5 py-2 rounded-xl text-[13px] font-bold" style={{ backgroundColor: on ? DARK : "#F2F2F2", color: on ? "white" : "#666", fontFamily: FS }}>{label}</button>;
+                })}
+              </div>
               {conversions.length > 0 && (
-                <div
-                  className="flex gap-3 mt-2.5 px-1 py-2.5 rounded-xl overflow-x-auto"
-                  style={{ backgroundColor: "#F8F8F8", scrollbarWidth: "none" }}
-                >
+                <div className="flex gap-3 mt-3 px-1 py-2.5 rounded-xl overflow-x-auto" style={{ backgroundColor: "#F8F8F8", scrollbarWidth: "none" }}>
                   {conversions.map(({ unit, value: cv }) => (
                     <div key={unit} className="shrink-0 flex flex-col items-center min-w-[44px]">
-                      <span className="text-[9px] font-bold tracking-wide" style={{ color: "#AAAAAA", fontFamily: FONT_STYLE }}>
-                        {unit}
-                      </span>
-                      <span className="text-[13px] font-bold mt-0.5" style={{ color: DARK, fontFamily: FONT_STYLE }}>
-                        {cv}
-                      </span>
+                      <span className="text-[9px] font-bold" style={{ color: "#AAA", fontFamily: FS }}>{unit}</span>
+                      <span className="text-[13px] font-bold mt-0.5" style={{ color: DARK, fontFamily: FS }}>{cv}</span>
                     </div>
                   ))}
                 </div>
@@ -901,200 +821,91 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
           );
         })()}
 
-        {/* Condition */}
-        <div className="mb-4">
-          <label
-            className="block text-[12px] font-bold mb-2.5 tracking-wide"
-            style={{ color: "#888", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-          >
-            상품 상태
-          </label>
-          <div className="grid grid-cols-4 gap-2">
-            {CONDITIONS.map((cond) => {
-              const isActive = condition === cond;
-              return (
-                <button
-                  key={cond}
-                  onClick={() => setCondition(cond)}
-                  className="py-2 rounded-xl text-[13px] font-bold transition-all"
-                  style={{
-                    backgroundColor: isActive ? YELLOW : "#F2F2F2",
-                    color:           isActive ? DARK   : "#888",
-                    fontFamily:      "'Spoqa Han Sans Neo', sans-serif",
-                    boxShadow:       isActive ? "0 2px 8px rgba(245,194,0,0.30)" : "none",
-                  }}
-                >
-                  {cond}
-                </button>
-              );
-            })}
+        {/* 9) 상태 */}
+        {stepKey === "condition" && (
+          <div>
+            <div className="grid grid-cols-4 gap-2">
+              {CONDITIONS.map((cond) => {
+                const on = condition === cond;
+                return <button key={cond} onClick={() => setCondition(cond)} className="py-3 rounded-xl text-[14px] font-bold" style={{ backgroundColor: on ? YELLOW : "#F2F2F2", color: on ? DARK : "#888", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{cond}</button>;
+              })}
+            </div>
+            <p className="text-[11px] mt-2.5" style={{ color: "#BBB", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>S급: 거의 새것 · A급: 약간 사용 · B급: 사용감 · C급: 하자</p>
           </div>
-          <p
-            className="text-[11px] mt-1.5"
-            style={{ color: "#CCCCCC", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-          >
-            S급: 거의 새것 · A급: 약간 사용 · B급: 사용감 있음 · C급: 하자 있음
-          </p>
-        </div>
+        )}
 
-        {/* Season */}
-        <ChipGroup
-          label="시즌"
-          options={SEASONS}
-          selected={seasons}
-          onToggle={toggleSeason}
-          badge={aiB}
-          accent={DARK}
-        />
-
-        {/* Material chips */}
-        <ChipGroup
-          label="소재"
-          options={MATERIALS}
-          selected={material}
-          onToggle={(m) => setMaterial(m)}
-          single
-          accent={DARK}
-        />
-
-        {/* Style tags */}
-        <div className="mb-4">
-          <div className="flex items-center gap-2 mb-2">
-            <label
-              className="text-[12px] font-bold tracking-wide"
-              style={{ color: "#888", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-            >
-              스타일 태그 (최대 4개)
-            </label>
-            {aiB}
+        {/* 10) 공개 */}
+        {stepKey === "public" && (
+          <div className="rounded-2xl px-4 py-4 flex items-center justify-between" style={{ backgroundColor: isPublic ? "#FEFCE8" : "#F8F8F8", border: `1px solid ${isPublic ? "#EDD83A" : "#F0F0F0"}` }}>
+            <div className="flex-1 min-w-0 mr-4">
+              <p className="text-[14px] font-bold" style={{ color: DARK, fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{isPublic ? "🌐 발견 피드에 공개" : "🔒 비공개 (나만 보기)"}</p>
+              <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "#AAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>{isPublic ? "다른 사람들이 이 옷을 볼 수 있어요." : "나만 볼 수 있어요. 나중에 바꿀 수 있어요."}</p>
+            </div>
+            <button onClick={() => setIsPublic((v) => !v)} className="shrink-0 rounded-full" style={{ width: 48, height: 28, backgroundColor: isPublic ? YELLOW : "#DDD", position: "relative" }} aria-label="공개 전환">
+              <div className="absolute top-1 rounded-full bg-white" style={{ width: 20, height: 20, left: isPublic ? 24 : 4, transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.18)" }} />
+            </button>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {STYLE_TAGS.map((tag) => {
-              const isActive = styleTags.includes(tag);
-              const maxed    = styleTags.length >= 4 && !isActive;
-              return (
-                <button
-                  key={tag}
-                  onClick={() => toggleStyleTag(tag)}
-                  disabled={maxed}
-                  className="px-3 py-1.5 rounded-full text-[12px] font-medium transition-all"
-                  style={{
-                    backgroundColor: isActive ? DARK : "#F2F2F2",
-                    color:           isActive ? "white" : maxed ? "#CCCCCC" : "#666",
-                    fontFamily:      "'Spoqa Han Sans Neo', sans-serif",
-                  }}
-                >
-                  {tag}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 나만의 무드 — freeform custom mood text */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-1.5">
-            <label
-              className="text-[12px] font-bold tracking-wide"
-              style={{ color: "#888", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-            >
-              나만의 무드
-            </label>
-            <span
-              className="text-[9px] px-1.5 py-0.5 rounded-full"
-              style={{ backgroundColor: "#F0F0F0", color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-            >
-              선택
-            </span>
-          </div>
-          <input
-            type="text"
-            value={customMood}
-            onChange={(e) => setCustomMood(e.target.value)}
-            placeholder="이 아이템만의 특별한 무드를 적어보세요 (예: 파리지앵 느낌, 주말 브런치)"
-            className="w-full rounded-xl px-4 py-3 text-[13px] outline-none"
-            style={{
-              backgroundColor: "#F8F8F8",
-              border:          "1.5px solid #F0F0F0",
-              color:           DARK,
-              fontFamily:      "'Spoqa Han Sans Neo', sans-serif",
-            }}
-          />
-        </div>
+        )}
       </div>
 
-      {/* ── Public toggle — default private, opt-in to public ── */}
-      <div className="mx-5 mb-4 mt-1">
-        <div
-          className="rounded-2xl px-4 py-4 flex items-center justify-between"
-          style={{
-            backgroundColor: isPublic ? "#FEFCE8" : "#F8F8F8",
-            border:          `1px solid ${isPublic ? "#EDD83A" : "#F0F0F0"}`,
-            transition:      "all 0.2s",
-          }}
-        >
-          <div className="flex-1 min-w-0 mr-4">
-            <p className="text-[13px] font-bold" style={{ color: DARK, fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
-              {isPublic ? "🌐 발견 피드에 공개" : "🔒 비공개 아이템"}
-            </p>
-            <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
-              {isPublic
-                ? "다른 사람들이 이 아이템을 볼 수 있어요."
-                : "나만 볼 수 있어요. 나중에 상세 화면에서도 전환 가능해요."}
-            </p>
-          </div>
+      {/* ── 퍼널 푸터: 건너뛰기 / 다음 (또는 등록) ── */}
+      <div className="shrink-0 px-5 pb-5 pt-3" style={{ borderTop: "1px solid #F0F0F0" }}>
+        <div className="flex items-center gap-3">
+          {skippable && (
+            <button
+              onClick={goNext}
+              className="shrink-0 px-5 py-4 rounded-2xl text-[14px] font-bold"
+              style={{ backgroundColor: "#F2F2F2", color: "#999", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+            >
+              건너뛰기
+            </button>
+          )}
           <button
-            onClick={() => setIsPublic((v) => !v)}
-            aria-label={isPublic ? "공개를 비공개로 전환" : "비공개를 공개로 전환"}
-            className="shrink-0 rounded-full transition-all"
-            style={{ width: 48, height: 28, backgroundColor: isPublic ? YELLOW : "#DDD", position: "relative" }}
+            onClick={goNext}
+            disabled={(stepKey === "photo" && !photoReady) || saved || isProcessing}
+            className="flex-1 py-4 rounded-2xl flex items-center justify-center gap-2 transition-all"
+            style={{
+              backgroundColor: saved ? "#2ECC71"
+                : (stepKey === "photo" && !photoReady) || isProcessing ? "#F0F0F0"
+                : YELLOW,
+              boxShadow: saved ? "0 4px 16px rgba(46,204,113,0.30)"
+                : (stepKey === "photo" && !photoReady) || isProcessing ? "none"
+                : "0 4px 16px rgba(245,194,0,0.30)",
+            }}
           >
-            <div
-              className="absolute top-1 rounded-full bg-white"
-              style={{ width: 20, height: 20, left: isPublic ? 24 : 4, transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.18)" }}
-            />
+            {saved ? (
+              <>
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <path d="M3 9L7 13L15 5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="text-[15px] font-bold text-white" style={{ fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>
+                  등록 완료!
+                </span>
+              </>
+            ) : (
+              <span
+                className="text-[15px] font-bold"
+                style={{
+                  color: (stepKey === "photo" && !photoReady) || isProcessing ? "#AAAAAA" : DARK,
+                  fontFamily: "'Spoqa Han Sans Neo', sans-serif",
+                }}
+              >
+                {isProcessing ? "분석 중…" : isLast ? "옷장에 등록하기" : "다음"}
+              </span>
+            )}
           </button>
         </div>
-      </div>
 
-      {/* ── CTA ── */}
-      <div className="shrink-0 px-5 pb-5 pt-3" style={{ borderTop: "1px solid #F0F0F0" }}>
-        <button
-          onClick={handleSave}
-          disabled={saved || isProcessing}
-          className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 transition-all"
-          style={{
-            backgroundColor: saved ? "#2ECC71" : isProcessing ? "#F0F0F0" : YELLOW,
-            boxShadow:        saved
-              ? "0 4px 16px rgba(46,204,113,0.30)"
-              : isProcessing ? "none"
-              : "0 4px 16px rgba(245,194,0,0.30)",
-          }}
-        >
-          {saved ? (
-            <>
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path d="M3 9L7 13L15 5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <span
-                className="text-[15px] font-bold text-white"
-                style={{ fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
-              >
-                등록 완료!
-              </span>
-            </>
-          ) : (
-            <span
-              className="text-[15px] font-bold"
-              style={{
-                color:       isProcessing ? "#AAAAAA" : DARK,
-                fontFamily:  "'Spoqa Han Sans Neo', sans-serif",
-              }}
-            >
-              {isProcessing ? "분석 중…" : "아이템 등록하기"}
-            </span>
-          )}
-        </button>
+        {/* 나머지 건너뛰고 바로 등록 */}
+        {canFinishEarly && !saved && !isProcessing && (
+          <button
+            onClick={handleSave}
+            className="w-full text-center mt-3 text-[13px] font-medium"
+            style={{ color: "#AAAAAA", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}
+          >
+            나머지 건너뛰고 바로 등록하기
+          </button>
+        )}
       </div>
 
       {/* ── Pipeline loading overlay ── */}

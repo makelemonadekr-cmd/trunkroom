@@ -39,6 +39,11 @@ import {
 import { zoneItemImg, zoneCoordiImg } from "../../lib/localImages";
 import StyleBoardTemplate from "../../components/StyleBoardTemplate.jsx";
 
+// ─── 심플 홈 플래그 ───────────────────────────────────────────────────────────
+// true: 홈을 핵심(본전·오늘·날씨)만 노출. 카테고리·노브라블럼 스폰서 섹션 숨김.
+// false: 전체 섹션 노출 (코드·기능은 항상 보존).
+const SIMPLE_HOME = true;
+
 // ─── 옷장 구원템 (NoBrablem sponsored / sister brand products) ─────────────────
 // 같은 회사 (메이크레모네이드) 제품. 클릭 시 외부 쇼핑몰로 이동.
 const NOBRABLEM_PRODUCTS = [
@@ -2142,15 +2147,18 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
           closetItems={closetItems}
         />
 
-        {/* ④ My closet by category */}
-        <Categories
-          onMorePress={(data) => setFullList(data)}
-          onItemSelect={onItemTap}
-          closetItems={closetItems}
-        />
-
-        {/* ⑤ 옷장 구원템 — 노브라블럼 (자사 브랜드, 실링크) */}
-        <ClosetSavorSection />
+        {/* ④ 카테고리·스폰서 섹션 — 심플 홈에서 숨김 (옷장 탭과 중복).
+            SIMPLE_HOME=false 로 두면 다시 노출됨. 코드·기능은 보존. */}
+        {!SIMPLE_HOME && (
+          <>
+            <Categories
+              onMorePress={(data) => setFullList(data)}
+              onItemSelect={onItemTap}
+              closetItems={closetItems}
+            />
+            <ClosetSavorSection />
+          </>
+        )}
 
         <Footer onLegalOpen={onLegalOpen} />
       </div>

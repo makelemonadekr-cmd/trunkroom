@@ -57,13 +57,9 @@ export default function TopBar({ notificationCount = 0, onSearchTap, onFavorites
         {onMenuTap && (
           <button className="w-11 h-11 flex items-center justify-center transition-transform active:scale-90" onClick={onMenuTap} aria-label="메뉴">
             <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-              <circle cx="11" cy="11" r="2.6" stroke="#333" strokeWidth="1.5" />
-              <path
-                d="M11 2.8V5M11 17V19.2M19.2 11H17M5 11H2.8M16.8 5.2L15.3 6.7M6.7 15.3L5.2 16.8M16.8 16.8L15.3 15.3M6.7 6.7L5.2 5.2"
-                stroke="#333"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
+              <path d="M3 6H19" stroke="#333" strokeWidth="1.8" strokeLinecap="round" />
+              <path d="M3 11H19" stroke="#333" strokeWidth="1.8" strokeLinecap="round" />
+              <path d="M3 16H19" stroke="#333" strokeWidth="1.8" strokeLinecap="round" />
             </svg>
           </button>
         )}

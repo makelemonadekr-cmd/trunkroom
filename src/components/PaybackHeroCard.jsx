@@ -54,61 +54,60 @@ export default function PaybackHeroCard({ items = [], freqMap = new Map(), isGue
   const recoveryPct = s.totalInvested > 0 ? Math.round((s.totalExtracted / s.totalInvested) * 100) : 0;
   const hasData = !isGuest && s.pricedCount > 0;
 
+  // 데이터 있을 때 상황별 헤드라인 (팝하게)
+  const dataHead =
+    s.doneCount > 0       ? `본전 ${s.doneCount}벌 뽑았어요 🎉`
+    : s.almostList.length > 0 ? `${s.almostList.length}벌 본전 임박 🔥`
+    : s.lockedCount > 0   ? `${s.lockedCount}벌이 잠자는 중 💤`
+    : "옷장이 잘 돌아가요 ✨";
+
   return (
     <div className="px-4 pt-3 pb-1">
       <button
         onClick={onGoToCloset}
-        className="w-full flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-left transition-transform active:scale-[0.98]"
-        style={{ backgroundColor: "#FFF9E3", border: "1px solid #F6E6A8" }}
+        className="w-full flex items-center gap-3 rounded-[22px] px-4 py-3 text-left transition-transform active:scale-[0.97]"
+        style={{
+          background: "linear-gradient(115deg, #FFE14D 0%, #FFC73A 55%, #FFB52E 100%)",
+          boxShadow: "0 6px 18px rgba(255,179,46,0.42)",
+        }}
       >
-        {/* 아이콘 */}
+        {/* 코인 */}
         <div
           className="shrink-0 flex items-center justify-center rounded-full"
-          style={{ width: 34, height: 34, backgroundColor: YELLOW }}
+          style={{ width: 44, height: 44, backgroundColor: "white", boxShadow: "0 2px 7px rgba(0,0,0,0.13)" }}
         >
-          <span style={{ fontSize: 17 }}>💰</span>
+          <span style={{ fontSize: 23 }}>💸</span>
         </div>
 
         {/* 내용 */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[13px] font-bold" style={{ color: DARK, fontFamily: FONT }}>
-              옷장 본전
-            </span>
-            {hasData && (
-              <span className="text-[13px] font-bold shrink-0" style={{ color: "#B8860B", fontFamily: FONT }}>
-                회수율 {recoveryPct}%
-              </span>
-            )}
-          </div>
-
           {hasData ? (
             <>
-              <div className="mt-1.5 rounded-full overflow-hidden" style={{ height: 5, backgroundColor: "#F0E4B8" }}>
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${Math.max(2, Math.min(100, recoveryPct))}%`,
-                    background: `linear-gradient(90deg, ${YELLOW}, ${MINT})`,
-                    transition: "width 0.7s cubic-bezier(0.22, 1, 0.36, 1)",
-                  }}
-                />
-              </div>
-              <p className="text-[11px] mt-1 truncate" style={{ color: "#9A8A55", fontFamily: FONT }}>
-                묶인 돈 {formatKRW(s.lockedMoney)} · 본전 완료 {s.doneCount}벌
+              <p className="text-[15.5px] font-extrabold leading-tight" style={{ color: "#1a1a1a", fontFamily: FONT, letterSpacing: "-0.03em" }}>
+                {dataHead}
+              </p>
+              <p className="text-[11.5px] font-bold mt-0.5 truncate" style={{ color: "#8A5A00", fontFamily: FONT }}>
+                묶인 돈 {formatKRW(s.lockedMoney)} · 회수율 {recoveryPct}%
               </p>
             </>
           ) : (
-            <p className="text-[11.5px] mt-0.5" style={{ color: "#9A8A55", fontFamily: FONT }}>
-              이 옷 한 번 입는 데 얼마였을까? 계산해볼까요?
-            </p>
+            <>
+              <p className="text-[15.5px] font-extrabold leading-tight" style={{ color: "#1a1a1a", fontFamily: FONT, letterSpacing: "-0.03em" }}>
+                내 옷, 한 번에 얼마? 💸
+              </p>
+              <p className="text-[11.5px] font-bold mt-0.5" style={{ color: "#8A5A00", fontFamily: FONT }}>
+                사면 본전 뽑을 때까지 같이 세어봐요
+              </p>
+            </>
           )}
         </div>
 
         {/* 화살표 */}
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0">
-          <path d="M6 3.5L10.5 8L6 12.5" stroke="#C9A227" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <div className="shrink-0 flex items-center justify-center rounded-full" style={{ width: 27, height: 27, backgroundColor: "rgba(255,255,255,0.55)" }}>
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+            <path d="M6 3.5L10.5 8L6 12.5" stroke="#7A4A00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
       </button>
     </div>
   );

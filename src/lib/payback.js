@@ -160,6 +160,66 @@ export function paybackColor(pb) {
   return PAYBACK_COLORS.start;
 }
 
+// ─── 리세일 추정 + 판매글 (잠자는 돈 → 현금) ────────────────────────────────
+const CONDITION_RESALE_RATIO = {
+  "새 상품":     0.55,
+  "거의 새 것":  0.45,
+  "상태 좋음":   0.35,
+  "사용감 있음": 0.25,
+  "상태 나쁨":   0.15,
+};
+
+/**
+ * 중고 예상가 — 구매가 × 상태비율 − 착용 감가, 천원 단위 반올림.
+ * @returns {number}
+ */
+export function estimateResalePrice(item, wears = 0) {
+  const price = itemPrice(item);
+  if (!price) return 0;
+  let ratio = CONDITION_RESALE_RATIO[item.condition] ?? 0.30;
+  ratio -= Math.min(0.10, wears * 0.01); // 많이 입었으면 살짝 더 감가
+  const est = Math.round((price * ratio) / 1000) * 1000;
+  return Math.max(1000, est);
+}
+
+/**
+ * 잠자는 옷 — 가격 있고 한 번도 안 입은 아이템 (전체, 가격 내림차순).
+ * @returns {Array<{ item, price, resale }>}
+ */
+export function getSleepingItems(items = [], freqMap = new Map()) {
+  return items
+    .filter((i) => itemPrice(i) > 0 && (freqMap.get(i.id) ?? 0) === 0 && !(i.is_for_sale ?? i.isForSale))
+    .sort((a, b) => itemPrice(b) - itemPrice(a))
+    .map((item) => ({ item, price: itemPrice(item), resale: estimateResalePrice(item, 0) }));
+}
+
+/**
+ * 당근·번개용 판매글 자동 생성 (템플릿).
+ * @returns {{ title:string, price:number, body:string }}
+ */
+export function generateListing(item) {
+  const name  = item.displayName ?? item.name ?? "옷";
+  const brand = item.brand && !name.includes(item.brand) ? `${item.brand} ` : "";
+  // 색상은 이름에 이미 들어있으면 중복으로 안 붙임
+  const color = item.color && !name.includes(item.color) ? `${item.color} ` : "";
+  const cond  = item.condition ?? "상태 좋음";
+  const cat   = itemCategory(item);
+  const size  = item.size ? `사이즈 ${item.size}, ` : "";
+  const seasons = Array.isArray(item.season) ? item.season.filter(Boolean) : [];
+
+  const title = `${brand}${color}${name}`.replace(/\s+/g, " ").trim();
+  const tags = ["#트렁크룸", cat ? `#${cat}` : "", item.brand ? `#${item.brand}` : ""].filter(Boolean).join(" ");
+  const body = [
+    `${brand}${name} 판매해요.`,
+    `상태: ${cond}`,
+    size || seasons.length ? `${size}${seasons.length ? `${seasons.join("·")} 옷이에요.` : ""}`.trim() : "",
+    "깨끗하게 보관했어요. 직거래·택배 모두 가능합니다 :)",
+    tags,
+  ].filter(Boolean).join("\n");
+
+  return { title, price: estimateResalePrice(item, 0), body };
+}
+
 // ─── 이번 달 통계 (데일리 루프 머니 요약) ────────────────────────────────────
 /**
  * @param {Object[]} items   — closet items

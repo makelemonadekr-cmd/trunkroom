@@ -22,6 +22,7 @@ import { useWearLogs, getItemWearFrequency } from "../../hooks/useWearLogs.js";
 import PaybackHeroCard from "../../components/PaybackHeroCard.jsx";
 import TodayCard from "../../components/TodayCard.jsx";
 import QuickWearSheet from "../../components/QuickWearSheet.jsx";
+import SleepingMoneyScreen from "../../components/SleepingMoneyScreen.jsx";
 import { getMonthlyStats } from "../../lib/payback.js";
 import { showToast } from "../../lib/toastUtils.js";
 import { useNotifications } from "../../hooks/useNotifications.js";
@@ -1923,6 +1924,7 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
   const [selectedOutfit,    setSelectedOutfit]    = useState(null);
   const [showWearSheet,     setShowWearSheet]     = useState(false);
   const [savingWear,        setSavingWear]        = useState(false);
+  const [showMoney,         setShowMoney]         = useState(false);
 
   // ── Real data for today's outfit card ──────────────────────────────────────
   const { user }                              = useAuth();
@@ -2152,6 +2154,15 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
         />
       )}
 
+      {/* 잠자는 돈 화면 */}
+      {showMoney && (
+        <SleepingMoneyScreen
+          closetItems={closetItems}
+          wearFreqMap={wearFreqMap}
+          onClose={() => setShowMoney(false)}
+        />
+      )}
+
       <TopBar
         notificationCount={notifUnread}
         onSearchTap={() => setSearchOpen(true)}
@@ -2168,7 +2179,12 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
           freqMap={wearFreqMap}
           isGuest={!user}
           onItemTap={onItemTap}
-          onGoToCloset={onGoToCloset}
+          onGoToCloset={() => {
+            // 가격 있는 옷이 있으면 "잠자는 돈" 화면, 없으면 옷장으로(시작 유도)
+            const hasPriced = user && closetItems.some((i) => Number(i.price) > 0);
+            if (hasPriced) setShowMoney(true);
+            else onGoToCloset();
+          }}
         />
 
         {/* ② 오늘 데일리 카드 — 날씨 + 오늘 입은 옷 기록 + 이번 달 머니 */}

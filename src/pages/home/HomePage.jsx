@@ -20,6 +20,10 @@ import {
 import { useAuth }          from "../../hooks/useAuth.js";
 import { useWearLogs, getItemWearFrequency } from "../../hooks/useWearLogs.js";
 import PaybackHeroCard from "../../components/PaybackHeroCard.jsx";
+import TodayCard from "../../components/TodayCard.jsx";
+import QuickWearSheet from "../../components/QuickWearSheet.jsx";
+import { getMonthlyStats } from "../../lib/payback.js";
+import { showToast } from "../../lib/toastUtils.js";
 import { useNotifications } from "../../hooks/useNotifications.js";
 import { useCloset }   from "../../hooks/useCloset.js";
 import { useStyles }   from "../../hooks/useStyles.js";
@@ -1917,10 +1921,12 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
   const [favoritesOpen,     setFavoritesOpen]     = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [selectedOutfit,    setSelectedOutfit]    = useState(null);
+  const [showWearSheet,     setShowWearSheet]     = useState(false);
+  const [savingWear,        setSavingWear]        = useState(false);
 
   // ── Real data for today's outfit card ──────────────────────────────────────
   const { user }                              = useAuth();
-  const { history }                           = useWearLogs(user?.id);
+  const { history, saveLog, stats: wearStats } = useWearLogs(user?.id);
   const { items: rawClosetItems }             = useCloset(user?.id);
   // Normalize snake_case DB rows → camelCase UI shape (matches RecordPage/CalendarPage)
   const closetItems = useMemo(
@@ -1946,6 +1952,30 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
   const todayRecord  = history[todayStr()] ?? null;
   // 본전 게임 — itemId → 착용 횟수 맵
   const wearFreqMap  = useMemo(() => getItemWearFrequency(history), [history]);
+  // 데일리 루프 — 오늘 입은 옷 + 이번 달 머니 요약
+  const monthlyStats = useMemo(() => {
+    const d = new Date();
+    return getMonthlyStats(closetItems, history, d.getFullYear(), d.getMonth());
+  }, [closetItems, history]);
+  const todayWornItems = useMemo(() => {
+    const ids = todayRecord?.itemIds ?? [];
+    return ids.map((id) => closetItems.find((i) => i.id === id)).filter(Boolean);
+  }, [todayRecord, closetItems]);
+
+  async function handleSaveWear(ids) {
+    if (!user?.id) { showToast("로그인 후 이용할 수 있어요", "warning"); return; }
+    setSavingWear(true);
+    const existing = history[todayStr()] ?? {};
+    const { error } = await saveLog(todayStr(), {
+      itemIds:  ids,
+      note:     existing.note ?? "",
+      photoUrl: existing.photoUrl ?? null,
+    });
+    setSavingWear(false);
+    if (error) { showToast("기록에 실패했어요", "error"); return; }
+    setShowWearSheet(false);
+    showToast(ids.length ? `${ids.length}벌 기록 완료! 회당 단가 내려갔어요 🔥` : "오늘 기록을 비웠어요", "success");
+  }
   // All saved styles for today — supports multiple styles per day
   const todayStyles  = (styles ?? []).filter((s) => s.dateStr === todayStr());
   // backward-compat single ref (first/latest style)
@@ -2111,6 +2141,17 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
       )}
 
 
+      {/* 오늘 입은 옷 빠른 기록 시트 */}
+      {showWearSheet && (
+        <QuickWearSheet
+          items={closetItems}
+          initialSelected={todayRecord?.itemIds ?? []}
+          onSave={handleSaveWear}
+          onClose={() => setShowWearSheet(false)}
+          saving={savingWear}
+        />
+      )}
+
       <TopBar
         notificationCount={notifUnread}
         onSearchTap={() => setSearchOpen(true)}
@@ -2130,14 +2171,17 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
           onGoToCloset={onGoToCloset}
         />
 
-        {/* ② Today's outfit record — square card, no weather */}
-        <TodayRecordCard
-          onRecordToday={onGoToRecord}
-          todayRecord={todayRecord}
-          closetItems={closetItems}
-          todayStyle={todayStyle}
-          todayStyles={todayStyles}
-          onEditStyle={onEditStyle}
+        {/* ② 오늘 데일리 카드 — 날씨 + 오늘 입은 옷 기록 + 이번 달 머니 */}
+        <TodayCard
+          weather={weather}
+          todayItems={todayWornItems}
+          monthly={monthlyStats}
+          streak={wearStats?.streak ?? 0}
+          onOpenLog={() => {
+            if (!user) { showToast("로그인 후 이용할 수 있어요", "warning"); return; }
+            setShowWearSheet(true);
+          }}
+          onItemTap={onItemTap}
         />
 
         {/* ③ Weather + outfit recommendation (tap pieces to find closet items) */}

@@ -159,3 +159,39 @@ export function paybackColor(pb) {
   if (pb.progress > 0)    return PAYBACK_COLORS.going;
   return PAYBACK_COLORS.start;
 }
+
+// ─── 이번 달 통계 (데일리 루프 머니 요약) ────────────────────────────────────
+/**
+ * @param {Object[]} items   — closet items
+ * @param {Object}   history — { [dateStr"YYYY-MM-DD"]: { itemIds } } (useWearLogs)
+ * @param {number}   year
+ * @param {number}   month0  — 0-indexed month
+ * @returns {{ wearEvents:number, itemsWorn:number, extracted:number, daysWorn:number }}
+ *   wearEvents : 이번 달 착용 횟수(아이템 단위 합)
+ *   itemsWorn  : 이번 달 입은 서로 다른 아이템 수
+ *   extracted  : 이번 달 옷장에서 "뽑은 값"(회당 목표단가 × 착용횟수, 가격 있는 옷만)
+ *   daysWorn   : 이번 달 기록한 날 수
+ */
+export function getMonthlyStats(items = [], history = {}, year, month0) {
+  const prefix = `${year}-${String(month0 + 1).padStart(2, "0")}`;
+  const byId = new Map(items.map((i) => [i.id, i]));
+  let wearEvents = 0, extracted = 0, daysWorn = 0;
+  const worn = new Set();
+
+  Object.keys(history).forEach((dateStr) => {
+    if (!dateStr.startsWith(prefix)) return;
+    const ids = history[dateStr]?.itemIds ?? [];
+    if (ids.length) daysWorn++;
+    ids.forEach((id) => {
+      wearEvents++;
+      worn.add(id);
+      const item = byId.get(id);
+      if (item) {
+        const pb = getItemPayback(item, 1);
+        if (pb.hasPrice) extracted += Math.round(pb.price / pb.targetWears);
+      }
+    });
+  });
+
+  return { wearEvents, itemsWorn: worn.size, extracted, daysWorn };
+}

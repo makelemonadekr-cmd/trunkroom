@@ -7,6 +7,8 @@
  * prefix with the absolute API base URL.
  */
 
+import { tryNativeBgRemoval } from "./nativeBgRemoval.js";
+
 const API_BASE = import.meta.env.VITE_AI_BASE_URL ?? "";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -155,23 +157,40 @@ export async function runUploadPipeline(file, {
   const originalMimeType = file.type || "image/jpeg";
 
   try {
-    // Step 1 — background removal (best-effort; continue with original if server is down)
+    // Step 1 — background removal
     onBgStart();
-    let bgResult;
-    try {
-      bgResult = await uploadForBgRemoval(file, accessToken);
-    } catch (bgErr) {
-      // 429 = rate limit exceeded → propagate immediately, don't silently fall back
-      if (bgErr.isRateLimit) throw bgErr;
-      console.warn("[uploadPipeline] bg removal unavailable, using original:", bgErr.message);
+    let bgResult = null;
+
+    // 1a. 아이폰 네이티브 누끼 먼저 (iOS 17+, 온디바이스·무료·API 비용 0)
+    const native = await tryNativeBgRemoval(originalBase64);
+    if (native?.bgRemoved && native.processedBase64) {
       bgResult = {
-        bgRemoved:        false,
+        bgRemoved:        true,
         originalBase64,
         originalMimeType,
-        processedBase64:  null,
+        processedBase64:  native.processedBase64,
         processedMimeType: "image/png",
-        error:            bgErr.message,
+        error:            null,
       };
+    }
+
+    // 1b. 네이티브 미사용/실패 → remove.bg 서버 (best-effort)
+    if (!bgResult) {
+      try {
+        bgResult = await uploadForBgRemoval(file, accessToken);
+      } catch (bgErr) {
+        // 429 = rate limit exceeded → propagate immediately, don't silently fall back
+        if (bgErr.isRateLimit) throw bgErr;
+        console.warn("[uploadPipeline] bg removal unavailable, using original:", bgErr.message);
+        bgResult = {
+          bgRemoved:        false,
+          originalBase64,
+          originalMimeType,
+          processedBase64:  null,
+          processedMimeType: "image/png",
+          error:            bgErr.message,
+        };
+      }
     }
 
     const displayBase64   = bgResult.bgRemoved && bgResult.processedBase64

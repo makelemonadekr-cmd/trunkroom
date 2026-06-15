@@ -688,16 +688,6 @@ export default function AddClosetItemScreen({ onClose, onSave, photoSource = nul
         {/* 1) 사진 */}
         {stepKey === "photo" && (
           <div>
-            {accessToken && (
-              <div className="flex gap-2 mb-3">
-                <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: removeBgUsage.remaining > 0 ? "#F0FFF4" : "#FFF0F0", color: removeBgUsage.remaining > 0 ? "#276749" : "#C53030", fontFamily: "'Spoqa Han Sans Neo', sans-serif", border: `1px solid ${removeBgUsage.remaining > 0 ? "#C6F6D5" : "#FED7D7"}` }}>
-                  배경 제거 {removeBgUsage.remaining}/{removeBgUsage.limit}회
-                </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: analyzeUsage.remaining > 0 ? "#EBF8FF" : "#FFF0F0", color: analyzeUsage.remaining > 0 ? "#2C5282" : "#C53030", fontFamily: "'Spoqa Han Sans Neo', sans-serif", border: `1px solid ${analyzeUsage.remaining > 0 ? "#BEE3F8" : "#FED7D7"}` }}>
-                  AI 분석 {analyzeUsage.remaining}/{analyzeUsage.limit}회
-                </span>
-              </div>
-            )}
             <div className="grid grid-cols-3 gap-2">
               {slots.map((img, i) => (
                 <PhotoSlot

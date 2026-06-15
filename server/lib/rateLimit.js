@@ -4,9 +4,10 @@
  * AI API 월간 사용 횟수 제한 + 로그 기록.
  * service role key로 RLS를 우회해 서버에서 직접 INSERT합니다.
  *
- * Free tier :
- *   - remove_background : 월 1회
- *   - analyze_clothing  : 월 10회
+ * 정책(2026-06): 누끼는 아이폰 네이티브(무료)로 처리하고, AI는 우리 무기가
+ * 아니므로 과금 압박을 제거. 한도는 "유저가 못 느끼는 악용 방지용 상한"만 유지.
+ *   - remove_background : 월 100회 (네이티브 폴백용, 사실상 무제한)
+ *   - analyze_clothing  : 월 60회 (OpenAI 비용 폭주 방지용 조용한 상한)
  * Premium   : 무제한 (Infinity)
  */
 
@@ -20,15 +21,15 @@ function getAdminClient() {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
-// 무료 월간 한도 (action별 구분)
+// 무료 월간 한도 (사실상 무제한 — 악용 방지용 상한)
 const FREE_LIMITS = {
-  remove_background: 1,
-  analyze_clothing:  10,
+  remove_background: 100,
+  analyze_clothing:  60,
 };
 
 // 프리미엄 월간 한도
 const PREMIUM_LIMITS = {
-  remove_background: 20,
+  remove_background: Infinity,
   analyze_clothing:  Infinity,
 };
 

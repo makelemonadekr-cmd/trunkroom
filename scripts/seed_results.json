@@ -1,0 +1,34 @@
+[
+  {
+    "file": "/Users/yoon/Library/CloudStorage/Dropbox/01. MAKE LEMONADE (법인)/00. 사업운영 ｜ 트렁크룸, 노브라블럼 ♥/1. 트렁크룸｜TRUNK ROOM/06. 상품관련/☆☆☆리얼윤킴옷장/8. 신발 (SHOES)/IMG_0922.JPG | /Users/yoon/Library/CloudStorage/Dropbox/01. MAKE LEMONADE (법인)/00. 사업운영 ｜ 트렁크룸, 노브라블럼 ♥/1. 트렁크룸｜TRUNK ROOM/06. 상품관련/☆☆☆리얼윤킴옷장/8. 신발 (SHOES)/IMG_0923.JPG | /Users/yoon/Library/CloudStorage/Dropbox/01. MAKE LEMONADE (법인)/00. 사업운영 ｜ 트렁크룸, 노브라블럼 ♥/1. 트렁크룸｜TRUNK ROOM/06. 상품관련/☆☆☆리얼윤킴옷장/8. 신발 (SHOES)/IMG_0924.JPG",
+    "status": "ok",
+    "id": "ce055c69-1dfb-4fd4-8fb0-3cbb1cfa1f51",
+    "displayName": "블루 플랫 슈즈",
+    "mainCategory": "신발",
+    "confidence": 0.95,
+    "bgRemoved": true,
+    "needsReview": false,
+    "groupSize": 3
+  },
+  {
+    "file": "/Users/yoon/Library/CloudStorage/Dropbox/01. MAKE LEMONADE (법인)/00. 사업운영 ｜ 트렁크룸, 노브라블럼 ♥/1. 트렁크룸｜TRUNK ROOM/06. 상품관련/☆☆☆리얼윤킴옷장/8. 신발 (SHOES)/IMG_0925.JPG | /Users/yoon/Library/CloudStorage/Dropbox/01. MAKE LEMONADE (법인)/00. 사업운영 ｜ 트렁크룸, 노브라블럼 ♥/1. 트렁크룸｜TRUNK ROOM/06. 상품관련/☆☆☆리얼윤킴옷장/8. 신발 (SHOES)/IMG_0926.JPG",
+    "status": "ok",
+    "id": "c420823f-9e9c-4c57-b6aa-59a2655276be",
+    "displayName": "하늘색 플랫 슈즈",
+    "mainCategory": "신발",
+    "confidence": 0.95,
+    "bgRemoved": false,
+    "needsReview": false,
+    "groupSize": 2
+  },
+  {
+    "file": "/Users/yoon/Library/CloudStorage/Dropbox/01. MAKE LEMONADE (법인)/00. 사업운영 ｜ 트렁크룸, 노브라블럼 ♥/1. 트렁크룸｜TRUNK ROOM/06. 상품관련/☆☆☆리얼윤킴옷장/8. 신발 (SHOES)/IMG_0927.JPG",
+    "status": "ok",
+    "id": "0124cc7b-1a9d-4015-bfde-d3d3a2f21a4a",
+    "displayName": "하늘색 플랫 슈즈",
+    "mainCategory": "신발",
+    "confidence": 0.95,
+    "bgRemoved": false,
+    "needsReview": false
+  }
+]

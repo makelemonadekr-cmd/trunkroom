@@ -23,6 +23,7 @@ import PaybackHeroCard from "../../components/PaybackHeroCard.jsx";
 import TodayCard from "../../components/TodayCard.jsx";
 import QuickWearSheet from "../../components/QuickWearSheet.jsx";
 import SleepingMoneyScreen from "../../components/SleepingMoneyScreen.jsx";
+import ClosetWrappedScreen from "../../components/ClosetWrappedScreen.jsx";
 import { getMonthlyStats } from "../../lib/payback.js";
 import { showToast } from "../../lib/toastUtils.js";
 import { useNotifications } from "../../hooks/useNotifications.js";
@@ -1925,6 +1926,7 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
   const [showWearSheet,     setShowWearSheet]     = useState(false);
   const [savingWear,        setSavingWear]        = useState(false);
   const [showMoney,         setShowMoney]         = useState(false);
+  const [showWrapped,       setShowWrapped]       = useState(false);
 
   // ── Real data for today's outfit card ──────────────────────────────────────
   const { user }                              = useAuth();
@@ -2163,6 +2165,16 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
         />
       )}
 
+      {/* 옷장 결산 리포트 */}
+      {showWrapped && (
+        <ClosetWrappedScreen
+          closetItems={closetItems}
+          wearFreqMap={wearFreqMap}
+          displayName={user?.user_metadata?.display_name ?? user?.email?.split("@")[0] ?? "내"}
+          onClose={() => setShowWrapped(false)}
+        />
+      )}
+
       <TopBar
         notificationCount={notifUnread}
         onSearchTap={() => setSearchOpen(true)}
@@ -2199,6 +2211,24 @@ export default function HomePage({ onProductSelect, onItemTap, onLegalOpen, onGo
           }}
           onItemTap={onItemTap}
         />
+
+        {/* ②.5 옷장 결산 리포트 진입 (바이럴 + 대출 데모) */}
+        {user && (
+          <div className="px-4 pt-1 pb-2">
+            <button
+              onClick={() => setShowWrapped(true)}
+              className="w-full flex items-center gap-3 rounded-2xl px-4 py-3 text-left transition-transform active:scale-[0.98]"
+              style={{ background: "linear-gradient(120deg, #2a2418, #3a2f12)" }}
+            >
+              <span style={{ fontSize: 20 }}>📊</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13.5px] font-bold" style={{ color: "white", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>내 옷장 결산 보기</p>
+                <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.6)", fontFamily: "'Spoqa Han Sans Neo', sans-serif" }}>올해 내 옷장이 얼마나 일했을까?</p>
+              </div>
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M6 3.5L10.5 8L6 12.5" stroke="rgba(255,255,255,0.7)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+          </div>
+        )}
 
         {/* ③ Weather + outfit recommendation (tap pieces to find closet items) */}
         <WeatherSection

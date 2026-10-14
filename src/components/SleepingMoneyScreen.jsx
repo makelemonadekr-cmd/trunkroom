@@ -11,6 +11,7 @@ import {
 } from "../lib/payback.js";
 import { updateClosetItem } from "../services/closetService.js";
 import { showToast } from "../lib/toastUtils.js";
+import RecommendStrip from "./RecommendStrip.jsx";
 
 const FONT   = "'Spoqa Han Sans Neo', sans-serif";
 const DARK   = "#1a1a1a";
@@ -179,6 +180,11 @@ export default function SleepingMoneyScreen({ closetItems = [], wearFreqMap = ne
             })}
           </div>
         )}
+
+        {/* 비운 자리, 이건 어때요 — 노브라블럼 (자사 채널) */}
+        <div style={{ borderTop: "1px solid #F5F5F5", marginTop: 8 }}>
+          <RecommendStrip title="비운 자리, 이건 어때요" subtitle="안 입는 옷 정리하고 진짜 필요한 베이직" />
+        </div>
       </div>
 
       {sellItem && (

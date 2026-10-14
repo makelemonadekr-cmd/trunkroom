@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>트렁크룸 — 사업 방향 & 신보 퍼스트펭귄 준비 메모</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Apple SD Gothic Neo", "Spoqa Han Sans Neo", "Malgun Gothic", sans-serif;
+    color: #1a1a1a; font-size: 11.5px; line-height: 1.65;
+    max-width: 760px; margin: 0 auto; padding: 24px;
+  }
+  @media print {
+    body { padding: 0; max-width: none; }
+    .page-break { page-break-before: always; }
+    a { color: #1a1a1a; text-decoration: none; }
+  }
+  h1 { font-size: 22px; letter-spacing: -0.5px; line-height: 1.3; }
+  h2 {
+    font-size: 15px; margin: 26px 0 10px; padding: 7px 12px;
+    background: #1a1a1a; color: #F5C200; border-radius: 6px; letter-spacing: -0.3px;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  h3 { font-size: 12.5px; margin: 14px 0 6px; color: #1a1a1a; }
+  p { margin: 6px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 12px; font-size: 11px; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { background: #FFF3C4; font-weight: 700; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .head {
+    border-bottom: 4px solid #F5C200; padding-bottom: 14px; margin-bottom: 18px;
+    display: flex; justify-content: space-between; align-items: flex-end;
+  }
+  .meta { font-size: 10.5px; color: #777; text-align: right; line-height: 1.5; }
+  .big-quote {
+    background: #FFF9E3; border-left: 5px solid #F5C200; padding: 12px 16px;
+    margin: 12px 0; font-size: 13.5px; font-weight: 700; border-radius: 0 8px 8px 0;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .flow {
+    display: flex; gap: 8px; margin: 12px 0; text-align: center;
+  }
+  .flow .box {
+    flex: 1; border: 2px solid #1a1a1a; border-radius: 10px; padding: 10px 8px;
+  }
+  .flow .box .tag { font-size: 9.5px; font-weight: 700; color: #999; letter-spacing: 1px; }
+  .flow .box .name { font-size: 13px; font-weight: 800; margin: 2px 0; }
+  .flow .box .desc { font-size: 10px; color: #555; }
+  .arrow { align-self: center; font-size: 16px; font-weight: 800; color: #F5C200; }
+  ul, ol { margin: 6px 0 10px 18px; }
+  li { margin: 3px 0; }
+  .check li { list-style: none; margin-left: -18px; }
+  .small { font-size: 10px; color: #888; }
+  .warn { color: #C0392B; font-weight: 700; }
+  .ok { color: #1E8449; font-weight: 700; }
+  .fill { background: #FDF6E3; border: 1px dashed #C9A227; min-width: 60px; display: inline-block; text-align: center; color: #999; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .footer { margin-top: 28px; padding-top: 10px; border-top: 2px solid #1a1a1a; font-size: 10px; color: #888; display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div>
+    <p style="font-size:11px; font-weight:700; color:#C9A227; letter-spacing:2px;">CONFIDENTIAL — 내부 검토용</p>
+    <h1>트렁크룸 사업 방향 &amp; 수익 모델<br>신보 퍼스트펭귄 준비 메모</h1>
+  </div>
+  <div class="meta">
+    (주)메이크레모네이드 · 김윤<br>
+    작성 2026. 6. 12 · 영업점 상담 D-10<br>
+    내일 할 일: 사업계획서 초안 작성 (Claude와)
+  </div>
+</div>
+
+<div class="big-quote">
+  "옷은 만들어지고 → 입히고 → 쉬고 → 떠난다.<br>
+  우리는 이 전체 사이클을 운영하는 회사이고, 이미 세 조각을 다 갖고 있다."
+</div>
+
+<h2>1. 회사 구조 — 세 사업이 하나로 이어지는 그림</h2>
+
+<div class="flow">
+  <div class="box">
+    <p class="tag">만든다</p>
+    <p class="name">노브라블럼</p>
+    <p class="desc">D2C 패션 4채널<br>월 매출 약 2,000만원<br>(2026.5 정산 기준)<br>제조·물류·CS 검증</p>
+  </div>
+  <p class="arrow">→</p>
+  <div class="box" style="border-color:#C9A227; background:#FFFDF2;">
+    <p class="tag">입힌다 ★주인공</p>
+    <p class="name">트렁크룸 앱</p>
+    <p class="desc">디지털 옷장 + 본전 게임<br>앱스토어 출시 완료<br>AI 캡쳐 등록 (특허 검토)<br>옷장 = 소비 데이터</p>
+  </div>
+  <p class="arrow">→</p>
+  <div class="box">
+    <p class="tag">쉰다/떠난다</p>
+    <p class="name">트렁크룸 보관</p>
+    <p class="desc">계절옷 보관 + 위탁 리세일<br>별감·파티룸·에어비앤비<br>공간 운영 노하우 투입<br>(대출 자금으로 파일럿)</p>
+  </div>
+</div>
+
+<p><b>심사역에게 들리는 말:</b> "0에서 시작하는 스타트업이 아니다. 패션 커머스로 매출을 증명했고, 공간 운영으로 오프라인 역량을 증명했고, 그 둘을 잇는 플랫폼을 이미 출시했다. 자금은 검증된 조각을 연결하는 데 쓴다."</p>
+
+<h2>2. 앱 현황 — 지금 있는 것 (v3.0 "옷장 본전 게임")</h2>
+
+<table>
+  <tr><th style="width:30%">기능</th><th>상태</th></tr>
+  <tr><td><b>본전 게임</b> (핵심 차별화)</td><td>✅ 완성 — 옷마다 회당 단가·본전 게이지, 옷장 회수율, "묶인 돈" 통계, 원탭 착용 기록. 경쟁사(에이클로젯 등)가 안 하는 영역</td></tr>
+  <tr><td><b>AI 캡쳐 등록</b></td><td>✅ 완성 — 쇼핑 주문완료 스크린샷만 올리면 AI가 상품명·브랜드·가격 추출 → 자동 등록. 등록 마찰 3~7분 → 30초</td></tr>
+  <tr><td>AI 사진 등록</td><td>✅ 사진 → 카테고리·색상·계절 자동 분류 (OpenAI Vision)</td></tr>
+  <tr><td>옷장 관리 기본기</td><td>✅ 등록/편집/필터/즐겨찾기/인사이트(카테고리·브랜드·착용 통계)</td></tr>
+  <tr><td>착용 기록 + 캘린더</td><td>✅ 날짜별 착장 기록, 스타일북, 코디 캔버스</td></tr>
+  <tr><td>날씨 기반 추천</td><td>✅ 실시간 날씨 API + 옷장 연동 "오늘 뭐 입지"</td></tr>
+  <tr><td>구독 결제</td><td>⬜ 미구현 — UI만 존재. RevenueCat 연동 예정 (수익화 1순위)</td></tr>
+  <tr><td>AI 어시스턴트 연결 (MCP)</td><td>⬜ 설계 완료 — 유저가 자기 ChatGPT/Claude에 옷장을 연결 ("내 옷장 보고 짐 싸줘"). 국내 옷장 앱 중 최초 포지션</td></tr>
+  <tr><td>보관/리세일</td><td>⬜ 로드맵 — 대출 자금으로 파일럿</td></tr>
+</table>
+
+<h2>3. 수익 모델 — 4단계</h2>
+
+<table>
+  <tr><th>단계</th><th>수익원</th><th>단가/수수료</th><th>시점</th></tr>
+  <tr><td>1</td><td><b>프로 구독</b> — 무제한 옷장, 본전 리포트, AI 연결</td><td>월 3,900~4,900원</td><td>즉시 (결제 연동만 하면 됨)</td></tr>
+  <tr><td>2</td><td><b>교체 추천 제휴</b> — "본전 끝·수명 끝" 순간의 추천 → 쿠팡·무신사 제휴 + <b>노브라블럼 크로스셀</b></td><td>거래액 3~10%</td><td>1~2개월</td></tr>
+  <tr><td>3</td><td><b>리세일 연결</b> — "옷장에 묶인 돈" → 판매 위탁</td><td>판매가 20~30%</td><td>6개월</td></tr>
+  <tr><td>4</td><td><b>계절옷 보관 구독</b> — 앱에서 신청, 보관 옷 자동 디지털화</td><td>박스 월 7,900~12,900원</td><td>파일럿 (자금 용도)</td></tr>
+</table>
+
+<p><b>시너지 = 진짜 경제성:</b> 노브라블럼 고객 DB → 앱 초기 유저 (CAC 0원) / 앱 → 노브라블럼 자사 광고 채널 (광고비 절감) / 보관 고객의 안 입는 옷 → 리세일 매물 (매입 원가 0원)</p>
+
+<div class="page-break"></div>
+
+<h2>4. 신보 퍼스트펭귄 — 팩트 & 우리 상황</h2>
+
+<table>
+  <tr><th style="width:30%">요건</th><th>기준</th><th>우리</th></tr>
+  <tr><td>업력</td><td>사업 개시 7년 이하</td><td class="ok">✓ 2020.11.11 설립 → 5년 7개월 (2027.11까지 신청 가능 — 지금이 적기)</td></tr>
+  <tr><td>성장단계</td><td>연구개발 / 초기사업화 / 본격성장</td><td class="ok">✓ 본격성장 주장 가능 (매출 + 출시 앱 보유)</td></tr>
+  <tr><td>보증 한도</td><td>최대 40억 (3년 연차별)</td><td>1차 신청 6억 — 한도 대비 보수적, 무리 없음</td></tr>
+  <tr><td>보증비율</td><td>연차별 90~100%</td><td>—</td></tr>
+  <tr><td>자금 용도</td><td>운전자금</td><td>아래 배분안 참고</td></tr>
+</table>
+
+<h3>신청 6억 용도 배분 (초안 — 내일 같이 확정)</h3>
+<table>
+  <tr><th>항목</th><th>금액</th><th>내용</th></tr>
+  <tr><td>개발·인력 (40%)</td><td>2.4억</td><td>개발자/디자이너 채용, 결제·보관 시스템 구축</td></tr>
+  <tr><td>마케팅 (30%)</td><td>1.8억</td><td>앱 유저 확보 (퍼포먼스 + 콘텐츠), 노브라블럼 교차 활용</td></tr>
+  <tr><td>보관 파일럿 (20%)</td><td>1.2억</td><td>거점 1개 셋업 (랙·포장·물류), 별감 운영 노하우 투입</td></tr>
+  <tr><td>운영 예비 (10%)</td><td>0.6억</td><td>예비비</td></tr>
+</table>
+
+<h3>심사가 보는 것 vs 우리 답</h3>
+<table>
+  <tr><th>평가 포인트</th><th>우리 답</th></tr>
+  <tr><td>창업자 역량</td><td>연쇄 창업 — D2C 브랜드(매출 검증) + 공간 사업 운영 + 앱 출시까지 실행</td></tr>
+  <tr><td>아이디어 혁신성</td><td>① 본전 게임 (국내 최초 cost-per-wear 게임화) ② AI 캡쳐 등록 ③ AI 어시스턴트 연결(MCP) ④ 옷장-보관 O2O</td></tr>
+  <tr><td>시장성</td><td>패션테크·리커머스 성장 시장. 에이클로젯(옷장)·차란(리세일)·마타주(보관)가 각각 따로 하는 걸 한 사이클로 통합</td></tr>
+  <tr><td>상환 능력</td><td>기존 사업 현금흐름 (노브라블럼 + 공간 사업) — 신사업 실패해도 상환 가능 구조</td></tr>
+  <tr><td>고용 창출</td><td>현 2명 → 3개년 채용 계획 필요 <span class="warn">(아래 고민 항목)</span></td></tr>
+</table>
+
+<p class="warn">⚠ 주의: 커머스 회사로 보이면 불리. 발표 주인공은 반드시 트렁크룸(패션테크 플랫폼). 노브라블럼·별감은 "검증된 실행력 + 시너지 자산"으로 배치.</p>
+
+<h2>5. ★ 윤님이 오늘 밤 고민할 것들</h2>
+
+<ul class="check">
+  <li>☐ <b>① 고용 계획</b> — 6억 받으면 1년차에 몇 명 뽑을 건가? 어떤 직군부터? (예: 개발 1, 마케팅/콘텐츠 1, 보관 운영 1) → 3년 후 총 몇 명? 퍼스트펭귄 평가에서 중요.</li>
+  <li>☐ <b>② 보관 파일럿 공간</b> — 어디서 시작? 별감/심곡동 공간 일부 활용 가능? 아니면 신규 임차? 몇 평, 박스 몇 개 규모?</li>
+  <li>☐ <b>③ 3개년 매출 목표 감각</b> — 1년차/2년차/3년차 매출 얼마라고 말할 건가? (앱 구독 + 제휴 + 보관 + 노브라블럼 합산. 내일 모델 같이 만들 때 윤님의 "감"이 출발점)</li>
+  <li>☐ <b>④ 유저 목표</b> — 1년차 가입자 몇 명이 현실적? 노브라블럼 고객 DB가 몇 명인지 확인 (CAC 0원 스토리의 근거 숫자)</li>
+  <li>☐ <b>⑤ 트렁크룸-노브라블럼 법적 구조</b> — 둘 다 법인 안에 있나? 매출 증빙을 법인 재무제표로 일원화할 수 있는지 (세무사 확인)</li>
+  <li>☐ <b>⑥ 시연 시나리오</b> — 상담 때 폰으로 30초 시연: 캡쳐 등록 → 본전 게이지 → 묶인 돈. 어떤 옷/숫자가 인상적일까?</li>
+  <li>☐ <b>⑦ 영업점</b> — 어느 지점으로 갈지, 기존 거래 은행(보증서 대출 실행 은행)은 어디로 할지</li>
+  <li>☐ <b>⑧ 재무제표</b> — 2024·2025 결산 재무제표 준비 상태 확인 (세무사에게 요청)</li>
+</ul>
+
+<h2>6. 내일 같이 할 일 (Claude와)</h2>
+<ol>
+  <li><b>사업계획서 초안</b> — 위 구조 풀버전 (신보 제출용)</li>
+  <li><b>3개년 추정 손익 + 고용 계획표</b> — 오늘 밤 고민한 숫자로</li>
+  <li><b>노브라블럼 매출 증빙 1장</b> — 기존 정산 엑셀에서 월별 추이 차트</li>
+  <li><b>심사 시연용 데모 데이터</b> — 본전 게이지 예쁘게 채운 옷장</li>
+  <li>앱 기능 추가 작업 계속 (결제 연동 등)</li>
+</ol>
+
+<div class="footer">
+  <span>(주)메이크레모네이드 — 트렁크룸 · 노브라블럼 · 별감</span>
+  <span>2026.06.12 · Claude와 작성 · D-10</span>
+</div>
+
+</body>
+</html>
